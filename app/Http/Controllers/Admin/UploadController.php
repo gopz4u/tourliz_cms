@@ -35,8 +35,8 @@ class UploadController extends Controller
                 // Return the path relative to storage/app/public
                 $relativePath = 'images/' . $filename;
                 
-                // Get the public URL
-                $url = asset('storage/' . $relativePath);
+                // Use helper function to get URL with fallback
+                $url = getImageUrl($relativePath);
                 
                 return response()->json([
                     'success' => true,

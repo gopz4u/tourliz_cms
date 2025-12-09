@@ -25,9 +25,9 @@ class PackageResource extends JsonResource
             'currency' => $this->currency,
             'duration_days' => $this->duration_days,
             'duration_nights' => $this->duration_nights,
-            'image' => $this->image ? url('storage/' . $this->image) : null,
+            'image' => getImageUrl($this->image),
             'gallery' => $this->gallery ? array_map(function($img) {
-                return url('storage/' . $img);
+                return getImageUrl($img);
             }, $this->gallery) : [],
             'inclusions' => $this->inclusions ?? [],
             'exclusions' => $this->exclusions ?? [],

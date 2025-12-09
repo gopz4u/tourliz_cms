@@ -22,9 +22,9 @@ class ServiceResource extends JsonResource
             'short_description' => $this->short_description,
             'price' => $this->price,
             'currency' => $this->currency,
-            'image' => $this->image ? url('storage/' . $this->image) : null,
+            'image' => getImageUrl($this->image),
             'gallery' => $this->gallery ? array_map(function($img) {
-                return url('storage/' . $img);
+                return getImageUrl($img);
             }, $this->gallery) : [],
             'category' => $this->category,
             'icon' => $this->icon,

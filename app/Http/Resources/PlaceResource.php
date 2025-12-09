@@ -22,9 +22,9 @@ class PlaceResource extends JsonResource
             'short_description' => $this->short_description,
             'location' => $this->location,
             'region' => $this->region,
-            'image' => $this->image ? url('storage/' . $this->image) : null,
+            'image' => getImageUrl($this->image),
             'gallery' => $this->gallery ? array_map(function($img) {
-                return url('storage/' . $img);
+                return getImageUrl($img);
             }, $this->gallery) : [],
             'price' => $this->price,
             'rating' => $this->rating,

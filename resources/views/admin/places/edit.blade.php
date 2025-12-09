@@ -144,7 +144,13 @@
             $('#region').val(place.region || '');
             if (place.image) {
                 $('#image_path').val(place.image);
-                $('#image-preview').attr('src', place.image.startsWith('http') ? place.image : '/storage/' + place.image).show();
+                // Handle both full URLs and relative paths
+                let imageUrl = place.image;
+                if (!imageUrl.startsWith('http')) {
+                    // Check if symlink exists, otherwise use route
+                    imageUrl = place.image.startsWith('/') ? place.image : '/storage/' + place.image;
+                }
+                $('#image-preview').attr('src', imageUrl).show();
                 $('#image-preview-container button').show();
             }
             $('#price').val(place.price || '');

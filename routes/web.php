@@ -2,6 +2,7 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\StorageController;
 use App\Http\Controllers\Admin\PlaceController;
 use App\Http\Controllers\Admin\PackageController;
 use App\Http\Controllers\Admin\ServiceController;
@@ -34,6 +35,11 @@ Route::middleware('guest')->group(function () {
 
 // Logout Route (accessible to authenticated users)
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout')->middleware('auth');
+
+// Storage Route - Serve images when symlink doesn't exist
+Route::get('/storage/{path}', [StorageController::class, 'image'])
+    ->where('path', '.*')
+    ->name('storage.image');
 
 // Admin CMS Routes (Protected)
 Route::prefix('admin')->name('admin.')->middleware('auth')->group(function () {
