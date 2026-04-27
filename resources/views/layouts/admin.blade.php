@@ -447,6 +447,7 @@
                 transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
                 box-shadow: 5px 0 25px rgba(0,0,0,0.1);
                 border-radius: 0 24px 24px 0;
+                z-index: 1000;
             }
             .sidebar.show {
                 transform: translateX(0);
