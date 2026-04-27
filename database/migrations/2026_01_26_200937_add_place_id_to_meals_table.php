@@ -1,0 +1,28 @@
+<?php
+
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
+
+class AddPlaceIdToMealsTable extends Migration
+{
+    /**
+     * Run the migrations.
+     *
+     * @return void
+     */
+    public function up()
+    {
+        Schema::table('meals', function (Blueprint $table) {
+            $table->foreignId('place_id')->nullable()->after('id')->constrained('places')->onDelete('cascade');
+        });
+    }
+
+    public function down()
+    {
+        Schema::table('meals', function (Blueprint $table) {
+            $table->dropForeign(['place_id']);
+            $table->dropColumn('place_id');
+        });
+    }
+}

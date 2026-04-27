@@ -1,0 +1,5 @@
+resources/views/admin/b2b/edit.blade.php
+database/migrations/2026_01_27_015529_add_coupon_code_to_bookings_table.php
+database/migrations/2026_02_01_123757_change_default_currency_to_inr.php
+database/migrations/2026_02_01_125624_add_pricing_fields_to_packages_table.php
+database/migrations/2026_02_01_131441_add_supplier_id_to_packages_and_custom_itineraries.php

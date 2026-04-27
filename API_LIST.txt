@@ -1,0 +1,273 @@
+TOURLIZ CMS API - MOBILE APP DEVELOPMENT GUIDE
+================================================
+
+BASE URL: https://webcms.tourliz.com/api
+
+================================================
+1. AUTHENTICATION & TOKEN
+================================================
+
+GET TOKEN:
+POST /api/auth/login
+Body: {
+    "email": "user@example.com",
+    "password": "password"
+}
+
+Response: {
+    "token": "1|abc123xyz789...",
+    "user": {...}
+}
+
+USE TOKEN:
+Add header to all protected requests:
+Authorization: Bearer {token}
+
+================================================
+2. AUTHENTICATION ENDPOINTS
+================================================
+
+POST /api/auth/register
+- Register new user
+- Body: name, email, password, password_confirmation
+
+POST /api/auth/login
+- Login and get token
+- Body: email, password
+- Returns: token, user info
+
+POST /api/auth/logout
+- Logout (requires token)
+- Header: Authorization: Bearer {token}
+
+POST /api/auth/refresh-token
+- Get new token (requires token)
+- Header: Authorization: Bearer {token}
+
+GET /api/auth/user
+- Get user profile (requires token)
+- Header: Authorization: Bearer {token}
+
+================================================
+3. TEST ENDPOINTS
+================================================
+
+GET /api/test/public
+- Test public endpoint (no token needed)
+
+GET /api/test/auth
+- Test authentication (requires token)
+- Header: Authorization: Bearer {token}
+
+================================================
+4. DESTINATIONS / PLACES API
+================================================
+
+GET /api/v1/destinations
+- List all destinations
+- Query: region, featured=true, search, sort_by, sort_order, per_page
+
+GET /api/v1/destinations/{slug}
+- Get destination details by slug
+
+GET /api/v1/destinations/{id}/gallery
+- Get destination gallery images
+
+Legacy:
+GET /api/v1/places
+GET /api/v1/places/{slug}
+
+================================================
+5. PACKAGES API
+================================================
+
+GET /api/v1/packages
+- List all packages
+- Query: min_price, max_price, featured=true, search, sort_by, sort_order, per_page
+
+GET /api/v1/packages/{slug}
+- Get package details by slug
+
+GET /api/v1/packages/{id}/gallery
+- Get package gallery images
+
+GET /api/v1/packages/destinations
+- Get packages by destination
+- Query: place_id, place_slug, featured, search
+
+GET /api/v1/packages/category
+- Get packages by category
+- Query: category (required), min_price, max_price, featured, search
+
+================================================
+6. SERVICES API
+================================================
+
+GET /api/v1/services
+- List all services
+- Query: category, min_price, max_price, featured=true, search, per_page
+
+GET /api/v1/services/{slug}
+- Get service details by slug
+
+================================================
+7. ATTRACTIONS API
+================================================
+
+GET /api/v1/attractions
+- List all attractions
+- Query: place_id, place_slug, featured=true, search, per_page
+
+GET /api/v1/attractions/{slug}
+- Get attraction details by slug
+
+GET /api/v1/attractions/{id}/gallery
+- Get attraction gallery images
+
+================================================
+8. GROUP PACKAGES API
+================================================
+
+GET /api/v1/group-packages
+- List all group packages
+- Query: place_id, place_slug, featured=true, search, per_page
+
+GET /api/v1/group-packages/{slug}
+- Get group package details by slug
+
+GET /api/v1/group-packages/{id}/gallery
+- Get group package gallery images
+
+================================================
+9. CURRENCY API
+================================================
+
+GET /api/v1/currency/rates
+- Get currency exchange rates
+
+POST /api/v1/currency/convert
+- Convert currency
+- Body: from, to, amount
+
+================================================
+10. BOOKINGS API (PROTECTED - REQUIRES TOKEN)
+================================================
+
+GET /api/v1/bookings
+- Get user's bookings
+- Header: Authorization: Bearer {token}
+- Query: per_page
+
+POST /api/v1/bookings
+- Create new booking
+- Header: Authorization: Bearer {token}
+- Body:
+  - package_id (required)
+  - name, email, phone
+  - travel_date, adults, children
+  - customer_address, city, state, country, postal_code
+  - addons[] (array)
+  - addon_services[] (array of service IDs)
+  - payment_status, payment_method, payment_transaction_id, payment_amount, payment_date
+  - contact_method, whatsapp_number
+  - notes
+
+GET /api/v1/bookings/{id}
+- Get specific booking
+- Header: Authorization: Bearer {token}
+
+================================================
+11. FILE UPLOAD API (PROTECTED - REQUIRES TOKEN)
+================================================
+
+POST /api/v1/upload/image
+- Upload single image
+- Header: Authorization: Bearer {token}
+- Content-Type: multipart/form-data
+- Body: image (file) - jpeg, png, jpg, gif, webp (max 5MB)
+
+POST /api/v1/upload/images
+- Upload multiple images
+- Header: Authorization: Bearer {token}
+- Content-Type: multipart/form-data
+- Body: images[] (array of files) - max 5MB each
+
+POST /api/v1/upload/file
+- Upload document/file
+- Header: Authorization: Bearer {token}
+- Content-Type: multipart/form-data
+- Body: file - pdf, doc, docx, xls, xlsx, txt, zip (max 10MB)
+
+================================================
+QUERY PARAMETERS (Available on most GET endpoints)
+================================================
+
+- per_page: Number of items (default: 15)
+- sort_by: Field to sort by
+- sort_order: asc or desc
+- search: Search keyword
+- featured: true or false
+- page: Page number for pagination
+
+================================================
+RESPONSE FORMAT
+================================================
+
+Success:
+{
+    "data": [...],
+    "meta": {
+        "current_page": 1,
+        "per_page": 15,
+        "total": 100
+    }
+}
+
+Error:
+{
+    "message": "Error message",
+    "errors": {...}
+}
+
+Unauthorized (401):
+{
+    "message": "Unauthenticated."
+}
+
+================================================
+EXAMPLE: Complete Flow
+================================================
+
+1. Login:
+POST /api/auth/login
+Body: {"email": "user@example.com", "password": "pass123"}
+Response: {"token": "1|abc123..."}
+
+2. Get Packages:
+GET /api/v1/packages?featured=true&per_page=10
+Header: Authorization: Bearer 1|abc123...
+
+3. Get Package Details:
+GET /api/v1/packages/package-slug-name
+Header: Authorization: Bearer 1|abc123...
+
+4. Upload Image:
+POST /api/v1/upload/image
+Header: Authorization: Bearer 1|abc123...
+Body: FormData with image file
+
+5. Create Booking:
+POST /api/v1/bookings
+Header: Authorization: Bearer 1|abc123...
+Body: {
+    "package_id": 5,
+    "name": "John Doe",
+    "email": "john@example.com",
+    "travel_date": "2024-06-15",
+    "adults": 2
+}
+
+================================================
+END OF API LIST
+================================================
+

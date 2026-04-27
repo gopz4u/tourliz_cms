@@ -22,7 +22,7 @@ class PackageResource extends JsonResource
             'short_description' => $this->short_description,
             'price' => $this->price,
             'discount_price' => $this->discount_price,
-            'currency' => $this->currency,
+            'currency' => $this->currency ?? 'USD',
             'duration_days' => $this->duration_days,
             'duration_nights' => $this->duration_nights,
             'image' => getImageUrl($this->image),
@@ -35,6 +35,14 @@ class PackageResource extends JsonResource
             'max_persons' => $this->max_persons,
             'min_persons' => $this->min_persons,
             'is_featured' => $this->is_featured,
+            'addon_amenities' => $this->addon_amenities ?? [],
+            'place' => $this->whenLoaded('place', function() {
+                return [
+                    'id' => $this->destination->id,
+                    'name' => $this->destination->name,
+                    'slug' => $this->destination->slug,
+                ];
+            }),
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
         ];

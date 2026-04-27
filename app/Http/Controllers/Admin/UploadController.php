@@ -62,4 +62,69 @@ class UploadController extends Controller
             ], 500);
         }
     }
+
+    /**
+     * Upload multiple image files
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @return \Illuminate\Http\Response
+     */
+    public function uploadMultipleImages(Request $request)
+    {
+        try {
+            $request->validate([
+                'images' => 'required|array',
+                'images.*' => 'image|mimes:jpeg,png,jpg,gif,webp|max:5120', // 5MB max per image
+            ], [
+                'images.required' => 'Please select at least one image file.',
+                'images.array' => 'Images must be an array.',
+                'images.*.image' => 'All files must be images.',
+                'images.*.mimes' => 'Images must be of type: jpeg, png, jpg, gif, webp.',
+                'images.*.max' => 'Each image may not be greater than 5MB.',
+            ]);
+
+            if ($request->hasFile('images')) {
+                $uploadedImages = [];
+                
+                foreach ($request->file('images') as $file) {
+                    $filename = time() . '_' . Str::random(10) . '.' . $file->getClientOriginalExtension();
+                    $path = $file->storeAs('public/images', $filename);
+                    
+                    // Return the path relative to storage/app/public
+                    $relativePath = 'images/' . $filename;
+                    
+                    // Use helper function to get URL with fallback
+                    $url = getImageUrl($relativePath);
+                    
+                    $uploadedImages[] = [
+                        'path' => $relativePath,
+                        'url' => $url,
+                        'filename' => $filename
+                    ];
+                }
+                
+                return response()->json([
+                    'success' => true,
+                    'images' => $uploadedImages,
+                    'count' => count($uploadedImages)
+                ]);
+            }
+
+            return response()->json([
+                'success' => false,
+                'message' => 'No image files provided'
+            ], 400);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Validation failed',
+                'errors' => $e->errors()
+            ], 422);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Upload failed: ' . $e->getMessage()
+            ], 500);
+        }
+    }
 }

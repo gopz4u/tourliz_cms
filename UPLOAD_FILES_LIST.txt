@@ -1,0 +1,82 @@
+===========================================
+TOURLIZ CMS - FILES TO UPLOAD TO SERVER
+===========================================
+
+UPLOAD ALL FILES AND FOLDERS EXCEPT:
+
+❌ DO NOT UPLOAD:
+   - .env (create new on server)
+   - .git/ (version control)
+   - node_modules/ (if exists)
+   - storage/logs/* (keep folder, empty files)
+   - storage/framework/cache/* (keep folder, empty files)
+   - storage/framework/sessions/* (keep folder, empty files)
+   - storage/framework/views/* (keep folder, empty files)
+   - .DS_Store (Mac files)
+   - Thumbs.db (Windows files)
+   - *.log files
+
+✅ MUST UPLOAD:
+
+📁 ROOT FILES:
+   - artisan
+   - composer.json
+   - composer.lock
+   - package.json (if exists)
+   - package-lock.json (if exists)
+   - .htaccess (if exists)
+   - README.md
+   - DEPLOYMENT_GUIDE.md
+   - UPLOAD_FILES_LIST.txt
+
+📁 FOLDERS TO UPLOAD:
+   - app/ (entire folder)
+   - bootstrap/ (entire folder)
+   - config/ (entire folder)
+   - database/ (entire folder)
+   - public/ (entire folder)
+   - resources/ (entire folder)
+   - routes/ (entire folder)
+   - storage/ (folders only, empty cache/logs)
+   - vendor/ (or install via composer on server)
+
+📁 STORAGE FOLDER STRUCTURE:
+   storage/
+   ├── app/
+   │   └── public/ (keep folder, can be empty)
+   ├── framework/
+   │   ├── cache/ (keep folder, empty)
+   │   ├── sessions/ (keep folder, empty)
+   │   └── views/ (keep folder, empty)
+   └── logs/ (keep folder, empty)
+
+===========================================
+QUICK UPLOAD CHECKLIST
+===========================================
+
+1. ✅ Create ZIP file excluding .env, .git, node_modules
+2. ✅ Upload ZIP to server
+3. ✅ Extract in web root directory
+4. ✅ Set file permissions (755 dirs, 644 files)
+5. ✅ Create .env file
+6. ✅ Run: composer install --no-dev
+7. ✅ Run: php artisan key:generate
+8. ✅ Run: php artisan migrate --force
+9. ✅ Run: php artisan storage:link
+10. ✅ Run: php artisan config:cache
+11. ✅ Run: php artisan route:cache
+12. ✅ Run: php artisan view:cache
+
+===========================================
+FILE PERMISSIONS
+===========================================
+
+Directories: 755
+Files: 644
+storage/: 775
+bootstrap/cache/: 775
+
+===========================================
+For detailed instructions, see DEPLOYMENT_GUIDE.md
+===========================================
+

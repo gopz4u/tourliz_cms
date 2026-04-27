@@ -1,0 +1,165 @@
+================================================================================
+FILES TO UPDATE ON SERVER - Multiple User & Device Login System
+================================================================================
+
+IMPORTANT: Upload these files to your server in the same directory structure.
+
+================================================================================
+1. CONTROLLER FILES (Modified)
+================================================================================
+
+✅ app/Http/Controllers/Api/AuthController.php
+   - Updated login() method to support multiple devices
+   - Updated register() method to track device information
+   - Updated refreshToken() method to preserve device info
+   - Added getDeviceInfo() helper method
+   - Added devices() method - List all active devices
+   - Added revokeDevice() method - Revoke specific device
+   - Added revokeOtherDevices() method - Revoke all other devices
+   - Updated user() method to include current device info
+
+✅ app/Http/Controllers/AuthController.php
+   - Updated login() method to track device info in session
+   - Updated register() method to track device info in session
+   - Added getDeviceInfo() helper method
+   - FIXED: getDeviceInfo() now checks session availability (prevents 419 errors)
+   - FIXED: showLoginForm() and login() ensure session is started
+
+✅ app/Http/Middleware/VerifyCsrfToken.php
+   - FIXED: Improved session initialization in handle() method
+   - FIXED: Better token detection from multiple sources
+   - FIXED: Enhanced error logging for debugging
+
+✅ config/session.php
+   - FIXED: Auto-detects HTTPS and sets secure/none automatically
+   - Updated same_site to use env variable
+
+✅ resources/views/layouts/admin.blade.php
+   - FIXED: Auto-refreshing CSRF tokens for AJAX requests
+   - Added automatic token update from XSRF-TOKEN cookie
+
+================================================================================
+2. ROUTE FILES (Modified)
+================================================================================
+
+✅ routes/api.php
+   - Added: GET /api/auth/devices
+   - Added: DELETE /api/auth/devices/{tokenId}
+   - Added: POST /api/auth/devices/revoke-others
+
+================================================================================
+3. DATABASE MIGRATION FILES (New/Modified)
+================================================================================
+
+✅ database/migrations/2019_12_14_000001_create_personal_access_tokens_table.php
+   - Modified: Added device tracking fields to initial table creation
+   - Fields added: device_name, device_id, ip_address, user_agent
+
+✅ database/migrations/2026_01_12_084031_add_device_fields_to_personal_access_tokens_table.php
+   - NEW FILE: Migration to add device fields to existing tables
+   - Safe migration: Checks if table/columns exist before adding
+
+✅ database/migrations/2026_01_12_162747_add_deleted_at_to_services_table.php
+   - NEW FILE: Migration to add deleted_at column to services table
+   - Required for SoftDeletes functionality
+   - Safe migration: Checks if column exists before adding
+
+✅ database/migrations/2026_01_12_164423_fix_deleted_at_nullable_in_services_table.php
+   - NEW FILE: Migration to fix deleted_at column to be nullable
+   - Fixes insert error when creating new services
+   - Uses raw SQL to alter column
+
+================================================================================
+4. DOCUMENTATION FILES (New)
+================================================================================
+
+✅ MULTIPLE_DEVICE_LOGIN.md
+   - NEW FILE: Complete documentation for multiple device login system
+   - Includes API endpoints, examples, and usage instructions
+
+✅ FIX_419_LOGIN_ERROR.md
+   - NEW FILE: Guide to fix 419 Page Expired error on login
+   - Includes troubleshooting steps and solutions
+
+✅ FILES_TO_UPDATE_SERVER.txt
+   - NEW FILE: This file - list of all files to update
+
+================================================================================
+DEPLOYMENT STEPS
+================================================================================
+
+1. UPLOAD FILES:
+   - Upload all files listed above maintaining the same directory structure
+   - Ensure file permissions are correct (644 for files, 755 for directories)
+
+2. RUN MIGRATIONS:
+   SSH into your server and run:
+   
+   cd /path/to/your/project
+   php artisan migrate
+   
+   OR run specific migrations:
+   
+   php artisan migrate --path=database/migrations/2026_01_12_084031_add_device_fields_to_personal_access_tokens_table.php
+   php artisan migrate --path=database/migrations/2026_01_12_162747_add_deleted_at_to_services_table.php
+   php artisan migrate --path=database/migrations/2026_01_12_164423_fix_deleted_at_nullable_in_services_table.php
+
+3. CLEAR CACHE (Important):
+   php artisan config:clear
+   php artisan cache:clear
+   php artisan route:clear
+
+4. VERIFY:
+   - Test login from multiple devices
+   - Check that tokens are created for each device
+   - Verify device listing endpoint works
+
+================================================================================
+FILE STRUCTURE ON SERVER
+================================================================================
+
+Your project root (e.g., /var/www/html/tourliz_cms or /home/user/public_html):
+│
+├── app/
+│   └── Http/
+│       └── Controllers/
+│           ├── Api/
+│           │   └── AuthController.php          ← UPDATE THIS
+│           └── AuthController.php              ← UPDATE THIS
+│
+├── routes/
+│   └── api.php                                  ← UPDATE THIS
+│
+├── database/
+│   └── migrations/
+│       ├── 2019_12_14_000001_create_personal_access_tokens_table.php  ← UPDATE THIS
+│       └── 2026_01_12_084031_add_device_fields_to_personal_access_tokens_table.php  ← NEW FILE
+│
+└── MULTIPLE_DEVICE_LOGIN.md                     ← NEW FILE (optional)
+
+================================================================================
+QUICK CHECKLIST
+================================================================================
+
+□ Upload app/Http/Controllers/Api/AuthController.php
+□ Upload app/Http/Controllers/AuthController.php
+□ Upload routes/api.php
+□ Upload database/migrations/2019_12_14_000001_create_personal_access_tokens_table.php
+□ Upload database/migrations/2026_01_12_084031_add_device_fields_to_personal_access_tokens_table.php
+□ Upload database/migrations/2026_01_12_162747_add_deleted_at_to_services_table.php
+□ Upload database/migrations/2026_01_12_164423_fix_deleted_at_nullable_in_services_table.php
+□ Run migrations on server
+□ Clear Laravel cache
+□ Test login from multiple devices
+
+================================================================================
+NOTES
+================================================================================
+
+- If personal_access_tokens table doesn't exist, the first migration will create it
+- If personal_access_tokens table already exists, the second migration will add the new columns
+- The migration is safe to run multiple times (checks if columns exist)
+- No changes to .env file required
+- No changes to config files required
+
+================================================================================

@@ -1,0 +1,255 @@
+===========================================
+TOURLIZ CMS - EXACT FILE PATHS TO UPLOAD
+===========================================
+
+ROOT DIRECTORY FILES:
+=====================
+/artisan
+/composer.json
+/composer.lock
+/package.json (if exists)
+/package-lock.json (if exists)
+/.htaccess (if exists)
+/README.md
+/DEPLOYMENT_GUIDE.md
+/UPLOAD_FILES_LIST.txt
+/UPLOAD_FILE_PATHS.txt
+
+APP FOLDER:
+===========
+/app/Console/Kernel.php
+/app/Exceptions/Handler.php
+/app/Helpers/CurrencyHelper.php
+/app/Http/Controllers/Api/AttractionController.php
+/app/Http/Controllers/Api/BookingController.php
+/app/Http/Controllers/Api/CurrencyController.php
+/app/Http/Controllers/Api/PackageController.php
+/app/Http/Controllers/Api/PlaceController.php
+/app/Http/Controllers/Api/ServiceController.php
+/app/Http/Controllers/Admin/AttractionController.php
+/app/Http/Controllers/Admin/BookingController.php
+/app/Http/Controllers/Admin/CurrencyExchangeRateController.php
+/app/Http/Controllers/Admin/GroupPackageController.php
+/app/Http/Controllers/Admin/PackageController.php
+/app/Http/Controllers/Admin/PlaceController.php
+/app/Http/Controllers/Admin/ServiceController.php
+/app/Http/Controllers/Admin/SiteUserController.php
+/app/Http/Controllers/Admin/UploadController.php
+/app/Http/Controllers/Admin/UserController.php
+/app/Http/Controllers/AuthController.php
+/app/Http/Controllers/BookingController.php
+/app/Http/Controllers/Controller.php
+/app/Http/Controllers/PackageController.php
+/app/Http/Controllers/StorageController.php
+/app/Http/Kernel.php
+/app/Http/Middleware/Authenticate.php
+/app/Http/Middleware/EncryptCookies.php
+/app/Http/Middleware/PreventRequestsDuringMaintenance.php
+/app/Http/Middleware/RedirectIfAuthenticated.php
+/app/Http/Middleware/TrimStrings.php
+/app/Http/Middleware/TrustHosts.php
+/app/Http/Middleware/TrustProxies.php
+/app/Http/Middleware/ValidateSignature.php
+/app/Http/Middleware/VerifyCsrfToken.php
+/app/Models/Admin.php
+/app/Models/Attraction.php
+/app/Models/Booking.php
+/app/Models/CurrencyExchangeRate.php
+/app/Models/GroupPackage.php
+/app/Models/Package.php
+/app/Models/Place.php
+/app/Models/Service.php
+/app/Models/User.php
+/app/Providers/AppServiceProvider.php
+/app/Providers/AuthServiceProvider.php
+/app/Providers/BroadcastServiceProvider.php
+/app/Providers/EventServiceProvider.php
+/app/Providers/RouteServiceProvider.php
+
+BOOTSTRAP FOLDER:
+================
+/bootstrap/app.php
+/bootstrap/cache/.gitignore (keep folder structure)
+/bootstrap/cache/config.php (if exists)
+/bootstrap/cache/routes.php (if exists)
+/bootstrap/cache/services.php (if exists)
+
+CONFIG FOLDER:
+==============
+/config/app.php
+/config/auth.php
+/config/broadcasting.php
+/config/cache.php
+/config/cors.php
+/config/database.php
+/config/filesystems.php
+/config/hashing.php
+/config/logging.php
+/config/mail.php
+/config/queue.php
+/config/sanctum.php
+/config/services.php
+/config/session.php
+/config/view.php
+
+DATABASE FOLDER:
+================
+/database/factories/UserFactory.php
+/database/migrations/2014_10_12_000000_create_users_table.php
+/database/migrations/2014_10_12_100000_create_password_resets_table.php
+/database/migrations/2019_08_19_000000_create_failed_jobs_table.php
+/database/migrations/2019_12_14_000001_create_personal_access_tokens_table.php
+/database/migrations/2025_12_07_153519_create_places_table.php
+/database/migrations/2025_12_07_153529_create_packages_table.php
+/database/migrations/2025_12_07_153540_create_services_table.php
+/database/migrations/2025_12_23_162625_add_package_category_to_packages_table.php
+/database/migrations/2025_12_23_162929_add_flight_option_to_packages_table.php
+/database/migrations/2025_12_23_164221_add_place_id_to_services_table.php
+/database/migrations/2025_12_23_165037_add_currency_to_attractions_table.php
+/database/migrations/2025_12_23_170052_create_currency_exchange_rates_table.php
+/database/migrations/2025_12_23_170210_update_default_currency_to_inr.php
+/database/migrations/2025_12_23_171434_create_group_packages_table.php
+/database/migrations/2025_12_23_173240_add_group_package_fields_to_packages_table.php
+/database/migrations/2025_12_23_173302_add_group_package_fields_to_attractions_table.php
+/database/migrations/2025_12_23_173315_add_group_package_fields_to_services_table.php
+/database/migrations/2025_12_23_182410_add_currency_to_packages_table_if_not_exists.php
+/database/migrations/2025_12_23_183000_rename_users_table_to_admins.php
+/database/seeders/DatabaseSeeder.php
+/database/seeders/PlaceSeeder.php
+/database/seeders/PackageSeeder.php
+/database/seeders/AttractionSeeder.php
+/database/seeders/ServiceSeeder.php
+/database/seeders/GroupPackageSeeder.php
+
+PUBLIC FOLDER:
+==============
+/public/.htaccess
+/public/index.php
+/public/robots.txt
+/public/favicon.ico (if exists)
+/public/css/ (all CSS files)
+/public/js/ (all JS files)
+/public/images/ (all image files)
+/public/storage/ (symlink will be created, but folder structure)
+
+RESOURCES FOLDER:
+=================
+/resources/css/app.css
+/resources/js/app.js
+/resources/js/bootstrap.js
+/resources/views/components/currency-selector.blade.php
+/resources/views/layouts/admin.blade.php
+/resources/views/layouts/app.blade.php
+/resources/views/admin/attractions/create.blade.php
+/resources/views/admin/attractions/edit.blade.php
+/resources/views/admin/attractions/index.blade.php
+/resources/views/admin/bookings/create.blade.php
+/resources/views/admin/bookings/edit.blade.php
+/resources/views/admin/bookings/index.blade.php
+/resources/views/admin/currency-rates/index.blade.php
+/resources/views/admin/group-packages/create.blade.php
+/resources/views/admin/group-packages/edit.blade.php
+/resources/views/admin/group-packages/index.blade.php
+/resources/views/admin/packages/create.blade.php
+/resources/views/admin/packages/edit.blade.php
+/resources/views/admin/packages/index.blade.php
+/resources/views/admin/places/create.blade.php
+/resources/views/admin/places/edit.blade.php
+/resources/views/admin/places/index.blade.php
+/resources/views/admin/services/create.blade.php
+/resources/views/admin/services/edit.blade.php
+/resources/views/admin/services/index.blade.php
+/resources/views/admin/site-users/index.blade.php
+/resources/views/admin/users/create.blade.php
+/resources/views/admin/users/edit.blade.php
+/resources/views/admin/users/index.blade.php
+/resources/views/auth/login.blade.php
+/resources/views/bookings/create.blade.php
+/resources/views/bookings/index.blade.php
+/resources/views/packages/index.blade.php
+/resources/views/packages/show.blade.php
+/resources/views/welcome.blade.php
+
+ROUTES FOLDER:
+==============
+/routes/api.php
+/routes/channels.php
+/routes/console.php
+/routes/web.php
+
+STORAGE FOLDER (STRUCTURE ONLY):
+=================================
+/storage/app/.gitignore
+/storage/app/public/.gitignore
+/storage/framework/.gitignore
+/storage/framework/cache/.gitignore
+/storage/framework/cache/data/.gitignore
+/storage/framework/sessions/.gitignore
+/storage/framework/testing/.gitignore
+/storage/framework/views/.gitignore
+/storage/logs/.gitignore
+
+VENDOR FOLDER:
+==============
+/vendor/ (ALL files and folders)
+OR install via: composer install --no-dev --optimize-autoloader
+
+===========================================
+FILES TO EXCLUDE (DO NOT UPLOAD):
+===========================================
+/.env
+/.git/ (entire folder)
+/node_modules/ (entire folder)
+/storage/logs/*.log
+/storage/framework/cache/data/*
+/storage/framework/sessions/*
+/storage/framework/views/*
+/.DS_Store
+/Thumbs.db
+/*.log
+
+===========================================
+FOLDER STRUCTURE TO CREATE ON SERVER:
+===========================================
+/storage/app/public/
+/storage/framework/cache/data/
+/storage/framework/sessions/
+/storage/framework/views/
+/storage/logs/
+/bootstrap/cache/
+
+===========================================
+QUICK UPLOAD COMMAND (Using ZIP):
+===========================================
+1. Create ZIP excluding:
+   - .env
+   - .git/
+   - node_modules/
+   - storage/logs/*.log
+   - storage/framework/cache/data/*
+   - storage/framework/sessions/*
+   - storage/framework/views/*
+
+2. Upload ZIP to server
+
+3. Extract in web root
+
+4. Run setup commands
+
+===========================================
+TOTAL FILES COUNT (Approximate):
+===========================================
+- App files: ~50 files
+- Config files: ~15 files
+- Database migrations: ~20 files
+- Database seeders: ~6 files
+- Routes: ~4 files
+- Views: ~30 files
+- Public assets: varies
+- Vendor: ~1000+ files (or install via composer)
+
+===========================================
+For detailed deployment steps, see:
+DEPLOYMENT_GUIDE.md
+===========================================
+

@@ -17,6 +17,10 @@ class CreatePersonalAccessTokensTable extends Migration
             $table->id();
             $table->morphs('tokenable');
             $table->string('name');
+            $table->string('device_name')->nullable();
+            $table->string('device_id')->nullable();
+            $table->string('ip_address', 45)->nullable();
+            $table->text('user_agent')->nullable();
             $table->string('token', 64)->unique();
             $table->text('abilities')->nullable();
             $table->timestamp('last_used_at')->nullable();

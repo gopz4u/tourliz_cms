@@ -1,0 +1,56 @@
+===========================================
+QUICK FIX FOR 419 PAGE EXPIRED ERROR
+===========================================
+
+STEP 1: SSH into your server and run:
+--------------------------------------
+cd /path/to/your/project
+php artisan key:generate
+php artisan config:clear
+php artisan cache:clear
+php artisan route:clear
+php artisan view:clear
+
+STEP 2: Set file permissions:
+------------------------------
+chmod -R 775 storage
+chmod -R 775 bootstrap/cache
+chown -R www-data:www-data storage bootstrap/cache
+
+STEP 3: Check .env file has:
+-----------------------------
+APP_KEY=base64:YOUR_KEY_HERE
+SESSION_DRIVER=file
+SESSION_LIFETIME=120
+APP_URL=https://yourdomain.com
+
+STEP 4: For HTTPS sites, add to .env:
+--------------------------------------
+SESSION_SECURE_COOKIE=true
+SESSION_SAME_SITE=none
+
+STEP 5: Rebuild caches:
+-----------------------
+php artisan config:cache
+php artisan route:cache
+php artisan view:cache
+
+STEP 6: Clear browser cache and cookies
+----------------------------------------
+- Clear browser cache
+- Clear cookies for your domain
+- Try incognito/private mode
+
+===========================================
+MOST COMMON FIX:
+===========================================
+1. Run: php artisan key:generate
+2. Run: php artisan config:clear
+3. Check .env has APP_KEY set
+4. Clear browser cache
+
+===========================================
+For detailed instructions, see:
+FIX_419_ERROR.md
+===========================================
+

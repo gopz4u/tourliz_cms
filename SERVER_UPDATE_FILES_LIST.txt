@@ -1,0 +1,60 @@
+================================================================================
+FILES TO UPLOAD TO SERVER - Complete List
+================================================================================
+
+Copy these files to your server maintaining the same directory structure:
+
+================================================================================
+MODIFIED FILES (Update on Server)
+================================================================================
+
+1. app/Http/Controllers/Api/AuthController.php
+2. app/Http/Controllers/AuthController.php
+3. routes/api.php
+4. database/migrations/2019_12_14_000001_create_personal_access_tokens_table.php
+
+================================================================================
+NEW FILES (Upload to Server)
+================================================================================
+
+5. database/migrations/2026_01_12_084031_add_device_fields_to_personal_access_tokens_table.php
+
+================================================================================
+OPTIONAL DOCUMENTATION FILES
+================================================================================
+
+6. MULTIPLE_DEVICE_LOGIN.md
+7. FIX_419_LOGIN_ERROR.md
+8. FILES_TO_UPDATE_SERVER.txt
+
+================================================================================
+AFTER UPLOADING - Run These Commands on Server:
+================================================================================
+
+cd /path/to/tourliz_cms
+
+# Run migration
+php artisan migrate
+
+# Clear cache (IMPORTANT for 419 error fix)
+php artisan config:clear
+php artisan cache:clear
+php artisan route:clear
+php artisan view:clear
+
+# Optional: Rebuild cache
+php artisan config:cache
+php artisan route:cache
+
+================================================================================
+FIX 419 ERROR - Additional Steps:
+================================================================================
+
+If you still get 419 error after uploading:
+
+1. Check APP_KEY in .env file
+2. Fix storage permissions: chmod -R 775 storage
+3. Clear old sessions: rm -rf storage/framework/sessions/*
+4. See FIX_419_LOGIN_ERROR.md for detailed troubleshooting
+
+================================================================================

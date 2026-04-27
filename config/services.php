@@ -24,6 +24,12 @@ return [
         'token' => env('POSTMARK_TOKEN'),
     ],
 
+    'b2b' => [
+        'token' => env('B2B_API_TOKEN'),
+    ],
+
+    'api_key' => env('API_KEY', null),
+
     'ses' => [
         'key' => env('AWS_ACCESS_KEY_ID'),
         'secret' => env('AWS_SECRET_ACCESS_KEY'),
