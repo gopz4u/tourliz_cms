@@ -465,7 +465,7 @@
     </style>
 </head>
 <body>
-    @include('components.currency-selector')
+    <!-- Removed currency selector from landing page -->
 
     <!-- Premium Navbar -->
     <nav class="navbar navbar-expand-lg fixed-top">
