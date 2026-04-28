@@ -58,6 +58,16 @@
                             </select>
                         </div>
                         <div class="mb-3">
+                            <label class="form-label"><i class="bi bi-shop me-1"></i> Supplier / Vendor</label>
+                            <select name="supplier_id" class="form-select">
+                                <option value="">— Select Hotel Vendor —</option>
+                                @foreach($suppliers as $s)
+                                    <option value="{{ $s->id }}">{{ $s->name }}</option>
+                                @endforeach
+                            </select>
+                            <small class="form-text text-muted">Link this hotel to a vendor from your Supplier Master</small>
+                        </div>
+                        <div class="mb-3">
                             <label class="form-label">Currency <span class="text-danger">*</span></label>
                             <select name="currency" id="hotel-currency" class="form-select" required>
                                 <option value="MYR" selected>MYR - Malaysian Ringgit</option>
