@@ -10,7 +10,7 @@ class Transport extends Model
 {
     use HasFactory, SoftDeletes;
 
-    protected $fillable = ['supplier_id', 'destination_id', 'name', 'vehicle_type', 'destination', 'duration', 'capacity', 'base_price', 'is_active'];
+    protected $fillable = ['supplier_id', 'destination_id', 'name', 'vehicle_type', 'destination', 'duration', 'capacity', 'base_price', 'is_active', 'currency'];
 
     public function destination()
     {

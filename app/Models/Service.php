@@ -36,6 +36,7 @@ class Service extends Model
         'is_featured',
         'is_active',
         'sort_order',
+        'supplier_id',
         'meta_title',
         'meta_description',
         'meta_keywords',
@@ -75,5 +76,13 @@ class Service extends Model
     public function package()
     {
         return $this->belongsTo(Package::class);
+    }
+
+    /**
+     * Get the supplier that provides the service.
+     */
+    public function supplier()
+    {
+        return $this->belongsTo(Supplier::class);
     }
 }

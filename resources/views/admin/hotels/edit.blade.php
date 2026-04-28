@@ -60,6 +60,16 @@
                             </select>
                         </div>
                         <div class="mb-3">
+                            <label class="form-label">Currency <span class="text-danger">*</span></label>
+                            <select name="currency" id="hotel-currency" class="form-select" required>
+                                <option value="MYR" {{ $hotel->currency == 'MYR' ? 'selected' : '' }}>MYR - Malaysian Ringgit</option>
+                                <option value="INR" {{ $hotel->currency == 'INR' ? 'selected' : '' }}>INR - Indian Rupee</option>
+                                <option value="USD" {{ $hotel->currency == 'USD' ? 'selected' : '' }}>USD - US Dollar</option>
+                                <option value="SGD" {{ $hotel->currency == 'SGD' ? 'selected' : '' }}>SGD - Singapore Dollar</option>
+                                <option value="AED" {{ $hotel->currency == 'AED' ? 'selected' : '' }}>AED - UAE Dirham</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
                             <label class="form-label">Address</label>
                             <textarea name="address" class="form-control" rows="2">{{ $hotel->address }}</textarea>
                         </div>
@@ -90,7 +100,7 @@
                                             value="{{ $room->room_type }}" required>
                                     </div>
                                     <div class="col-md-4">
-                                        <label class="small text-muted">Base Price ($)</label>
+                                        <label class="small text-muted">Base Price (<span class="currency-label">{{ $hotel->currency ?? 'MYR' }}</span>)</label>
                                         <input type="number" name="rooms[{{ $index }}][base_price]" class="form-control"
                                             value="{{ $room->base_price }}" step="0.01" required>
                                     </div>
@@ -140,6 +150,7 @@
             let roomIndex = {{ count($hotel->rooms) > 0 ? count($hotel->rooms) : 1 }};
             function addRoomRow() {
                 const container = document.getElementById('rooms-container');
+                const currency = document.getElementById('hotel-currency').value;
                 const row = document.createElement('div');
                 row.className = 'room-row row g-2 mb-3 border-bottom pb-3';
                 row.innerHTML = `
@@ -147,6 +158,7 @@
                                 <input type="text" name="rooms[${roomIndex}][room_type]" class="form-control" placeholder="Room Type" required>
                             </div>
                             <div class="col-md-4">
+                                <label class="small text-muted">Base Price (<span class="currency-label">${currency}</span>)</label>
                                 <input type="number" name="rooms[${roomIndex}][base_price]" class="form-control" value="0.00" step="0.01" required>
                             </div>
                             <div class="col-md-2">
@@ -186,6 +198,15 @@
             // Run on load
             document.addEventListener('DOMContentLoaded', function() {
                 filterDestinations();
+
+                // Update currency labels
+                const currencySelect = document.getElementById('hotel-currency');
+                if (currencySelect) {
+                    currencySelect.addEventListener('change', function() {
+                        const labels = document.querySelectorAll('.currency-label');
+                        labels.forEach(label => label.textContent = this.value);
+                    });
+                }
             });
         </script>
     @endpush

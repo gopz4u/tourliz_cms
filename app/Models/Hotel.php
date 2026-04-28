@@ -10,7 +10,7 @@ class Hotel extends Model
 {
     use HasFactory, SoftDeletes;
 
-    protected $fillable = ['name', 'destination_id', 'supplier_id', 'star_rating', 'address', 'description', 'image', 'is_active'];
+    protected $fillable = ['name', 'destination_id', 'supplier_id', 'star_rating', 'address', 'description', 'image', 'is_active', 'currency'];
 
     public function destination()
     {

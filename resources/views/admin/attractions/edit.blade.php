@@ -93,14 +93,25 @@
                             </div>
                         </div>
 
+                        <!-- Real-time Multi-currency Preview -->
+                        <div class="row mb-4" id="currency-preview-row" style="display: none;">
+                            <div class="col-12">
+                                <div class="bg-light p-3 rounded-3 border">
+                                    <div class="d-flex gap-4 overflow-auto pb-1" id="multi-currency-previews">
+                                        <!-- Will be populated by JS -->
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
                         <div class="row">
                             <div class="col-md-4">
                                 <div class="mb-3">
                                     <label for="currency" class="form-label">Currency</label>
                                     <select class="form-select" id="currency" name="currency">
+                                        <option value="MYR">MYR - Malaysian Ringgit</option>
                                         <option value="INR">INR - Indian Rupee</option>
                                         <option value="USD">USD - US Dollar</option>
-                                        <option value="MYR">MYR - Malaysian Ringgit</option>
                                         <option value="SGD">SGD - Singapore Dollar</option>
                                         <option value="AED">AED - UAE Dirham</option>
                                     </select>
@@ -202,10 +213,60 @@
         <script>
             // Gallery images array
             let galleryImages = [];
+            let cachedRates = [];
             var descriptionEditor;
             const attractionId = {{ $id }};
 
             $(document).ready(function () {
+                // Fetch exchange rates for real-time preview
+                $.get('/api/v1/currency/rates', function(response) {
+                    if (response.success) {
+                        cachedRates = response.rates;
+                        updateCurrencyPreview();
+                    }
+                });
+
+                function updateCurrencyPreview() {
+                    const price = parseFloat($('#price').val()) || 0;
+                    const currentCurrency = $('#currency').val();
+                    const container = $('#multi-currency-previews');
+                    
+                    if (price <= 0 || cachedRates.length === 0) {
+                        $('#currency-preview-row').hide();
+                        return;
+                    }
+
+                    $('#currency-preview-row').show();
+                    container.empty();
+
+                    // Find rate for current currency
+                    const currentRateObj = cachedRates.find(r => (r.code || r.currency_code) === currentCurrency) || { exchange_rate: 1 };
+                    const currentRate = parseFloat(currentRateObj.exchange_rate || currentRateObj.rate_to_inr);
+                    const priceInMYR = price * currentRate;
+
+                    cachedRates.forEach(rate => {
+                        const code = rate.code || rate.currency_code;
+                        if (code === currentCurrency) return;
+                        
+                        const convertedPrice = priceInMYR / parseFloat(rate.exchange_rate || rate.rate_to_inr);
+                        const symbol = getCurrencySymbol(code);
+                        
+                        container.append(`
+                            <div class="flex-shrink-0">
+                                <div class="text-uppercase text-muted" style="font-size: 10px; font-weight: 800;">${code}</div>
+                                <div class="fw-bold text-dark">${symbol} ${convertedPrice.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</div>
+                            </div>
+                        `);
+                    });
+                }
+
+                function getCurrencySymbol(code) {
+                    const symbols = { 'INR': '₹', 'USD': '$', 'MYR': 'RM', 'SGD': 'S$', 'AED': 'AED' };
+                    return symbols[code] || code;
+                }
+
+                $('#price, #currency').on('input change', updateCurrencyPreview);
+
                 // Initialize Quill editor
                 descriptionEditor = initQuillEditor('#description-editor', 300);
 
@@ -425,6 +486,8 @@
                         $('#meta_title').val(attraction.meta_title || '');
                         $('#meta_description').val(attraction.meta_description || '');
                         $('#meta_keywords').val(attraction.meta_keywords || '');
+
+                        updateCurrencyPreview();
 
                         // Load featured image
                         if (attraction.image) {

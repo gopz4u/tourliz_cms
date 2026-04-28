@@ -753,6 +753,12 @@
                                     <a class="dropdown-item py-1 {{ request('type') == 'Activity' ? 'fw-bold' : '' }}" href="{{ route('admin.suppliers.index') }}?type=Activity">
                                         <i class="bi bi-lightning me-1 text-success" style="font-size:0.8rem;"></i> Activity
                                     </a>
+                                    <a class="dropdown-item py-1 {{ request('type') == 'Ticket' ? 'fw-bold' : '' }}" href="{{ route('admin.suppliers.index') }}?type=Ticket">
+                                        <i class="bi bi-ticket-perforated me-1 text-danger" style="font-size:0.8rem;"></i> Entry Tickets
+                                    </a>
+                                    <a class="dropdown-item py-1 {{ request('type') == 'Meal' ? 'fw-bold' : '' }}" href="{{ route('admin.suppliers.index') }}?type=Meal">
+                                        <i class="bi bi-egg-fried me-1 text-danger" style="font-size:0.8rem;"></i> Meals
+                                    </a>
                                     <a class="dropdown-item py-1 {{ request('type') == 'Agent' ? 'fw-bold' : '' }}" href="{{ route('admin.suppliers.index') }}?type=Agent">
                                         <i class="bi bi-person-badge me-1 text-info" style="font-size:0.8rem;"></i> Agent / Partner
                                     </a>

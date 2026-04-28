@@ -58,6 +58,16 @@
                             </select>
                         </div>
                         <div class="mb-3">
+                            <label class="form-label">Currency <span class="text-danger">*</span></label>
+                            <select name="currency" id="hotel-currency" class="form-select" required>
+                                <option value="MYR" selected>MYR - Malaysian Ringgit</option>
+                                <option value="INR">INR - Indian Rupee</option>
+                                <option value="USD">USD - US Dollar</option>
+                                <option value="SGD">SGD - Singapore Dollar</option>
+                                <option value="AED">AED - UAE Dirham</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
                             <label class="form-label">Address</label>
                             <textarea name="address" class="form-control" rows="2"></textarea>
                         </div>
@@ -94,7 +104,7 @@
                                 <div class="col-md-4">
                                     <label class="small text-muted">Base Price (Per Night)</label>
                                     <div class="input-group">
-                                        <span class="input-group-text">$</span>
+                                        <span class="input-group-text currency-label">MYR</span>
                                         <input type="number" name="rooms[0][base_price]" class="form-control" value="0.00"
                                             step="0.01" required>
                                     </div>
@@ -121,8 +131,21 @@
     @push('scripts')
         <script>
             let roomIndex = 1;
+            // Run on load
+            document.addEventListener('DOMContentLoaded', function() {
+                // Update currency labels
+                const currencySelect = document.getElementById('hotel-currency');
+                if (currencySelect) {
+                    currencySelect.addEventListener('change', function() {
+                        const labels = document.querySelectorAll('.currency-label');
+                        labels.forEach(label => label.textContent = this.value);
+                    });
+                }
+            });
+
             function addRoomRow() {
                 const container = document.getElementById('rooms-container');
+                const currency = document.getElementById('hotel-currency').value;
                 const row = document.createElement('div');
                 row.className = 'room-row row g-2 mb-3 border-bottom pb-3';
                 row.innerHTML = `
@@ -131,7 +154,7 @@
                             </div>
                             <div class="col-md-4">
                                 <div class="input-group">
-                                    <span class="input-group-text">$</span>
+                                    <span class="input-group-text currency-label">${currency}</span>
                                     <input type="number" name="rooms[${roomIndex}][base_price]" class="form-control" value="0.00" step="0.01" required>
                                 </div>
                             </div>

@@ -25,7 +25,8 @@ class ServiceController extends Controller
                     },
                     'package' => function ($q) {
                         $q->withTrashed();
-                    }
+                    },
+                    'supplier'
                 ]);
 
                 if ($request->has('search')) {
@@ -80,6 +81,7 @@ class ServiceController extends Controller
         $validated = $request->validate([
             'destination_id' => 'nullable|exists:destinations,id',
             'package_id' => 'nullable|exists:packages,id',
+            'supplier_id' => 'nullable|exists:suppliers,id',
             'name' => 'required|string|max:255',
             'slug' => 'nullable|string|max:255|unique:services,slug',
             'description' => 'nullable|string',
@@ -92,7 +94,7 @@ class ServiceController extends Controller
             'currency' => 'nullable|string|in:INR,USD,MYR,SGD,AED',
             'image' => 'nullable|string',
             'gallery' => 'nullable|array',
-            'category' => 'required|string|in:Entry Tickets,Hotels,Transport,Airport Pickup,Airport Drop,Other Services',
+            'category' => 'required|string|in:Entry Tickets,Hotels,Transport,Airport Pickup,Airport Drop,Activities,Meals,Other Services',
             'star_rating' => 'nullable|integer|min:1|max:5',
             'vehicle_type' => 'nullable|string|max:255',
             'accommodation_type' => 'nullable|string|max:255',
@@ -144,7 +146,8 @@ class ServiceController extends Controller
             },
             'package' => function ($q) {
                 $q->withTrashed();
-            }
+            },
+            'supplier'
         ])->findOrFail($id);
         return response()->json($service);
     }
@@ -174,6 +177,7 @@ class ServiceController extends Controller
         $validated = $request->validate([
             'destination_id' => 'nullable|exists:destinations,id',
             'package_id' => 'nullable|exists:packages,id',
+            'supplier_id' => 'nullable|exists:suppliers,id',
             'name' => 'required|string|max:255',
             'slug' => ['nullable', 'string', 'max:255', Rule::unique('services')->ignore($service->id)],
             'description' => 'nullable|string',

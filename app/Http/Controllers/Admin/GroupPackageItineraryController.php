@@ -58,6 +58,8 @@ class GroupPackageItineraryController extends Controller
         $suppliers = $suppliersQuery->orderBy('name')->get();
         $touristSpots = $touristSpotsQuery->orderBy('name')->get();
         $coreServices = $coreServicesQuery->orderBy('name')->get();
+        
+        $supplierMap = $suppliers->pluck('name', 'id')->toArray();
 
         // Fallbacks if empty
         if ($suppliers->count() === 0) $suppliers = \App\Models\Supplier::orderBy('name')->take(50)->get();
@@ -69,7 +71,7 @@ class GroupPackageItineraryController extends Controller
             $package->itinerary = [];
         }
 
-        return view('admin.group-package-itineraries.edit', compact('package', 'destinations', 'attractions', 'touristSpots', 'coreServices', 'suppliers'));
+        return view('admin.group-package-itineraries.edit', compact('package', 'destinations', 'attractions', 'touristSpots', 'coreServices', 'suppliers', 'supplierMap'));
     }
 
     /**

@@ -35,6 +35,12 @@
         <a href="{{ route('admin.suppliers.index') }}?type=Activity" class="btn btn-sm {{ $filterType == 'Activity' ? 'btn-success' : 'btn-outline-secondary' }}">
             <i class="bi bi-lightning"></i> Activity
         </a>
+        <a href="{{ route('admin.suppliers.index') }}?type=Ticket" class="btn btn-sm {{ $filterType == 'Ticket' ? 'btn-danger text-white' : 'btn-outline-secondary' }}">
+            <i class="bi bi-ticket-perforated"></i> Ticket
+        </a>
+        <a href="{{ route('admin.suppliers.index') }}?type=Meal" class="btn btn-sm {{ $filterType == 'Meal' ? 'btn-danger' : 'btn-outline-secondary' }}">
+            <i class="bi bi-egg-fried"></i> Meal
+        </a>
         <a href="{{ route('admin.suppliers.index') }}?type=Agent" class="btn btn-sm {{ $filterType == 'Agent' ? 'btn-info text-white' : 'btn-outline-secondary' }}">
             <i class="bi bi-person-badge"></i> Agent
         </a>
@@ -86,7 +92,9 @@
                                 <select name="type" class="form-select" required>
                                     <option value="Hotel">Hotel</option>
                                     <option value="Transport">Transport</option>
-                                    <option value="Activity">Activity / Tickets</option>
+                                    <option value="Activity">Activity</option>
+                                    <option value="Ticket">Ticket</option>
+                                    <option value="Meal">Meal</option>
                                     <option value="Agent">Agent / Partner</option>
                                     <option value="Other">Other</option>
                                 </select>
@@ -114,6 +122,11 @@
                         <div class="mb-3">
                             <label class="form-label">Email</label>
                             <input type="email" name="email" class="form-control">
+                        </div>
+
+                        <div class="form-check form-switch mb-3">
+                            <input class="form-check-input" type="checkbox" name="is_active" value="1" checked>
+                            <label class="form-check-label">Active Status</label>
                         </div>
 
                         <h6 class="mt-4 mb-3 border-bottom pb-2">Banking Details (Optional)</h6>
@@ -154,7 +167,80 @@
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body" id="editSupplierBody">
-                    <!-- Loaded via AJAX -->
+                    <form id="editSupplierForm" method="POST">
+                        @csrf
+                        @method('PUT')
+                        <div class="mb-3">
+                            <label class="form-label">Company Name</label>
+                            <input type="text" name="name" id="edit_name" class="form-control" required>
+                        </div>
+                        <div class="row g-2 mb-3">
+                            <div class="col-6">
+                                <label class="form-label">Type</label>
+                                <select name="type" id="edit_type" class="form-select" required>
+                                    <option value="Hotel">Hotel</option>
+                                    <option value="Transport">Transport</option>
+                                    <option value="Activity">Activity</option>
+                                    <option value="Ticket">Ticket</option>
+                                    <option value="Meal">Meal</option>
+                                    <option value="Agent">Agent / Partner</option>
+                                    <option value="Other">Other</option>
+                                </select>
+                            </div>
+                            <div class="col-6">
+                                <label class="form-label">Destination (City)</label>
+                                <select name="destination_id" id="edit_destination_id" class="form-select">
+                                    <option value="">Global / All</option>
+                                    @foreach(\App\Models\Destination::orderBy('city')->get() as $dest)
+                                        <option value="{{ $dest->id }}">{{ $dest->city }} ({{ $dest->name }})</option>
+                                    @endforeach
+                                </select>
+                            </div>
+                        </div>
+                        <div class="row g-2 mb-3">
+                            <div class="col-6">
+                                <label class="form-label">Contact Person</label>
+                                <input type="text" name="contact_person" id="edit_contact_person" class="form-control">
+                            </div>
+                            <div class="col-6">
+                                <label class="form-label">Phone</label>
+                                <input type="text" name="phone" id="edit_phone" class="form-control">
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Email</label>
+                            <input type="email" name="email" id="edit_email" class="form-control">
+                        </div>
+
+                        <div class="form-check form-switch mb-3">
+                            <input class="form-check-input" type="checkbox" name="is_active" id="edit_is_active" value="1">
+                            <label class="form-check-label">Active Status</label>
+                        </div>
+
+                        <h6 class="mt-4 mb-3 border-bottom pb-2">Banking Details (Optional)</h6>
+                        <div class="row g-2 mb-3">
+                            <div class="col-6">
+                                <label class="form-label small text-muted">Bank Name</label>
+                                <input type="text" name="bank_name" id="edit_bank_name" class="form-control form-control-sm">
+                            </div>
+                            <div class="col-6">
+                                <label class="form-label small text-muted">Swift / IFSC</label>
+                                <input type="text" name="swift_ifsc" id="edit_swift_ifsc" class="form-control form-control-sm">
+                            </div>
+                            <div class="col-12">
+                                <label class="form-label small text-muted">Account Number</label>
+                                <input type="text" name="account_number" id="edit_account_number" class="form-control form-control-sm">
+                            </div>
+                            <div class="col-12">
+                                <label class="form-label small text-muted">Account Name</label>
+                                <input type="text" name="account_name" id="edit_account_name" class="form-control form-control-sm">
+                            </div>
+                        </div>
+                        <div class="modal-footer px-0 pb-0">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                            <button type="submit" class="btn btn-primary">Update Supplier</button>
+                        </div>
+                    </form>
                 </div>
             </div>
         </div>
@@ -222,10 +308,63 @@
             }
 
             function editSupplier(id) {
-                // Ideally load a form via AJAX or reuse the create form populated with data
-                // For now, let's keep it simple as the user didn't ask for full edit implementation yet
-                alert('Edit functionality can be implemented similar to create.');
+                fetch(`/admin/suppliers/${id}`, {
+                    headers: { 'X-Requested-With': 'XMLHttpRequest', 'Accept': 'application/json' }
+                })
+                .then(res => res.json())
+                .then(s => {
+                    document.getElementById('editSupplierForm').action = `/admin/suppliers/${id}`;
+                    document.getElementById('edit_name').value = s.name;
+                    document.getElementById('edit_type').value = s.type;
+                    document.getElementById('edit_destination_id').value = s.destination_id || '';
+                    document.getElementById('edit_contact_person').value = s.contact_person || '';
+                    document.getElementById('edit_phone').value = s.phone || '';
+                    document.getElementById('edit_email').value = s.email || '';
+                    document.getElementById('edit_is_active').checked = s.is_active;
+                    document.getElementById('edit_bank_name').value = s.bank_name || '';
+                    document.getElementById('edit_swift_ifsc').value = s.swift_ifsc || '';
+                    document.getElementById('edit_account_number').value = s.account_number || '';
+                    document.getElementById('edit_account_name').value = s.account_name || '';
+                    
+                    const editModal = new bootstrap.Modal(document.getElementById('editSupplierModal'));
+                    editModal.show();
+                });
             }
+
+            document.getElementById('editSupplierForm').addEventListener('submit', function(e) {
+                e.preventDefault();
+                const formData = new FormData(this);
+                const id = this.action.split('/').pop();
+                
+                const data = {};
+                formData.forEach((value, key) => {
+                    if (key !== '_token' && key !== '_method') {
+                        data[key] = value;
+                    }
+                });
+                
+                // Explicitly handle checkbox
+                data.is_active = document.getElementById('edit_is_active').checked ? 1 : 0;
+
+                fetch(this.action, {
+                    method: 'PUT',
+                    headers: {
+                        'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json'
+                    },
+                    body: JSON.stringify(data)
+                }).then(res => res.json()).then(data => {
+                    if (data.success) {
+                        const modalElement = document.getElementById('editSupplierModal');
+                        const modalInstance = bootstrap.Modal.getInstance(modalElement) || new bootstrap.Modal(modalElement);
+                        modalInstance.hide();
+                        loadSuppliersTable();
+                    } else {
+                        alert('Error updating supplier');
+                    }
+                });
+            });
         </script>
     @endpush
 @endsection

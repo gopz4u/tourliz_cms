@@ -44,6 +44,7 @@
                             <th>Destination</th>
                             <th>Package</th>
                             <th>Category</th>
+                            <th>Vendor</th>
                             <th>Amenities</th>
                             <th>Price</th>
                             <th>Status</th>
@@ -212,6 +213,10 @@
                                     <td>${packageName}</td>
                                     <td>
                                         <span class="badge bg-info">${service.category || '-'}</span>
+                                    </td>
+                                    <td>
+                                        <div class="small fw-bold">${service.supplier ? service.supplier.name : '<span class="text-muted">No Vendor</span>'}</div>
+                                        ${service.supplier ? `<div class="text-muted" style="font-size: 0.7rem;">${service.supplier.type}</div>` : ''}
                                     </td>
                                     <td><small>${amenitiesHtml}</small></td>
                                     <td>${service.price ? currencySymbol + ' ' + service.price : 'Free'}</td>

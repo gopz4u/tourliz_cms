@@ -49,6 +49,16 @@
                                 </select>
                             </div>
                         </div>
+                        <div class="mb-3">
+                            <label class="form-label"><i class="bi bi-shop me-1"></i> Supplier / Vendor</label>
+                            <select name="supplier_id" class="form-select">
+                                <option value="">— None / Walk-in —</option>
+                                @foreach($suppliers as $s)
+                                    <option value="{{ $s->id }}" {{ $entryTicket->supplier_id == $s->id ? 'selected' : '' }}>{{ $s->name }}</option>
+                                @endforeach
+                            </select>
+                            <small class="form-text text-muted">Link to an Activity/Ticket supplier from your Supplier Master</small>
+                        </div>
                         <div class="row">
                             <div class="col-md-6 mb-3">
                                 <label class="form-label">Adult Price ($) <span class="text-danger">*</span></label>

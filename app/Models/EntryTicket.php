@@ -10,7 +10,7 @@ class EntryTicket extends Model
 {
     use HasFactory, SoftDeletes;
 
-    protected $fillable = ['attraction_name', 'destination_id', 'supplier_id', 'adult_price', 'child_price', 'is_active'];
+    protected $fillable = ['attraction_name', 'destination_id', 'supplier_id', 'adult_price', 'child_price', 'is_active', 'currency'];
 
     public function destination()
     {

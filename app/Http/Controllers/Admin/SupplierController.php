@@ -55,6 +55,11 @@ class SupplierController extends Controller
         return view('admin.suppliers.index', compact('filterType'));
     }
 
+    public function show(Supplier $supplier)
+    {
+        return response()->json($supplier);
+    }
+
     /**
      * Store a newly created resource in storage.
      */
@@ -73,8 +78,10 @@ class SupplierController extends Controller
             'account_number' => 'nullable|string|max:255',
             'swift_ifsc' => 'nullable|string|max:50',
             'notes' => 'nullable|string',
+            'is_active' => 'boolean',
         ]);
 
+        $validated['is_active'] = $request->has('is_active');
         $supplier = Supplier::create($validated);
 
         if ($request->ajax()) {

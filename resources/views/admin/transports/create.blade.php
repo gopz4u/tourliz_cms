@@ -82,9 +82,32 @@
                                 <input type="number" name="capacity" class="form-control" value="4">
                             </div>
                         </div>
-                        <div class="mb-3">
-                            <label class="form-label">Price <span class="text-danger">*</span></label>
-                            <input type="number" name="base_price" class="form-control" step="0.01" required>
+                        <div class="row">
+                            <div class="col-md-8 mb-3">
+                                <label class="form-label">Price <span class="text-danger">*</span></label>
+                                <input type="number" name="base_price" id="base_price" class="form-control" step="0.01" required>
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label class="form-label">Currency</label>
+                                <select name="currency" id="currency" class="form-select">
+                                    <option value="MYR" selected>MYR</option>
+                                    <option value="INR">INR</option>
+                                    <option value="USD">USD</option>
+                                    <option value="SGD">SGD</option>
+                                    <option value="AED">AED</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <!-- Real-time Multi-currency Preview -->
+                        <div class="row mb-4" id="currency-preview-row" style="display: none;">
+                            <div class="col-12">
+                                <div class="bg-light p-2 rounded border">
+                                    <div class="d-flex gap-3 overflow-auto pb-1" id="multi-currency-previews" style="font-size: 0.85rem;">
+                                        <!-- Will be populated by JS -->
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                         <div class="d-grid mt-4">
                             <button type="submit" class="btn btn-primary">Save Transport Logic</button>
@@ -112,6 +135,59 @@
             }
         }
     }
+
+    let cachedRates = [];
+    function updateCurrencyPreview() {
+        const price = parseFloat($('#base_price').val()) || 0;
+        const currentCurrency = $('#currency').val();
+        const container = $('#multi-currency-previews');
+        
+        if (price <= 0 || cachedRates.length === 0) {
+            $('#currency-preview-row').hide();
+            return;
+        }
+
+        $('#currency-preview-row').show();
+        container.empty();
+
+        // Find rate for current currency
+        const currentRateObj = cachedRates.find(r => (r.code || r.currency_code) === currentCurrency) || { exchange_rate: 1 };
+        const currentRate = parseFloat(currentRateObj.exchange_rate || currentRateObj.rate_to_inr);
+        const priceInMYR = price * currentRate;
+
+        cachedRates.forEach(rate => {
+            const code = rate.code || rate.currency_code;
+            if (code === currentCurrency) return;
+            
+            const convertedPrice = priceInMYR / parseFloat(rate.exchange_rate || rate.rate_to_inr);
+            const symbol = getCurrencySymbol(code);
+            
+            container.append(`
+                <div class="flex-shrink-0">
+                    <div class="text-uppercase text-muted" style="font-size: 9px; font-weight: 800;">${code}</div>
+                    <div class="fw-bold text-dark">${symbol} ${convertedPrice.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</div>
+                </div>
+            `);
+        });
+    }
+
+    function getCurrencySymbol(code) {
+        const symbols = { 'INR': '₹', 'USD': '$', 'MYR': 'RM', 'SGD': 'S$', 'AED': 'AED' };
+        return symbols[code] || code;
+    }
+
+    // Run on load
+    document.addEventListener('DOMContentLoaded', function() {
+        // Fetch exchange rates for real-time preview
+        $.get('/api/v1/currency/rates', function(response) {
+            if (response.success) {
+                cachedRates = response.rates;
+                updateCurrencyPreview();
+            }
+        });
+
+        $('#base_price, #currency').on('input change', updateCurrencyPreview);
+    });
 </script>
 @endpush
 @endsection

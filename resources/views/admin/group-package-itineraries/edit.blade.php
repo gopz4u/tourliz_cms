@@ -69,7 +69,8 @@
                     $amenities = $package->addon_amenities ?? [];
                     $hotels    = collect($amenities)->filter(fn($a) => ($a['type'] ?? '') === 'hotel')->values();
                     $transports= collect($amenities)->filter(fn($a) => in_array($a['type'] ?? '', ['transport','airport_pickup','airport_drop']))->values();
-                    $activities= collect($amenities)->filter(fn($a) => !in_array($a['type'] ?? '', ['hotel','transport','airport_pickup','airport_drop']))->values();
+                    $tickets   = collect($amenities)->filter(fn($a) => in_array($a['type'] ?? '', ['ticket','entry_tickets','entry_ticket']))->values();
+                    $activities= collect($amenities)->filter(fn($a) => ($a['type'] ?? '') === 'activity' || (($a['type'] ?? '') === 'other' && !in_array($a['type'] ?? '', ['hotel','transport','airport_pickup','airport_drop','ticket','entry_tickets','entry_ticket'])))->values();
                 @endphp
 
                 @if($hotels->count())
@@ -77,7 +78,8 @@
                     <div class="section-header"><span><i class="bi bi-building me-1"></i>Hotels</span></div>
                     <div class="d-flex flex-wrap gap-1">
                         @foreach($hotels as $i => $a)
-                            <span class="vendor-chip hotel" data-type="hotel" data-index="{{ $i }}" data-name="{{ $a['name'] }}" data-total="{{ $a['value'] ?? ($a['total'] ?? 0) }}" onclick="assignVendorToActiveDay(this)">
+                            @php $sName = $supplierMap[$a['supplier_id'] ?? ''] ?? null; @endphp
+                            <span class="vendor-chip hotel" data-type="hotel" data-index="{{ $i }}" data-name="{{ $a['name'] }}" data-supplier-id="{{ $a['supplier_id'] ?? '' }}" data-supplier-name="{{ $sName ?? '' }}" data-total="{{ $a['value'] ?? ($a['total'] ?? 0) }}" onclick="assignVendorToActiveDay(this)" title="{{ $sName ? 'Vendor: '.$sName : '' }}">
                                 <i class="bi bi-building"></i> {{ $a['name'] }}
                             </span>
                         @endforeach
@@ -88,10 +90,13 @@
                 @php
                     $allPlaces = collect();
                     if(isset($touristSpots)) {
-                        foreach($touristSpots as $spot) $allPlaces->push(['name' => $spot->name]);
+                        foreach($touristSpots as $spot) $allPlaces->push(['name' => $spot->name, 'id' => $spot->id, 'type' => 'spot', 'supplier_id' => null, 'supplier_name' => null]);
                     }
                     if(isset($coreServices)) {
-                        foreach($coreServices as $service) $allPlaces->push(['name' => $service->name]);
+                        foreach($coreServices as $service) {
+                            $sName = $supplierMap[$service->supplier_id] ?? null;
+                            $allPlaces->push(['name' => $service->name, 'id' => $service->id, 'type' => 'service', 'supplier_id' => $service->supplier_id, 'supplier_name' => $sName]);
+                        }
                     }
                     // Sort alphabetically
                     $allPlaces = $allPlaces->sortBy('name', SORT_NATURAL | SORT_FLAG_CASE)->unique('name');
@@ -104,7 +109,8 @@
                 </h6>
                 <div class="d-flex flex-wrap gap-1" style="max-height: 200px; overflow-y: auto; align-content: flex-start;">
                     @foreach($allPlaces as $spot)
-                        <span class="vendor-chip places" data-type="places" data-name="{{ $spot['name'] }}" onclick="assignVendorToActiveDay(this)" style="background:var(--info-bg-subtle, #e0f8f8); color:#0c7e7e; border-color:#b4e5e5;">
+                        @php $sTitle = $spot['supplier_name'] ? 'Vendor: '.$spot['supplier_name'] : ''; @endphp
+                        <span class="vendor-chip places" data-type="places" data-name="{{ $spot['name'] }}" data-item-id="{{ $spot['id'] }}" data-item-type="{{ $spot['type'] }}" data-supplier-id="{{ $spot['supplier_id'] ?? '' }}" data-supplier-name="{{ $spot['supplier_name'] ?? '' }}" onclick="assignVendorToActiveDay(this)" style="background:var(--info-bg-subtle, #e0f8f8); color:#0c7e7e; border-color:#b4e5e5;" title="{{ $sTitle }}">
                             <i class="bi bi-pin-map"></i> {{ $spot['name'] }}
                         </span>
                     @endforeach
@@ -118,8 +124,23 @@
                     <div class="section-header"><span><i class="bi bi-truck me-1"></i>Transport</span></div>
                     <div class="d-flex flex-wrap gap-1">
                         @foreach($transports as $i => $a)
-                            <span class="vendor-chip transport" data-type="transport" data-index="{{ $i }}" data-name="{{ $a['name'] }}" data-total="{{ $a['value'] ?? ($a['total'] ?? 0) }}" onclick="assignVendorToActiveDay(this)">
+                            @php $sName = $supplierMap[$a['supplier_id'] ?? ''] ?? null; @endphp
+                            <span class="vendor-chip transport" data-type="transport" data-index="{{ $i }}" data-name="{{ $a['name'] }}" data-supplier-id="{{ $a['supplier_id'] ?? '' }}" data-supplier-name="{{ $sName ?? '' }}" data-total="{{ $a['value'] ?? ($a['total'] ?? 0) }}" onclick="assignVendorToActiveDay(this)" title="{{ $sName ? 'Vendor: '.$sName : '' }}">
                                 <i class="bi bi-truck"></i> {{ $a['name'] }}
+                            </span>
+                        @endforeach
+                    </div>
+                </div>
+                @endif
+
+                @if($tickets->count())
+                <div class="mb-3">
+                    <div class="section-header"><span><i class="bi bi-ticket-perforated me-1"></i>Entry Tickets</span></div>
+                    <div class="d-flex flex-wrap gap-1">
+                        @foreach($tickets as $i => $a)
+                            @php $sName = $supplierMap[$a['supplier_id'] ?? ''] ?? null; @endphp
+                            <span class="vendor-chip activity" data-type="ticket" data-index="{{ $i }}" data-name="{{ $a['name'] }}" data-supplier-id="{{ $a['supplier_id'] ?? '' }}" data-supplier-name="{{ $sName ?? '' }}" data-total="{{ $a['value'] ?? ($a['total'] ?? 0) }}" onclick="assignVendorToActiveDay(this)" style="background: #fee2e2; color: #b91c1c; border: 1px solid #fecaca;" title="{{ $sName ? 'Vendor: '.$sName : '' }}">
+                                <i class="bi bi-ticket-perforated"></i> {{ $a['name'] }}
                             </span>
                         @endforeach
                     </div>
@@ -128,10 +149,11 @@
 
                 @if($activities->count())
                 <div class="mb-3">
-                    <div class="section-header"><span><i class="bi bi-lightning me-1"></i>Activities & Others</span></div>
+                    <div class="section-header"><span><i class="bi bi-lightning me-1"></i>Activities</span></div>
                     <div class="d-flex flex-wrap gap-1">
                         @foreach($activities as $i => $a)
-                            <span class="vendor-chip activity" data-type="activity" data-index="{{ $i }}" data-name="{{ $a['name'] }}" data-total="{{ $a['value'] ?? ($a['total'] ?? 0) }}" onclick="assignVendorToActiveDay(this)">
+                            @php $sName = $supplierMap[$a['supplier_id'] ?? ''] ?? null; @endphp
+                            <span class="vendor-chip activity" data-type="activity" data-index="{{ $i }}" data-name="{{ $a['name'] }}" data-supplier-id="{{ $a['supplier_id'] ?? '' }}" data-supplier-name="{{ $sName ?? '' }}" data-total="{{ $a['value'] ?? ($a['total'] ?? 0) }}" onclick="assignVendorToActiveDay(this)" title="{{ $sName ? 'Vendor: '.$sName : '' }}">
                                 <i class="bi bi-lightning"></i> {{ $a['name'] }}
                             </span>
                         @endforeach
@@ -280,8 +302,10 @@ function createDayCard(day, index) {
         ? meals
         : Object.entries(meals).filter(([k, v]) => v && v !== 'Not included').map(([k]) => k.charAt(0).toUpperCase() + k.slice(1));
 
-    // Build hotel section
-    const hotelVal = hotelName || '';
+    // Resolve vendor info
+    const hotelObj = typeof day.hotel === 'object' ? day.hotel : { name: day.hotel };
+    const hotelName = hotelObj.name || '';
+    const hotelSupplier = hotelObj.supplier_name || '';
     // Build transport entries HTML
     let transportRows = '';
     transportItems.forEach((t, ti) => {
@@ -303,12 +327,16 @@ function createDayCard(day, index) {
     let activityRows = '';
     activities.forEach((act, ai) => {
         const actName = typeof act === 'string' ? act : (act.name || act.mode || '');
+        const actSupplier = typeof act === 'object' ? act.supplier_name : '';
         activityRows += `
-        <div class="d-flex align-items-center gap-2 mb-1 activity-entry" data-ai="${ai}">
-            <span class="badge bg-success-subtle text-success flex-grow-1 text-start" style="border-radius:6px; font-size:0.75rem; padding:4px 8px;">${actName}</span>
-            <button class="btn btn-sm btn-link text-danger p-0" onclick="removeActivity(${index}, ${ai})" title="Remove">
-                <i class="bi bi-x" style="font-size:0.75rem;"></i>
-            </button>
+        <div class="d-flex flex-column mb-1 activity-entry" data-ai="${ai}">
+            <div class="d-flex align-items-center gap-2">
+                <span class="badge bg-success-subtle text-success flex-grow-1 text-start" style="border-radius:6px; font-size:0.75rem; padding:4px 8px;">${actName}</span>
+                <button class="btn btn-sm btn-link text-danger p-0" onclick="removeActivity(${index}, ${ai})" title="Remove">
+                    <i class="bi bi-x" style="font-size:0.75rem;"></i>
+                </button>
+            </div>
+            ${actSupplier ? `<small class="text-muted ms-1" style="font-size: 0.65rem;"><i class="bi bi-shop"></i> ${actSupplier}</small>` : ''}
         </div>`;
     });
 
@@ -316,12 +344,16 @@ function createDayCard(day, index) {
     let placeRows = '';
     places.forEach((plc, pi) => {
         const placeName = typeof plc === 'string' ? plc : (plc.name || plc.mode || '');
+        const placeSupplier = typeof plc === 'object' ? plc.supplier_name : '';
         placeRows += `
-        <div class="d-flex align-items-center gap-2 mb-1 place-entry" data-pi="${pi}">
-            <span class="badge bg-info-subtle text-info flex-grow-1 text-start" style="border-radius:6px; font-size:0.75rem; padding:4px 8px;"><i class="bi bi-pin-map"></i> ${placeName}</span>
-            <button class="btn btn-sm btn-link text-danger p-0" onclick="removePlace(${index}, ${pi})" title="Remove">
-                <i class="bi bi-x" style="font-size:0.75rem;"></i>
-            </button>
+        <div class="d-flex flex-column mb-1 place-entry" data-pi="${pi}">
+            <div class="d-flex align-items-center gap-2">
+                <span class="badge bg-info-subtle text-info flex-grow-1 text-start" style="border-radius:6px; font-size:0.75rem; padding:4px 8px;"><i class="bi bi-pin-map"></i> ${placeName}</span>
+                <button class="btn btn-sm btn-link text-danger p-0" onclick="removePlace(${index}, ${pi})" title="Remove">
+                    <i class="bi bi-x" style="font-size:0.75rem;"></i>
+                </button>
+            </div>
+            ${placeSupplier ? `<small class="text-muted ms-1" style="font-size: 0.65rem;"><i class="bi bi-shop"></i> ${placeSupplier}</small>` : ''}
         </div>`;
     });
 
@@ -364,12 +396,15 @@ function createDayCard(day, index) {
                                 <i class="bi bi-plus-circle" style="font-size:0.8rem;"></i>
                             </button>
                         </div>
-                        <div id="hotel-display-${index}" class="service-row" style="${hotelVal ? '' : 'display:none;'}">
+                        <div id="hotel-display-${index}" class="service-row" style="${hotelName ? '' : 'display:none;'}">
                             <span class="badge bg-primary-subtle text-primary service-label"><i class="bi bi-building"></i></span>
-                            <span class="service-value hotel-name-text">${hotelVal}</span>
+                            <div class="d-flex flex-column flex-grow-1">
+                                <span class="service-value hotel-name-text">${hotelName}</span>
+                                ${hotelSupplier ? `<small class="text-muted" style="font-size:0.65rem;"><i class="bi bi-shop"></i> ${hotelSupplier}</small>` : ''}
+                            </div>
                             <button class="btn btn-link btn-sm text-danger p-0 ms-auto" onclick="clearHotel(${index})" title="Remove"><i class="bi bi-x"></i></button>
                         </div>
-                        <div id="hotel-empty-${index}" class="text-muted small py-1 ps-1" style="${hotelVal ? 'display:none;' : ''}">
+                        <div id="hotel-empty-${index}" class="text-muted small py-1 ps-1" style="${hotelName ? 'display:none;' : ''}">
                             <i class="bi bi-dash"></i> No hotel assigned
                         </div>
                         <div id="hotel-custom-${index}" class="mt-1 custom-field">
@@ -549,11 +584,18 @@ function refreshTransportList(index) {
     if (!list) return;
     const items = itinerary[index].transport || [];
     if (!items.length) { list.innerHTML = '<div class="text-muted small py-1 ps-1"><i class="bi bi-dash"></i> No transport assigned</div>'; return; }
-    list.innerHTML = items.map((t, ti) => `
-        <div class="d-flex align-items-center gap-2 mb-1">
-            <span class="text-muted small flex-grow-1">${t.mode || t.type || ''}</span>
-            <button class="btn btn-sm btn-link text-danger p-0" onclick="removeTransport(${index}, ${ti})"><i class="bi bi-x"></i></button>
-        </div>`).join('');
+    list.innerHTML = items.map((t, ti) => {
+        const mode = t.mode || t.type || '';
+        const supplier = t.supplier_name || '';
+        return `
+        <div class="d-flex flex-column mb-1">
+            <div class="d-flex align-items-center gap-2">
+                <span class="text-muted small flex-grow-1">${mode}</span>
+                <button class="btn btn-sm btn-link text-danger p-0" onclick="removeTransport(${index}, ${ti})"><i class="bi bi-x"></i></button>
+            </div>
+            ${supplier ? `<small class="text-muted" style="font-size:0.65rem; margin-top:-2px;"><i class="bi bi-shop"></i> ${supplier}</small>` : ''}
+        </div>`;
+    }).join('');
 }
 
 // ── Activities ────────────────────────────────────────────────────────
@@ -573,10 +615,14 @@ function refreshActivityList(index) {
     const items = itinerary[index].activities || [];
     if (!items.length) { list.innerHTML = '<div class="text-muted small py-1 ps-1"><i class="bi bi-dash"></i> No activities assigned</div>'; return; }
     list.innerHTML = items.map((act, ai) => {
-        const name = typeof act === 'string' ? act : act.name || '';
-        return `<div class="d-flex align-items-center gap-2 mb-1">
-            <span class="badge bg-success-subtle text-success flex-grow-1 text-start" style="border-radius:6px; font-size:0.75rem; padding:4px 8px;">${name}</span>
-            <button class="btn btn-sm btn-link text-danger p-0" onclick="removeActivity(${index}, ${ai})"><i class="bi bi-x"></i></button>
+        const name = typeof act === 'string' ? act : (act.name || act.mode || '');
+        const supplier = typeof act === 'object' ? act.supplier_name : '';
+        return `<div class="d-flex flex-column mb-1">
+            <div class="d-flex align-items-center gap-2">
+                <span class="badge bg-success-subtle text-success flex-grow-1 text-start" style="border-radius:6px; font-size:0.75rem; padding:4px 8px;">${name}</span>
+                <button class="btn btn-sm btn-link text-danger p-0" onclick="removeActivity(${index}, ${ai})"><i class="bi bi-x"></i></button>
+            </div>
+            ${supplier ? `<small class="text-muted ms-1" style="font-size: 0.65rem;"><i class="bi bi-shop"></i> ${supplier}</small>` : ''}
         </div>`;
     }).join('');
 }
@@ -598,10 +644,14 @@ function refreshPlaceList(index) {
     const items = itinerary[index].places || [];
     if (!items.length) { list.innerHTML = '<div class="text-muted small py-1 ps-1"><i class="bi bi-dash"></i> No places assigned</div>'; return; }
     list.innerHTML = items.map((plc, pi) => {
-        const name = typeof plc === 'string' ? plc : plc.name || '';
-        return `<div class="d-flex align-items-center gap-2 mb-1">
-            <span class="badge bg-info-subtle text-info flex-grow-1 text-start" style="border-radius:6px; font-size:0.75rem; padding:4px 8px;"><i class="bi bi-pin-map"></i> ${name}</span>
-            <button class="btn btn-sm btn-link text-danger p-0" onclick="removePlace(${index}, ${pi})"><i class="bi bi-x"></i></button>
+        const name = typeof plc === 'string' ? plc : (plc.name || plc.mode || '');
+        const supplier = typeof plc === 'object' ? plc.supplier_name : '';
+        return `<div class="d-flex flex-column mb-1">
+            <div class="d-flex align-items-center gap-2">
+                <span class="badge bg-info-subtle text-info flex-grow-1 text-start" style="border-radius:6px; font-size:0.75rem; padding:4px 8px;"><i class="bi bi-pin-map"></i> ${name}</span>
+                <button class="btn btn-sm btn-link text-danger p-0" onclick="removePlace(${index}, ${pi})"><i class="bi bi-x"></i></button>
+            </div>
+            ${supplier ? `<small class="text-muted ms-1" style="font-size: 0.65rem;"><i class="bi bi-shop"></i> ${supplier}</small>` : ''}
         </div>`;
     }).join('');
 }
@@ -624,24 +674,26 @@ window.assignVendorToActiveDay = function(chipEl) {
     const type = chipEl.dataset.type;
     const name = chipEl.dataset.name;
     const total = parseFloat(chipEl.dataset.total || 0);
+    const supplierId = chipEl.dataset.supplierId || null;
+    const supplierName = chipEl.dataset.supplierName || null;
     const index = activeDayIndex;
 
     if (type === 'hotel') {
-        itinerary[index].hotel = { name, type: '', price_per_night: total, currency };
+        itinerary[index].hotel = { name, type: '', price_per_night: total, currency, supplier_id: supplierId, supplier_name: supplierName };
         document.querySelector(`#hotel-display-${index} .hotel-name-text`).textContent = name;
         document.getElementById(`hotel-display-${index}`).style.display = '';
         document.getElementById(`hotel-empty-${index}`).style.display = 'none';
     } else if (type === 'transport') {
         if (!Array.isArray(itinerary[index].transport)) itinerary[index].transport = [];
-        itinerary[index].transport.push({ type: 'Component', mode: name, from: '', to: '', price: total, currency });
+        itinerary[index].transport.push({ type: 'Component', mode: name, from: '', to: '', price: total, currency, supplier_id: supplierId, supplier_name: supplierName });
         refreshTransportList(index);
     } else if (type === 'places') {
         if (!Array.isArray(itinerary[index].places)) itinerary[index].places = [];
-        itinerary[index].places.push(name);
+        itinerary[index].places.push({ name: name, supplier_id: supplierId, supplier_name: supplierName });
         refreshPlaceList(index);
     } else {
         if (!Array.isArray(itinerary[index].activities)) itinerary[index].activities = [];
-        itinerary[index].activities.push(name);
+        itinerary[index].activities.push({ name: name, supplier_id: supplierId, supplier_name: supplierName });
         refreshActivityList(index);
     }
 };

@@ -20,7 +20,7 @@ class EntryTicketController extends Controller
     {
         $countries = \App\Models\Country::orderBy('name')->get();
         $destinations = Destination::all();
-        $suppliers = Supplier::where('type', 'Activity')->where('is_active', 1)->orderBy('name')->get();
+        $suppliers = Supplier::whereIn('type', ['Activity', 'Ticket'])->where('is_active', 1)->orderBy('name')->get();
         return view('admin.entry-tickets.create', compact('countries', 'destinations', 'suppliers'));
     }
 
@@ -41,7 +41,7 @@ class EntryTicketController extends Controller
     {
         $countries = \App\Models\Country::orderBy('name')->get();
         $destinations = Destination::all();
-        $suppliers = Supplier::where('type', 'Activity')->where('is_active', 1)->orderBy('name')->get();
+        $suppliers = Supplier::whereIn('type', ['Activity', 'Ticket'])->where('is_active', 1)->orderBy('name')->get();
         return view('admin.entry-tickets.edit', compact('entryTicket', 'countries', 'destinations', 'suppliers'));
     }
 

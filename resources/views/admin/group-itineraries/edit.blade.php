@@ -1,4 +1,4 @@
-﻿@extends('layouts.admin')
+@extends('layouts.admin')
 
 @section('title', 'Edit group Proposal')
 
@@ -581,6 +581,7 @@
                 amount: amount,
                 expense_date: expenseDate,
                 description: description,
+                supplier_id: item.supplier_id || null,
                 _token: "{{ csrf_token() }}"
             };
 
@@ -631,8 +632,10 @@
             document.getElementById('markup-percentage')?.addEventListener('change', calculateDynamicTotal);
         });
 
+        window.allSuppliers = [];
         function loadSuppliers() {
             $.get("{{ route('admin.suppliers.index') }}", function (data) {
+                window.allSuppliers = data;
                 // Populate Expense modal select
                 const expenseSelect = $('#expense-supplier-id');
                 expenseSelect.find('option:not(:first)').remove();
@@ -940,6 +943,15 @@
                                 value="${hotel.add_on_price || 0}"
                                 onchange="window.updateListItem(${dayIndex}, 'hotels', ${hIndex}, 'add_on_price', this.value)">
                         </div>
+                    </div>
+                    <div class="mt-2 pt-2 border-top border-white">
+                        <div class="d-flex align-items-center gap-2">
+                            <label class="small text-secondary fw-semibold text-nowrap"><i class="bi bi-shop me-1"></i> Vendor:</label>
+                            <select class="form-select form-select-sm border-0 shadow-sm" style="background: rgba(255,255,255,0.7);" onchange="window.updateListItem(${dayIndex}, 'hotels', ${hIndex}, 'supplier_id', this.value)">
+                                <option value="">-- No Vendor --</option>
+                                ${(window.allSuppliers || []).map(s => `<option value="${s.id}" ${hotel.supplier_id == s.id ? 'selected' : ''}>${s.name} (${s.type})</option>`).join('')}
+                            </select>
+                        </div>
                     </div>`;
                 container.appendChild(row);
             });
@@ -1153,6 +1165,16 @@
                                     <div class="input-group input-group-sm shadow-sm"><span class="input-group-text bg-white border-0 text-muted px-2">Rate</span><input type="number" class="form-control border-0 px-2" value="${item.price_per_hour || ''}" onchange="window.updateListItem(${dayIndex}, 'activities', ${itemIndex}, 'price_per_hour', this.value)"></div>
                                 </div>
                             </div>` : ''}
+                            
+                            <div class="mt-2 pt-2 border-top border-light border-2">
+                                <div class="d-flex align-items-center gap-2">
+                                    <label class="small text-secondary fw-semibold text-nowrap"><i class="bi bi-shop me-1"></i> Vendor:</label>
+                                    <select class="form-select form-select-sm border-0 shadow-sm" onchange="window.updateListItem(${dayIndex}, '${type}', ${itemIndex}, 'supplier_id', this.value)">
+                                        <option value="">-- No Vendor --</option>
+                                        ${(window.allSuppliers || []).map(s => `<option value="${s.id}" ${item.supplier_id == s.id ? 'selected' : ''}>${s.name} (${s.type})</option>`).join('')}
+                                    </select>
+                                </div>
+                            </div>
                         </div>
                     `;
                 }
