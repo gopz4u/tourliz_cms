@@ -6,15 +6,15 @@
 <div class="page-header d-flex justify-content-between align-items-center">
     <div>
         <h1 class="mb-0"><i class="bi bi-currency-exchange"></i> Currency Exchange Rates</h1>
-        <p class="text-muted mb-0">Manage currency exchange rates (Base Currency: INR)</p>
+        <p class="text-muted mb-0">Manage currency exchange rates (Base Currency: MYR)</p>
     </div>
 </div>
 
 <div class="card">
     <div class="card-body">
         <div class="alert alert-info">
-            <i class="bi bi-info-circle"></i> <strong>Base Currency:</strong> INR (Indian Rupee). All exchange rates are relative to INR.
-            <br>Example: If USD rate is 83.00, it means 1 USD = 83 INR
+            <i class="bi bi-info-circle"></i> <strong>Base Currency:</strong> MYR (Malaysian Ringgit). All exchange rates are relative to 1 Unit of the currency.
+            <br>Example: If INR rate is 0.0571, it means 1 INR = 0.0571 MYR. If USD rate is 4.74, it means 1 USD = 4.74 MYR.
         </div>
         
         <form id="currency-rates-form">
@@ -24,7 +24,7 @@
                         <tr>
                             <th>Currency Code</th>
                             <th>Currency Name</th>
-                            <th>Rate to INR</th>
+                            <th>Value in MYR (for 1 unit)</th>
                             <th>Status</th>
                             <th>Actions</th>
                         </tr>
@@ -75,15 +75,19 @@
                 }
                 
                 rates.forEach(function(rate) {
-                    const isBaseCurrency = rate.currency_code === 'INR';
+                    const code = rate.code || rate.currency_code;
+                    const name = rate.name || rate.currency_name;
+                    const exchange_rate = rate.exchange_rate || rate.rate_to_inr || rate.rate || 1.0;
+                    
+                    const isBaseCurrency = code === 'MYR';
                     const row = `
                         <tr>
-                            <td><strong>${rate.currency_code}</strong>${isBaseCurrency ? ' <span class="badge bg-success">Base</span>' : ''}</td>
-                            <td>${rate.currency_name || '-'}</td>
+                            <td><strong>${code || 'N/A'}</strong>${isBaseCurrency ? ' <span class="badge bg-success">Base</span>' : ''}</td>
+                            <td>${name || '-'}</td>
                             <td>
                                 ${isBaseCurrency ? 
                                     '<input type="number" step="0.0001" class="form-control" value="1.0000" readonly style="background-color: #e9ecef;">' :
-                                    `<input type="number" step="0.0001" class="form-control rate-input" data-id="${rate.id}" value="${rate.rate_to_inr}" name="rates[${rate.id}][rate_to_inr]">`
+                                    `<input type="number" step="0.0001" class="form-control rate-input" data-id="${rate.id}" value="${exchange_rate}" name="rates[${rate.id}][exchange_rate]">`
                                 }
                             </td>
                             <td>
@@ -147,7 +151,7 @@
             if (id && rate) {
                 rates.push({
                     id: id,
-                    rate_to_inr: parseFloat(rate)
+                    exchange_rate: parseFloat(rate)
                 });
             }
         });

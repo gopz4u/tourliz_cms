@@ -127,6 +127,7 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:admin'])->grou
         Route::get('/group-packages/by-destination/{destinationId}', [GroupPackageController::class, 'getByPlace'])->name('group-packages.by-destination');
 
         // Currency Exchange Rates Management
+        Route::get('currency-converter', [CurrencyExchangeRateController::class, 'converter'])->name('currency-converter');
         Route::resource('currency-rates', CurrencyExchangeRateController::class);
         Route::post('currency-rates/bulk-update', [CurrencyExchangeRateController::class, 'bulkUpdate'])->name('currency-rates.bulk-update');
 

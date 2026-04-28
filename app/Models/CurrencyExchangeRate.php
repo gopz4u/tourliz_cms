@@ -53,14 +53,11 @@ class CurrencyExchangeRate extends Model
         $fromRate = self::getRate($fromCurrency);
         $toRate = self::getRate($toCurrency);
 
-        // Convert: amount_in_base = amount / fromRate
-        // Then: converted_amount = amount_in_base * toRate
-        // Wait, if exchange_rate is "amount per base", e.g. 1 MYR = 17.5 INR
-        // Then rate for MYR is 1.0, rate for INR is 17.5
-        // If from INR to MYR: amount / 17.5
+        // Convert: amount_in_base = amount * fromRate (where fromRate is "Base per Unit")
+        // Then: converted_amount = amount_in_base / toRate
         
-        $baseAmount = $amount / $fromRate;
-        $convertedAmount = $baseAmount * $toRate;
+        $baseAmount = $amount * $fromRate;
+        $convertedAmount = $baseAmount / $toRate;
 
         return round($convertedAmount, 2);
     }

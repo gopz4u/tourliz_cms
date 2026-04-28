@@ -15,7 +15,7 @@ class CurrencyController extends Controller
     {
         $rates = CurrencyExchangeRate::where('is_active', true)
             ->orderBy('code')
-            ->get(['code as currency_code', 'name as currency_name', 'exchange_rate']);
+            ->get(['code', 'name', 'exchange_rate']);
         
         return response()->json([
             'success' => true,

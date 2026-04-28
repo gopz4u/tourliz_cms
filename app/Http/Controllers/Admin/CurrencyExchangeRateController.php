@@ -25,6 +25,15 @@ class CurrencyExchangeRateController extends Controller
     }
 
     /**
+     * Show the currency converter tool.
+     */
+    public function converter()
+    {
+        $rates = CurrencyExchangeRate::where('is_active', true)->orderBy('sort_order')->get();
+        return view('admin.currency-converter', compact('rates'));
+    }
+
+    /**
      * Store a newly created resource in storage.
      *
      * @param  \Illuminate\Http\Request  $request

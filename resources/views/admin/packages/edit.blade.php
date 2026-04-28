@@ -232,6 +232,17 @@
                             </div>
                         </div>
 
+                        <!-- Real-time Multi-currency Preview -->
+                        <div class="row mb-4" id="currency-preview-row" style="display: none;">
+                            <div class="col-12">
+                                <div class="bg-light p-3 rounded-4 border">
+                                    <div class="d-flex gap-4 overflow-auto pb-1" id="multi-currency-previews">
+                                        <!-- Will be populated by JS -->
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
                         <div class="row">
                             <!-- Removed Original Price col since it is moved above -->
                             <div class="col-md-4">
@@ -260,9 +271,9 @@
                                 <div class="mb-3">
                                     <label for="currency" class="form-label">Currency</label>
                                     <select class="form-select" id="currency" name="currency">
+                                        <option value="MYR">MYR - Malaysian Ringgit</option>
                                         <option value="INR">INR - Indian Rupee</option>
                                         <option value="USD">USD - US Dollar</option>
-                                        <option value="MYR">MYR - Malaysian Ringgit</option>
                                         <option value="SGD">SGD - Singapore Dollar</option>
                                         <option value="AED">AED - UAE Dirham</option>
                                     </select>
@@ -400,6 +411,53 @@
                 // Initialize Quill editor
                 descriptionEditor = initQuillEditor('#description-editor', 300);
 
+                // Currency Rates for Preview
+                let cachedRates = [];
+                $.get('/api/v1/currency/rates', function(response) {
+                    if(response.success) cachedRates = response.rates;
+                    updateCurrencyPreview();
+                });
+
+                function updateCurrencyPreview() {
+                    const price = parseFloat($('#price').val()) || 0;
+                    const currentCurrency = $('#currency').val();
+                    const container = $('#multi-currency-previews');
+                    
+                    if (price <= 0 || cachedRates.length === 0) {
+                        $('#currency-preview-row').hide();
+                        return;
+                    }
+
+                    $('#currency-preview-row').show();
+                    container.empty();
+
+                    // Find rate for current currency
+                    const currentRateObj = cachedRates.find(r => r.code === currentCurrency) || { exchange_rate: 1 };
+                    const currentRate = parseFloat(currentRateObj.exchange_rate);
+                    const priceInMYR = price * currentRate;
+
+                    cachedRates.forEach(rate => {
+                        if (rate.code === currentCurrency) return;
+                        
+                        const convertedPrice = priceInMYR / parseFloat(rate.exchange_rate);
+                        const symbol = getCurrencySymbol(rate.code);
+                        
+                        container.append(`
+                            <div class="flex-shrink-0">
+                                <div class="text-uppercase text-muted" style="font-size: 10px; font-weight: 800;">${rate.code}</div>
+                                <div class="fw-bold text-dark">${symbol} ${convertedPrice.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</div>
+                            </div>
+                        `);
+                    });
+                }
+
+                function getCurrencySymbol(code) {
+                    const symbols = { 'INR': '₹', 'USD': '$', 'MYR': 'RM', 'SGD': 'S$', 'AED': 'AED' };
+                    return symbols[code] || code;
+                }
+
+                $('#price, #currency').on('input change', updateCurrencyPreview);
+
                 const packageId = {{ $id }};
 
                 // Handle category change to show/hide amenities
@@ -482,7 +540,7 @@
                     $('#discount_price').val(pkg.discount_price || '');
                     $('#price_2_6').val(pkg.price_2_6 || '');
                     $('#price_6_10').val(pkg.price_6_10 || '');
-                    $('#currency').val(pkg.currency || 'INR');
+                    $('#currency').val(pkg.currency || 'MYR');
                     $('#announcement_date').val(pkg.announcement_date ? pkg.announcement_date.split('T')[0] : '');
                     $('#total_pax').val(pkg.total_pax || '');
 
@@ -1076,6 +1134,7 @@
 
                         $('#price').val(sellingPrice.toFixed(2));
                         $('#markup-amount-display').text('Amount: ' + markupAmount.toFixed(2));
+                        updateCurrencyPreview();
                     }
                 }
 
@@ -1178,7 +1237,7 @@
                         discount_price: $('#discount_price').val() ? parseFloat($('#discount_price').val()) : null,
                         price_2_6: $('#price_2_6').val() ? parseFloat($('#price_2_6').val()) : null,
                         price_6_10: $('#price_6_10').val() ? parseFloat($('#price_6_10').val()) : null,
-                        currency: $('#currency').val() || 'INR',
+                        currency: $('#currency').val() || 'MYR',
                         announcement_date: $('#announcement_date').val() || null,
                         total_pax: $('#total_pax').val() ? parseInt($('#total_pax').val()) : null,
                         duration_days: $('#duration_days').val() ? parseInt($('#duration_days').val()) : null,

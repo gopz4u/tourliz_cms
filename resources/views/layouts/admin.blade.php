@@ -622,6 +622,13 @@
                         </a>
                     </li>
                     <li>
+                        <a href="{{ route('admin.currency-converter') }}" class="{{ request()->routeIs('admin.currency-converter') ? 'active' : '' }}">
+                            <i class="bi bi-calculator-fill main-icon"></i>
+                            <span>Currency Converter</span>
+                            <i class="bi bi-arrow-right nav-arrow"></i>
+                        </a>
+                    </li>
+                    <li>
                         <a href="{{ route('admin.coupons.index') }}" class="{{ request()->routeIs('admin.coupons.*') ? 'active' : '' }}">
                             <i class="bi bi-tags-fill main-icon"></i>
                             <span>Coupons</span>

@@ -35,7 +35,10 @@
             $.get('/api/v1/currency/rates', function (response) {
                 if (response.success && response.rates) {
                     response.rates.forEach(function (rate) {
-                        exchangeRates[rate.currency_code] = rate.exchange_rate;
+                        const code = rate.code || rate.currency_code;
+                        if (code) {
+                            exchangeRates[code] = rate.exchange_rate || rate.rate_to_inr || 1.0;
+                        }
                     });
                     // Set MYR rate to 1
                     exchangeRates['MYR'] = 1.0;
@@ -74,8 +77,9 @@
             }
 
             // Convert to MYR first, then to target currency
-            const amountInMYR = amount / exchangeRates[fromCurrency];
-            const convertedAmount = amountInMYR * exchangeRates[toCurrency];
+            // Logic: BaseValue = Amount * Rate, TargetValue = BaseValue / TargetRate
+            const amountInMYR = amount * exchangeRates[fromCurrency];
+            const convertedAmount = amountInMYR / exchangeRates[toCurrency];
 
             return Math.round(convertedAmount * 100) / 100;
         }
