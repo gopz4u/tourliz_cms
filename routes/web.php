@@ -40,6 +40,15 @@ Route::get('/storage/{path}', [StorageController::class, 'image'])
     ->name('storage.image');
 
 // Diagnostic route (remove after fixing)
+Route::get('/git-pull', function () {
+    try {
+        $output = shell_exec('git pull origin main 2>&1');
+        return '<pre>' . $output . '</pre>';
+    } catch (\Exception $e) {
+        return 'Error: ' . $e->getMessage();
+    }
+});
+
 Route::get('/storage-debug', function () {
     $testFile = 'images/1765304789_3GWdmy3yhV.jpeg';
     $paths = [
