@@ -21,6 +21,7 @@ class DashboardController extends Controller
             'bookings' => \App\Models\Booking::count(),
             'b2b_leads' => CustomItinerary::count(),
             'b2c_leads' => B2CItinerary::count(),
+            'pending_reviews' => \App\Models\Review::where('status', 'pending')->count(),
         ];
 
         // --- Advanced Sales Analytics ---

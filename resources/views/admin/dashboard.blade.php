@@ -111,6 +111,13 @@
                                 <div class="small text-muted">Master PKGs</div>
                             </div>
                         </div>
+                        <div class="col-12">
+                            <div class="p-3 border border-warning rounded text-center bg-warning bg-opacity-10">
+                                <div class="h4 mb-0 fw-bold text-warning">{{ $stats['pending_reviews'] }}</div>
+                                <div class="small text-muted fw-bold">Pending Reviews</div>
+                                <a href="{{ route('admin.reviews.index') }}" class="btn btn-xs btn-warning mt-2">Manage Reviews</a>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -256,6 +263,9 @@
                         <a href="{{ route('admin.bookings.index') }}"
                             class="btn btn-sm btn-outline-light text-start border-secondary"><i
                                 class="bi bi-ticket-detailed me-2"></i>All Bookings</a>
+                        <a href="{{ route('admin.reviews.index') }}"
+                            class="btn btn-sm btn-outline-light text-start border-secondary"><i
+                                class="bi bi-star me-2"></i>Manage Reviews</a>
                     </div>
                 </div>
             </div>
