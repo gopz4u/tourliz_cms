@@ -425,6 +425,7 @@
         <!-- Quill Editor JS -->
         <script src="https://cdn.quilljs.com/1.3.6/quill.js"></script>
         <script>
+            $(document).ready(function() {
                 // Fetch exchange rates for real-time preview
                 let cachedRates = [];
                 $.get('/api/v1/currency/rates', function(response) {
@@ -476,11 +477,33 @@
                 $('#price, #currency').on('input change', updateCurrencyPreview);
 
                 // Initialize Quill editor
-                descriptionEditor = initQuillEditor('#description-editor', 300);
+                if (typeof initQuillEditor === 'function') {
+                    window.descriptionEditor = initQuillEditor('#description-editor', 300);
+                }
 
-                // Load countries for dropdown
+                // Initialize Select2 on cascading selects immediately with placeholders
+                if ($.fn.select2) {
+                    $('#country_select').select2({
+                        theme: 'bootstrap-5',
+                        placeholder: 'Select Country',
+                        width: '100%',
+                        allowClear: true
+                    });
+                    $('#location_select').select2({
+                        theme: 'bootstrap-5',
+                        placeholder: 'Select Location',
+                        width: '100%',
+                        allowClear: true
+                    });
+                    $('#destination_id').select2({
+                        theme: 'bootstrap-5',
+                        placeholder: 'Select City',
+                        width: '100%',
+                        allowClear: true
+                    });
+                }
+
                 loadCountries();
-                // Load suppliers for dropdown
                 loadSuppliers();
 
                 // Handle category change to show/hide amenities
@@ -550,34 +573,60 @@
                     $('#categories-container').append(rowHtml);
                 };
 
-
                 function loadCountries() {
-                    // Load all destinations for the multi-select first
-                    $.get('{{ route("admin.destinations.index") }}', function (response) {
-                        const allDestinations = response.data || response;
-                        const multiSelect = $('#destination_ids');
-                        multiSelect.empty();
-                        if (Array.isArray(allDestinations)) {
-                            allDestinations.forEach(function (dest) {
-                                multiSelect.append(`<option value="${dest.id}">${dest.city} (${dest.name}) - ${dest.country}</option>`);
-                            });
-                        }
-                        // Initialize select2
-                        if ($.fn.select2) {
-                            multiSelect.select2({
-                                placeholder: "Select destinations",
-                                allowClear: true,
-                                width: '100%'
-                            });
+                    // Load countries for the primary cascading select
+                    $.ajax({
+                        url: '{{ route("admin.destinations.countries") }}',
+                        type: 'GET',
+                        dataType: 'json',
+                        success: function (response) {
+                            const countries = response.data || response;
+                            const countrySelect = $('#country_select');
+                            countrySelect.find('option:not(:first)').remove();
+                            if (Array.isArray(countries)) {
+                                countries.forEach(function (country) {
+                                    countrySelect.append(`<option value="${country}">${country}</option>`);
+                                });
+                            }
+                            
+                            // Resync select2
+                            if ($.fn.select2) {
+                                countrySelect.trigger('change.select2');
+                            }
+                        },
+                        error: function (xhr, status, error) {
+                            console.error('Failed to load countries:', error);
                         }
                     });
 
-                    $.get('{{ route("admin.destinations.countries") }}', function (countries) {
-                        const countrySelect = $('#country_select');
-                        countrySelect.find('option:not(:first)').remove();
-                        countries.forEach(function (country) {
-                            countrySelect.append(`<option value="${country}">${country}</option>`);
-                        });
+                    // Load all destinations for the multi-select
+                    $.ajax({
+                        url: '{{ route("admin.destinations.index") }}',
+                        type: 'GET',
+                        data: { per_page: 2000 },
+                        dataType: 'json',
+                        success: function (response) {
+                            const destinations = response.data || [];
+                            const multiSelect = $('#destination_ids');
+                            multiSelect.empty();
+                            if (Array.isArray(destinations)) {
+                                destinations.forEach(function (dest) {
+                                    multiSelect.append(`<option value="${dest.id}">${dest.city} (${dest.name}) - ${dest.country}</option>`);
+                                });
+                            }
+                            // Initialize select2
+                            if ($.fn.select2) {
+                                multiSelect.select2({
+                                    theme: 'bootstrap-5',
+                                    placeholder: "Select destinations",
+                                    allowClear: true,
+                                    width: '100%'
+                                });
+                            }
+                        },
+                        error: function (xhr, status, error) {
+                            console.error('Failed to load destinations:', error);
+                        }
                     });
                 }
 
@@ -588,30 +637,53 @@
                     const locationSelect = $('#location_select');
                     const destinationSelect = $('#destination_id');
 
-                    locationSelect.find('option:not(:first)').remove().prop('disabled', true);
-                    destinationSelect.find('option:not(:first)').remove().prop('disabled', true);
+                    locationSelect.find('option:not(:first)').remove();
+                    destinationSelect.find('option:not(:first)').remove();
+                    
+                    if ($.fn.select2) {
+                        locationSelect.prop('disabled', true).trigger('change');
+                        destinationSelect.prop('disabled', true).trigger('change');
+                    } else {
+                        locationSelect.prop('disabled', true);
+                        destinationSelect.prop('disabled', true);
+                    }
 
                     if (country) {
-                        $.get('{{ route("admin.destinations.locations") }}', { country: country }, function (locations) {
-                            locations.forEach(function (location) {
-                                locationSelect.append(`<option value="${location}">${location}</option>`);
-                            });
-                            locationSelect.prop('disabled', false);
+                        $.ajax({
+                            url: '{{ route("admin.destinations.locations") }}',
+                            type: 'GET',
+                            data: { country: country },
+                            dataType: 'json',
+                            success: function (locations) {
+                                if (Array.isArray(locations)) {
+                                    locations.forEach(function (location) {
+                                        locationSelect.append(`<option value="${location}">${location}</option>`);
+                                    });
+                                }
+                                locationSelect.prop('disabled', false);
+                                if ($.fn.select2) {
+                                    locationSelect.trigger('change.select2');
+                                }
+                            }
                         });
 
                         // Fetch all destinations for this country for the Day-by-Day builder
-                        $.get('{{ route("admin.destinations.index") }}', { country: country, per_page: 2000 }, function (res) {
-                            currentCountryDestinations = res.data || [];
-                            updateAllItineraryDestinations();
+                        $.ajax({
+                            url: '{{ route("admin.destinations.index") }}',
+                            type: 'GET',
+                            data: { country: country, per_page: 2000 },
+                            dataType: 'json',
+                            success: function (res) {
+                                currentCountryDestinations = res.data || [];
+                                updateAllItineraryDestinations();
+                            }
                         });
 
-                        // Reload suppliers filtered by this country (via destination)
-                        // First get destinations in this country to find IDs
-                        loadSuppliers(); // Load all for country initially; refine on city select
+                        loadSuppliers();
                     } else {
                         currentCountryDestinations = [];
                         updateAllItineraryDestinations();
-                        loadSuppliers(); // Reload all suppliers
+                        loadSuppliers();
                     }
                 });
 
@@ -859,14 +931,30 @@
                     const location = $(this).val();
                     const destinationSelect = $('#destination_id');
 
-                    destinationSelect.find('option:not(:first)').remove().prop('disabled', true);
+                    destinationSelect.find('option:not(:first)').remove();
+                    if ($.fn.select2) {
+                        destinationSelect.prop('disabled', true).trigger('change');
+                    } else {
+                        destinationSelect.prop('disabled', true);
+                    }
 
                     if (location) {
-                        $.get('{{ route("admin.destinations.cities") }}', { country: country, location: location }, function (cities) {
-                            cities.forEach(function (city) {
-                                destinationSelect.append(`<option value="${city.id}">${city.city} (${city.name})</option>`);
-                            });
-                            destinationSelect.prop('disabled', false);
+                        $.ajax({
+                            url: '{{ route("admin.destinations.cities") }}',
+                            type: 'GET',
+                            data: { country: country, location: location },
+                            dataType: 'json',
+                            success: function (cities) {
+                                if (Array.isArray(cities)) {
+                                    cities.forEach(function (city) {
+                                        destinationSelect.append(`<option value="${city.id}">${city.city} (${city.name})</option>`);
+                                    });
+                                }
+                                destinationSelect.prop('disabled', false);
+                                if ($.fn.select2) {
+                                    destinationSelect.trigger('change.select2');
+                                }
+                            }
                         });
                     }
                 });

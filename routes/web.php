@@ -19,6 +19,8 @@ use App\Http\Controllers\Admin\ItineraryController;
 use App\Http\Controllers\Admin\GroupPackageItineraryController;
 use App\Http\Controllers\Admin\WebsiteManagementController;
 use App\Http\Controllers\Admin\PackageOfferController;
+use App\Http\Controllers\Admin\ReviewController;
+
 
 /*
 |--------------------------------------------------------------------------
@@ -230,4 +232,9 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:admin'])->grou
     // Upload
     Route::post('/upload/image', [UploadController::class, 'uploadImage'])->name('upload.image');
     Route::post('/upload/images', [UploadController::class, 'uploadMultipleImages'])->name('upload.images');
+
+    // Reviews Management
+    Route::get('reviews', [ReviewController::class, 'index'])->name('reviews.index');
+    Route::post('reviews/{id}/status', [ReviewController::class, 'updateStatus'])->name('reviews.updateStatus');
+    Route::delete('reviews/{id}', [ReviewController::class, 'destroy'])->name('reviews.destroy');
 });

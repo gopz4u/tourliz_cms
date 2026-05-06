@@ -486,12 +486,29 @@
 
 
                 function loadCountries() {
-                    $.get('{{ route("admin.destinations.countries") }}', function (countries) {
-                        const countrySelect = $('#country_select');
-                        countrySelect.find('option:not(:first)').remove();
-                        countries.forEach(function (country) {
-                            countrySelect.append(`<option value="${country}">${country}</option>`);
-                        });
+                    $.ajax({
+                        url: '{{ route("admin.destinations.countries") }}',
+                        type: 'GET',
+                        dataType: 'json',
+                        success: function (countries) {
+                            const countrySelect = $('#country_select');
+                            countrySelect.find('option:not(:first)').remove();
+                            if (Array.isArray(countries)) {
+                                countries.forEach(function (country) {
+                                    countrySelect.append(`<option value="${country}">${country}</option>`);
+                                });
+                            }
+                            
+                            // Initialize select2
+                            if ($.fn.select2) {
+                                countrySelect.select2({
+                                    theme: 'bootstrap-5',
+                                    placeholder: 'Select Country',
+                                    width: '100%',
+                                    allowClear: true
+                                });
+                            }
+                        }
                     });
                 }
 
@@ -502,30 +519,58 @@
                     const locationSelect = $('#location_select');
                     const destinationSelect = $('#destination_id');
 
-                    locationSelect.find('option:not(:first)').remove().prop('disabled', true);
-                    destinationSelect.find('option:not(:first)').remove().prop('disabled', true);
+                    locationSelect.find('option:not(:first)').remove();
+                    destinationSelect.find('option:not(:first)').remove();
+                    
+                    if ($.fn.select2) {
+                        locationSelect.prop('disabled', true).trigger('change');
+                        destinationSelect.prop('disabled', true).trigger('change');
+                    } else {
+                        locationSelect.prop('disabled', true);
+                        destinationSelect.prop('disabled', true);
+                    }
 
                     if (country) {
-                        $.get('{{ route("admin.destinations.locations") }}', { country: country }, function (locations) {
-                            locations.forEach(function (location) {
-                                locationSelect.append(`<option value="${location}">${location}</option>`);
-                            });
-                            locationSelect.prop('disabled', false);
+                        $.ajax({
+                            url: '{{ route("admin.destinations.locations") }}',
+                            type: 'GET',
+                            data: { country: country },
+                            dataType: 'json',
+                            success: function (locations) {
+                                if (Array.isArray(locations)) {
+                                    locations.forEach(function (location) {
+                                        locationSelect.append(`<option value="${location}">${location}</option>`);
+                                    });
+                                }
+                                locationSelect.prop('disabled', false);
+                                if ($.fn.select2) {
+                                    locationSelect.select2({
+                                        theme: 'bootstrap-5',
+                                        placeholder: 'Select Location',
+                                        width: '100%',
+                                        allowClear: true
+                                    }).trigger('change');
+                                }
+                            }
                         });
 
                         // Fetch all destinations for this country for the Day-by-Day builder
-                        $.get('{{ route("admin.destinations.index") }}', { country: country, per_page: 2000 }, function (res) {
-                            currentCountryDestinations = res.data || [];
-                            updateAllItineraryDestinations();
+                        $.ajax({
+                            url: '{{ route("admin.destinations.index") }}',
+                            type: 'GET',
+                            data: { country: country, per_page: 2000 },
+                            dataType: 'json',
+                            success: function (res) {
+                                currentCountryDestinations = res.data || [];
+                                updateAllItineraryDestinations();
+                            }
                         });
 
-                        // Reload suppliers filtered by this country (via destination)
-                        // First get destinations in this country to find IDs
-                        loadSuppliers(); // Load all for country initially; refine on city select
+                        loadSuppliers();
                     } else {
                         currentCountryDestinations = [];
                         updateAllItineraryDestinations();
-                        loadSuppliers(); // Reload all suppliers
+                        loadSuppliers();
                     }
                 });
 
@@ -773,14 +818,35 @@
                     const location = $(this).val();
                     const destinationSelect = $('#destination_id');
 
-                    destinationSelect.find('option:not(:first)').remove().prop('disabled', true);
+                    destinationSelect.find('option:not(:first)').remove();
+                    if ($.fn.select2) {
+                        destinationSelect.prop('disabled', true).trigger('change');
+                    } else {
+                        destinationSelect.prop('disabled', true);
+                    }
 
                     if (location) {
-                        $.get('{{ route("admin.destinations.cities") }}', { country: country, location: location }, function (cities) {
-                            cities.forEach(function (city) {
-                                destinationSelect.append(`<option value="${city.id}">${city.city} (${city.name})</option>`);
-                            });
-                            destinationSelect.prop('disabled', false);
+                        $.ajax({
+                            url: '{{ route("admin.destinations.cities") }}',
+                            type: 'GET',
+                            data: { country: country, location: location },
+                            dataType: 'json',
+                            success: function (cities) {
+                                if (Array.isArray(cities)) {
+                                    cities.forEach(function (city) {
+                                        destinationSelect.append(`<option value="${city.id}">${city.city} (${city.name})</option>`);
+                                    });
+                                }
+                                destinationSelect.prop('disabled', false);
+                                if ($.fn.select2) {
+                                    destinationSelect.select2({
+                                        theme: 'bootstrap-5',
+                                        placeholder: 'Select City',
+                                        width: '100%',
+                                        allowClear: true
+                                    }).trigger('change');
+                                }
+                            }
                         });
                     }
                 });

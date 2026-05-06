@@ -69,7 +69,9 @@
                     $amenities = $package->addon_amenities ?? [];
                     $hotels    = collect($amenities)->filter(fn($a) => ($a['type'] ?? '') === 'hotel')->values();
                     $transports= collect($amenities)->filter(fn($a) => in_array($a['type'] ?? '', ['transport','airport_pickup','airport_drop']))->values();
-                    $activities= collect($amenities)->filter(fn($a) => !in_array($a['type'] ?? '', ['hotel','transport','airport_pickup','airport_drop']))->values();
+                    $meals     = collect($amenities)->filter(fn($a) => strtolower($a['type'] ?? '') === 'meal')->values();
+                    $tickets   = collect($amenities)->filter(fn($a) => in_array(strtolower($a['type'] ?? ''), ['ticket', 'entry_tickets']))->values();
+                    $activities= collect($amenities)->filter(fn($a) => !in_array(strtolower($a['type'] ?? ''), ['hotel','transport','airport_pickup','airport_drop', 'meal', 'ticket', 'entry_tickets']))->values();
                 @endphp
 
                 @if($hotels->count())
@@ -120,6 +122,32 @@
                         @foreach($transports as $i => $a)
                             <span class="vendor-chip transport" data-type="transport" data-index="{{ $i }}" data-name="{{ $a['name'] }}" data-total="{{ $a['value'] ?? ($a['total'] ?? 0) }}" onclick="assignVendorToActiveDay(this)">
                                 <i class="bi bi-truck"></i> {{ $a['name'] }}
+                            </span>
+                        @endforeach
+                    </div>
+                </div>
+                @endif
+
+                @if($meals->count())
+                <div class="mb-3">
+                    <div class="section-header"><span><i class="bi bi-egg-fried me-1"></i>Meals</span></div>
+                    <div class="d-flex flex-wrap gap-1">
+                        @foreach($meals as $i => $a)
+                            <span class="vendor-chip meal" data-type="activity" data-index="{{ $i }}" data-name="{{ $a['name'] }}" data-total="{{ $a['value'] ?? ($a['total'] ?? 0) }}" onclick="assignVendorToActiveDay(this)" style="background:#fee2e2; color:#b91c1c; border:1px solid #fecaca;">
+                                <i class="bi bi-egg-fried"></i> {{ $a['name'] }}
+                            </span>
+                        @endforeach
+                    </div>
+                </div>
+                @endif
+
+                @if($tickets->count())
+                <div class="mb-3">
+                    <div class="section-header"><span><i class="bi bi-ticket-perforated me-1"></i>Entry Tickets</span></div>
+                    <div class="d-flex flex-wrap gap-1">
+                        @foreach($tickets as $i => $a)
+                            <span class="vendor-chip ticket" data-type="activity" data-index="{{ $i }}" data-name="{{ $a['name'] }}" data-total="{{ $a['value'] ?? ($a['total'] ?? 0) }}" onclick="assignVendorToActiveDay(this)" style="background:#fce7f3; color:#be185d; border:1px solid #fbcfe8;">
+                                <i class="bi bi-ticket-perforated"></i> {{ $a['name'] }}
                             </span>
                         @endforeach
                     </div>

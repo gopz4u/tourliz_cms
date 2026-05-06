@@ -23,6 +23,7 @@
                         <tr>
                             <th width="50">#</th>
                             <th>Activity Name</th>
+                            <th>Supplier</th>
                             <th>Destination</th>
                             <th>Duration</th>
                             <th>Base Price</th>
@@ -35,6 +36,9 @@
                             <tr>
                                 <td>{{ $loop->iteration }}</td>
                                 <td><strong>{{ $activity->name }}</strong></td>
+                                <td>
+                                    <span class="small fw-bold text-primary">{{ $activity->supplier->name ?? 'None' }}</span>
+                                </td>
                                 <td>{{ $activity->destination->name ?? 'N/A' }}</td>
                                 <td>{{ $activity->duration ?? 'N/A' }}</td>
                                 <td>$ {{ number_format($activity->base_price, 2) }}</td>

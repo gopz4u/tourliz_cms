@@ -12,7 +12,7 @@ class ActivityController extends Controller
 {
     public function index()
     {
-        $activities = Activity::with('destination')->paginate(15);
+        $activities = Activity::with('destination', 'supplier')->paginate(15);
         return view('admin.activities.index', compact('activities'));
     }
 

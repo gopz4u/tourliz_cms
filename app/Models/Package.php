@@ -74,6 +74,11 @@ class Package extends Model
         'ticket_count' => 'integer',
     ];
 
+    protected $appends = [
+        'average_rating',
+        'reviews_count'
+    ];
+
     public function getRouteKeyName()
     {
         return 'slug';
@@ -174,5 +179,20 @@ class Package extends Model
     public function hasItinerary()
     {
         return !empty($this->itinerary) && is_array($this->itinerary);
+    }
+
+    public function reviews()
+    {
+        return $this->hasMany(Review::class)->where('status', 'approved');
+    }
+
+    public function getAverageRatingAttribute()
+    {
+        return round($this->reviews()->avg('rating') ?: 5, 1);
+    }
+
+    public function getReviewsCountAttribute()
+    {
+        return $this->reviews()->count();
     }
 }

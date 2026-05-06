@@ -40,6 +40,7 @@
                             <th>Price</th>
                             <th>Duration</th>
                             <th>Status</th>
+                            <th>Rating</th>
                             <th>Featured</th>
                             <th>Actions</th>
                         </tr>
@@ -179,6 +180,12 @@
                                                         <span class="badge ${isActive ? 'bg-success' : 'bg-secondary'} badge-status">
                                                             ${isActive ? 'Active' : 'Inactive'}
                                                         </span>
+                                                    </td>
+                                                    <td>
+                                                        <div class="text-warning small">
+                                                            ${'★'.repeat(Math.floor(pkg.average_rating))}${'☆'.repeat(5 - Math.floor(pkg.average_rating))}
+                                                            <span class="text-muted ms-1">(${pkg.reviews_count})</span>
+                                                        </div>
                                                     </td>
                                                     <td>
                                                         ${isFeatured ? '<span class="badge bg-warning">Featured</span>' : '-'}
