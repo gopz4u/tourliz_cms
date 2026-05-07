@@ -606,20 +606,18 @@
                         <i class="bi bi-arrow-right nav-arrow"></i>
                     </a>
                 </li>
-                <li>
-                    <a href="{{ route('admin.reviews.index') }}" class="{{ request()->routeIs('admin.reviews.*') ? 'active' : '' }}">
-                        <i class="bi bi-star-fill main-icon"></i>
-                        <span>Package Reviews</span>
-                        @php
-                            $pendingReviews = \App\Models\Review::where('status', 'pending')->count();
-                        @endphp
-                        @if($pendingReviews > 0)
-                            <span class="nav-badge">{{ $pendingReviews }}</span>
-                        @else
-                            <i class="bi bi-arrow-right nav-arrow"></i>
-                        @endif
-                    </a>
-                </li>
+                <li class="nav-item">
+                            <a class="nav-link {{ request()->routeIs('admin.reviews.*') ? 'active' : '' }} d-flex justify-content-between align-items-center"
+                                href="{{ route('admin.reviews.index') }}">
+                                <span><i class="bi bi-star me-2"></i>Package Reviews</span>
+                                @php
+                                    $pendingReviews = \App\Models\Review::where('status', 'pending')->count();
+                                @endphp
+                                @if ($pendingReviews > 0)
+                                    <span class="badge bg-danger rounded-pill">{{ $pendingReviews }}</span>
+                                @endif
+                            </a>
+                        </li>
                 <li>
                     <a href="{{ route('admin.group-package-itineraries.index') }}" class="{{ request()->routeIs('admin.group-package-itineraries.*') ? 'active' : '' }}">
                         <i class="bi bi-calendar2-heart-fill main-icon"></i>

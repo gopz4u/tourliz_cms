@@ -243,7 +243,8 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:admin'])->grou
     Route::post('/upload/images', [UploadController::class, 'uploadMultipleImages'])->name('upload.images');
 
     // Reviews Management
-    Route::get('reviews', [ReviewController::class, 'index'])->name('reviews.index');
+    Route::post('reviews/bulk-action', [ReviewController::class, 'bulkAction'])->name('reviews.bulk-action');
+    Route::post('reviews/{id}/toggle-featured', [ReviewController::class, 'toggleFeatured'])->name('reviews.toggle-featured');
     Route::post('reviews/{id}/status', [ReviewController::class, 'updateStatus'])->name('reviews.updateStatus');
-    Route::delete('reviews/{id}', [ReviewController::class, 'destroy'])->name('reviews.destroy');
+    Route::resource('reviews', ReviewController::class);
 });
