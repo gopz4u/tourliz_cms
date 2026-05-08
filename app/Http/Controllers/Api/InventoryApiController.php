@@ -155,8 +155,8 @@ class InventoryApiController extends Controller
     public function supplierAssets(Request $request, $id)
     {
         $supplier = \App\Models\Supplier::findOrFail($id);
-        $type = strtolower($supplier->type);
-
+        $type = trim(strtolower($supplier->type));
+        
         $data = [
             'supplier' => $supplier,
             'type' => $type,
@@ -167,7 +167,7 @@ class InventoryApiController extends Controller
             case 'hotel':
             case 'hotels':
             case 'accommodation':
-                $data['assets'] = \App\Models\Hotel::with('rooms')->where('supplier_id', $id)->get();
+                $data['assets'] = \App\Models\Hotel::with('rooms')->where('supplier_id', $id)->get()->values();
                 $data['type'] = 'hotel'; // Normalize for frontend
                 break;
             case 'transport':

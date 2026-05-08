@@ -1102,23 +1102,26 @@
                     
                     $.get(`/api/inventory/suppliers/${supplierId}/assets`, function (data) {
                         itemRow.data('inventory', data);
-                        
-                        if (data.type === 'hotel') {
+                                                if (data.type === 'hotel') {
                             hotelSelect.html('<option value="">Select Hotel</option>').removeAttr('disabled');
                             assetSelect.html('<option value="">Select Room Type</option>').attr('disabled', true);
                             
-                            let foundAnyHotel = false;
-                            data.assets.forEach(hotel => {
-                                foundAnyHotel = true;
-                                hotelSelect.append(`<option value="${hotel.id}">${hotel.name}</option>`);
-                            });
+                            let hotelList = Array.isArray(data.assets) ? data.assets : Object.values(data.assets);
                             
-                            if (!foundAnyHotel) {
+                            if (hotelList.length > 0) {
+                                hotelList.forEach(hotel => {
+                                    hotelSelect.append(`<option value="${hotel.id}">${hotel.name}</option>`);
+                                });
+                            } else {
                                 hotelSelect.html('<option value="">No Hotels Linked to this Supplier</option>').attr('disabled', true);
                             }
-
+ 
                             if (preSelectedAssetId) {
-                                const hotelWithRoom = data.assets.find(h => h.rooms && h.rooms.some(r => r.id == preSelectedAssetId));
+                                const hotelWithRoom = hotelList.find(h => {
+                                    if (!h.rooms) return false;
+                                    let roomList = Array.isArray(h.rooms) ? h.rooms : Object.values(h.rooms);
+                                    return roomList.some(r => r.id == preSelectedAssetId);
+                                });
                                 if (hotelWithRoom) {
                                     hotelSelect.val(hotelWithRoom.id);
                                     handleHotelChange(amenityId, hotelSelect[0], preSelectedAssetId);
@@ -1127,38 +1130,41 @@
                         } else {
                             assetSelect.html('<option value="">Select Item</option>').removeAttr('disabled');
                             
+                            let assetList = Array.isArray(data.assets) ? data.assets : Object.values(data.assets);
+                            
                             if (data.type === 'transport') {
-                                data.assets.forEach(asset => {
+                                assetList.forEach(asset => {
                                     const displayName = `${asset.vehicle_type} (${asset.name})`;
                                     assetSelect.append(`<option value="${asset.id}" data-price="${asset.base_price || 0}" data-name="${displayName}">${displayName} - $${asset.base_price || 0}</option>`);
                                 });
                             } else if (data.type === 'activity' || data.type === 'tickets' || data.type === 'entry_tickets') {
-                                data.assets.forEach(asset => {
+                                assetList.forEach(asset => {
                                     const name = asset.name || asset.attraction_name || 'Unnamed Item';
                                     const adultPrice = asset.base_price || asset.adult_price || 0;
                                     const childPrice = asset.child_price || 0;
                                     assetSelect.append(`<option value="${asset.id}" data-adultprice="${adultPrice}" data-childprice="${childPrice}" data-name="${name}">${name} - Ad: $${adultPrice} / Ch: $${childPrice}</option>`);
                                 });
                                 if(data.extra_assets) {
-                                    data.extra_assets.forEach(asset => {
+                                    let extraList = Array.isArray(data.extra_assets) ? data.extra_assets : Object.values(data.extra_assets);
+                                    extraList.forEach(asset => {
                                         assetSelect.append(`<option value="${asset.id}" data-adultprice="${asset.adult_price || 0}" data-childprice="${asset.child_price || 0}" data-name="${asset.attraction_name}">${asset.attraction_name} - Ad: $${asset.adult_price || 0} / Ch: $${asset.child_price || 0}</option>`);
                                     });
                                 }
-                            } else if (data.assets && Array.isArray(data.assets)) {
-                                data.assets.forEach(asset => {
+                            } else if (assetList.length > 0) {
+                                assetList.forEach(asset => {
                                     const name = asset.name || asset.attraction_name || 'Unnamed Item';
                                     const price = asset.base_price || asset.price || asset.adult_price || 0;
                                     assetSelect.append(`<option value="${asset.id}" data-price="${price}" data-name="${name}">${name} - $${price}</option>`);
                                 });
                             }
-
+ 
                             if (preSelectedAssetId) {
                                 assetSelect.val(preSelectedAssetId);
                             }
                         }
                     });
                 };
-
+ 
                 window.handleHotelChange = function (amenityId, select, preSelectedAssetId = null) {
                     const itemRow = $(`.amenity-item[data-amenity-id="${amenityId}"]`);
                     const assetSelect = itemRow.find('.amenity-asset');
@@ -1172,16 +1178,22 @@
                     }
                     
                     assetSelect.removeAttr('disabled');
-                    const hotel = data.assets.find(h => h.id == hotelId);
+                    let hotelList = Array.isArray(data.assets) ? data.assets : Object.values(data.assets);
+                    const hotel = hotelList.find(h => h.id == hotelId);
                     
-                    if (hotel && hotel.rooms && hotel.rooms.length > 0) {
-                        hotel.rooms.forEach(room => {
-                            assetSelect.append(`<option value="${room.id}" data-price="${room.base_price}" data-name="${hotel.name} - ${room.room_type}">${room.room_type} - $${room.base_price}</option>`);
-                        });
+                    if (hotel && hotel.rooms) {
+                        let roomList = Array.isArray(hotel.rooms) ? hotel.rooms : Object.values(hotel.rooms);
+                        if (roomList.length > 0) {
+                            roomList.forEach(room => {
+                                assetSelect.append(`<option value="${room.id}" data-price="${room.base_price}" data-name="${hotel.name} - ${room.room_type}">${room.room_type} - $${room.base_price}</option>`);
+                            });
+                        } else {
+                            assetSelect.html('<option value="">No Rooms Added Yet</option>').attr('disabled', true);
+                        }
                     } else {
                         assetSelect.html('<option value="">No Rooms Added Yet</option>').attr('disabled', true);
                     }
-
+ 
                     if (preSelectedAssetId) {
                         assetSelect.val(preSelectedAssetId);
                     }
