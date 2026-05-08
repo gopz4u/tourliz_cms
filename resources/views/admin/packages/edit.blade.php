@@ -1114,7 +1114,7 @@
                             });
                             
                             if (!foundAnyHotel) {
-                                hotelSelect.html('<option value="" disabled>No Hotels found</option>');
+                                hotelSelect.html('<option value="">No Hotels Linked to this Supplier</option>').attr('disabled', true);
                             }
 
                             if (preSelectedAssetId) {
@@ -1179,7 +1179,7 @@
                             assetSelect.append(`<option value="${room.id}" data-price="${room.base_price}" data-name="${hotel.name} - ${room.room_type}">${room.room_type} - $${room.base_price}</option>`);
                         });
                     } else {
-                        assetSelect.append(`<option value="" disabled>No Rooms Added Yet</option>`);
+                        assetSelect.html('<option value="">No Rooms Added Yet</option>').attr('disabled', true);
                     }
 
                     if (preSelectedAssetId) {
