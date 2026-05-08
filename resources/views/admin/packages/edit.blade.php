@@ -959,21 +959,27 @@
                         <div class="card mb-3 border-0 shadow-sm amenity-item" data-amenity-id="${amenityId}">
                             <div class="card-body p-3">
                                 <div class="row g-2 align-items-end">
-                                    <div class="col-md-3">
+                                    <div class="col">
                                         <label class="form-label small text-muted mb-1">Supplier</label>
                                         <select class="form-select form-select-sm amenity-supplier" onchange="handleSupplierChange('${amenityId}', this)" required>
                                             <option value="">Select Supplier</option>
                                             ${supplierOptions}
                                         </select>
                                     </div>
-                                    <div class="col-md-3">
+                                    <div class="col amenity-hotel-container" style="display:none;">
+                                        <label class="form-label small text-muted mb-1">Hotel</label>
+                                        <select class="form-select form-select-sm amenity-hotel" onchange="handleHotelChange('${amenityId}', this)">
+                                            <option value="">Select Hotel</option>
+                                        </select>
+                                    </div>
+                                    <div class="col amenity-asset-container">
                                         <label class="form-label small text-muted mb-1 dynamic-asset-label">Item / Service Type</label>
                                         <select class="form-select form-select-sm amenity-asset" onchange="handleAssetChange('${amenityId}', this)" required ${!data.supplier_id ? 'disabled' : ''}>
                                             <option value="">Select Item</option>
                                             ${data.asset_id ? `<option value="${data.asset_id}" selected>Loading existing item...</option>` : ''}
                                         </select>
                                     </div>
-                                    <div class="col-md-3">
+                                    <div class="col">
                                         <label class="form-label small text-muted mb-1">Name / Title</label>
                                         <input type="text" class="form-control form-control-sm amenity-name" value="${data.name || ''}" placeholder="Name" required>
                                         <input type="hidden" class="amenity-type" value="${data.type || ''}">
@@ -1039,23 +1045,26 @@
                 };
 
                 const itemRowSelect = (id) => $(`.amenity-item[data-amenity-id="${id}"] .amenity-supplier`)[0];
-
                 window.handleSupplierChange = function (amenityId, select, preSelectedAssetId = null) {
                     const supplierId = $(select).val();
                     const itemRow = $(`.amenity-item[data-amenity-id="${amenityId}"]`);
                     const assetSelect = itemRow.find('.amenity-asset');
+                    const hotelContainer = itemRow.find('.amenity-hotel-container');
+                    const hotelSelect = itemRow.find('.amenity-hotel');
                     const calcFieldsContainer = itemRow.find('.calc-fields');
                     const typeInput = itemRow.find('.amenity-type');
                     
                     if (!supplierId) {
                         assetSelect.html('<option value="">Select Item</option>').attr('disabled', true);
+                        hotelContainer.hide();
                         calcFieldsContainer.hide();
                         return;
                     }
 
                     const supplierType = $(select).find('option:selected').data('type').toLowerCase();
-                    if (supplierType) typeInput.val(supplierType);
+                    typeInput.val(supplierType);
                     
+                    // Setup UI based on type
                     calcFieldsContainer.show();
                     itemRow.find('.calc-base-price, .calc-days, .calc-qty, .calc-adult-price, .calc-adult-qty, .calc-child-price, .calc-child-qty').hide();
                     
@@ -1063,20 +1072,25 @@
                     
                     if (supplierType === 'hotel') {
                         dynamicLabel = 'Room Type';
+                        hotelContainer.show();
+                        hotelSelect.html('<option value="">Loading...</option>').attr('disabled', true);
                         itemRow.find('.calc-base-price').show();
                         itemRow.find('.calc-days').show();
                         itemRow.find('.calc-qty').show().find('label').text('Rooms Count');
                     } else if (supplierType === 'transport') {
                         dynamicLabel = 'Vehicle Type';
+                        hotelContainer.hide();
                         itemRow.find('.calc-base-price').show();
                         itemRow.find('.calc-qty').show().find('label').text('Quantity/Hours');
                     } else if (supplierType === 'activity' || supplierType === 'ticket' || supplierType === 'entry_tickets') {
                         dynamicLabel = 'Ticket / Activity';
+                        hotelContainer.hide();
                         itemRow.find('.calc-adult-price').show();
                         itemRow.find('.calc-adult-qty').show();
                         itemRow.find('.calc-child-price').show();
                         itemRow.find('.calc-child-qty').show();
                     } else {
+                        hotelContainer.hide();
                         itemRow.find('.calc-base-price').show();
                         itemRow.find('.calc-qty').show().find('label').text('Quantity');
                     }
@@ -1084,57 +1098,93 @@
                     itemRow.find('.dynamic-asset-label').text(dynamicLabel);
 
                     // Load assets via API
-                    if (!preSelectedAssetId) assetSelect.html('<option value="">Loading...</option>').attr('disabled', true);
+                    assetSelect.html('<option value="">Loading...</option>').attr('disabled', true);
                     
                     $.get(`/api/inventory/suppliers/${supplierId}/assets`, function (data) {
-                        assetSelect.html('<option value="">Select Item</option>').removeAttr('disabled');
+                        itemRow.data('inventory', data);
                         
                         if (data.type === 'hotel') {
-                            let foundAnyRoom = false;
+                            hotelSelect.html('<option value="">Select Hotel</option>').removeAttr('disabled');
+                            assetSelect.html('<option value="">Select Room Type</option>').attr('disabled', true);
+                            
+                            let foundAnyHotel = false;
                             data.assets.forEach(hotel => {
-                                if (hotel.rooms && hotel.rooms.length > 0) {
-                                    hotel.rooms.forEach(room => {
-                                        foundAnyRoom = true;
-                                        const selected = (typeof preSelectedAssetId !== 'undefined' && preSelectedAssetId == room.id) ? 'selected' : '';
-                                        assetSelect.append(`<option value="${room.id}" ${selected} data-price="${room.base_price}" data-name="${hotel.name} - ${room.room_type}">${room.room_type} (${hotel.name}) - $${room.base_price}</option>`);
-                                    });
-                                } else {
-                                    assetSelect.append(`<option value="" disabled>${hotel.name} (No Rooms Added Yet)</option>`);
-                                }
+                                foundAnyHotel = true;
+                                hotelSelect.append(`<option value="${hotel.id}">${hotel.name}</option>`);
                             });
-                            if (!foundAnyRoom && data.assets.length === 0) {
-                                assetSelect.append('<option value="" disabled>No Hotels/Rooms found</option>');
+                            
+                            if (!foundAnyHotel) {
+                                hotelSelect.html('<option value="" disabled>No Hotels found</option>');
                             }
-                        } else if (data.type === 'transport') {
-                            data.assets.forEach(asset => {
-                                const displayName = `${asset.vehicle_type} (${asset.name})`;
-                                const selected = preSelectedAssetId == asset.id ? 'selected' : '';
-                                assetSelect.append(`<option value="${asset.id}" ${selected} data-price="${asset.base_price || 0}" data-name="${displayName}">${displayName} - $${asset.base_price || 0}</option>`);
-                            });
-                        } else if (data.type === 'activity' || data.type === 'tickets' || data.type === 'entry_tickets') {
-                            data.assets.forEach(asset => {
-                                const name = asset.name || asset.attraction_name || 'Unnamed Item';
-                                const adultPrice = asset.base_price || asset.adult_price || 0;
-                                const childPrice = asset.child_price || 0;
-                                const selected = preSelectedAssetId == asset.id ? 'selected' : '';
-                                assetSelect.append(`<option value="${asset.id}" ${selected} data-adultprice="${adultPrice}" data-childprice="${childPrice}" data-name="${name}">${name} - Ad: $${adultPrice} / Ch: $${childPrice}</option>`);
-                            });
-                            if(data.extra_assets) {
-                                data.extra_assets.forEach(asset => {
-                                    const selected = preSelectedAssetId == asset.id ? 'selected' : '';
-                                    assetSelect.append(`<option value="${asset.id}" ${selected} data-adultprice="${asset.adult_price || 0}" data-childprice="${asset.child_price || 0}" data-name="${asset.attraction_name}">${asset.attraction_name} - Ad: $${asset.adult_price || 0} / Ch: $${asset.child_price || 0}</option>`);
+
+                            if (preSelectedAssetId) {
+                                const hotelWithRoom = data.assets.find(h => h.rooms && h.rooms.some(r => r.id == preSelectedAssetId));
+                                if (hotelWithRoom) {
+                                    hotelSelect.val(hotelWithRoom.id);
+                                    handleHotelChange(amenityId, hotelSelect[0], preSelectedAssetId);
+                                }
+                            }
+                        } else {
+                            assetSelect.html('<option value="">Select Item</option>').removeAttr('disabled');
+                            
+                            if (data.type === 'transport') {
+                                data.assets.forEach(asset => {
+                                    const displayName = `${asset.vehicle_type} (${asset.name})`;
+                                    assetSelect.append(`<option value="${asset.id}" data-price="${asset.base_price || 0}" data-name="${displayName}">${displayName} - $${asset.base_price || 0}</option>`);
+                                });
+                            } else if (data.type === 'activity' || data.type === 'tickets' || data.type === 'entry_tickets') {
+                                data.assets.forEach(asset => {
+                                    const name = asset.name || asset.attraction_name || 'Unnamed Item';
+                                    const adultPrice = asset.base_price || asset.adult_price || 0;
+                                    const childPrice = asset.child_price || 0;
+                                    assetSelect.append(`<option value="${asset.id}" data-adultprice="${adultPrice}" data-childprice="${childPrice}" data-name="${name}">${name} - Ad: $${adultPrice} / Ch: $${childPrice}</option>`);
+                                });
+                                if(data.extra_assets) {
+                                    data.extra_assets.forEach(asset => {
+                                        assetSelect.append(`<option value="${asset.id}" data-adultprice="${asset.adult_price || 0}" data-childprice="${asset.child_price || 0}" data-name="${asset.attraction_name}">${asset.attraction_name} - Ad: $${asset.adult_price || 0} / Ch: $${asset.child_price || 0}</option>`);
+                                    });
+                                }
+                            } else if (data.assets && Array.isArray(data.assets)) {
+                                data.assets.forEach(asset => {
+                                    const name = asset.name || asset.attraction_name || 'Unnamed Item';
+                                    const price = asset.base_price || asset.price || asset.adult_price || 0;
+                                    assetSelect.append(`<option value="${asset.id}" data-price="${price}" data-name="${name}">${name} - $${price}</option>`);
                                 });
                             }
-                        } else if (data.assets && Array.isArray(data.assets)) {
-                            // Default handling for other types
-                            data.assets.forEach(asset => {
-                                const name = asset.name || asset.attraction_name || 'Unnamed Item';
-                                const price = asset.base_price || asset.adult_price || asset.price || 0;
-                                const selected = preSelectedAssetId == asset.id ? 'selected' : '';
-                                assetSelect.append(`<option value="${asset.id}" ${selected} data-price="${price}" data-name="${name}">${name} - $${price}</option>`);
-                            });
+
+                            if (preSelectedAssetId) {
+                                assetSelect.val(preSelectedAssetId);
+                            }
                         }
                     });
+                };
+
+                window.handleHotelChange = function (amenityId, select, preSelectedAssetId = null) {
+                    const itemRow = $(`.amenity-item[data-amenity-id="${amenityId}"]`);
+                    const assetSelect = itemRow.find('.amenity-asset');
+                    const hotelId = $(select).val();
+                    const data = itemRow.data('inventory');
+                    
+                    assetSelect.html('<option value="">Select Room Type</option>');
+                    if (!hotelId || !data || data.type !== 'hotel') {
+                        assetSelect.attr('disabled', true);
+                        return;
+                    }
+                    
+                    assetSelect.removeAttr('disabled');
+                    const hotel = data.assets.find(h => h.id == hotelId);
+                    
+                    if (hotel && hotel.rooms && hotel.rooms.length > 0) {
+                        hotel.rooms.forEach(room => {
+                            assetSelect.append(`<option value="${room.id}" data-price="${room.base_price}" data-name="${hotel.name} - ${room.room_type}">${room.room_type} - $${room.base_price}</option>`);
+                        });
+                    } else {
+                        assetSelect.append(`<option value="" disabled>No Rooms Added Yet</option>`);
+                    }
+
+                    if (preSelectedAssetId) {
+                        assetSelect.val(preSelectedAssetId);
+                    }
                 };
 
                 window.handleAssetChange = function (amenityId, select) {
