@@ -1266,11 +1266,20 @@
                         assetSelect.html('<option value="">Select Item</option>').removeAttr('disabled');
                         
                         if (data.type === 'hotel') {
+                            let foundAnyRoom = false;
                             data.assets.forEach(hotel => {
-                                hotel.rooms.forEach(room => {
-                                    assetSelect.append(`<option value="${room.id}" data-price="${room.base_price}" data-name="${hotel.name} - ${room.room_type}">${room.room_type} (${hotel.name}) - $${room.base_price}</option>`);
-                                });
+                                if (hotel.rooms && hotel.rooms.length > 0) {
+                                    hotel.rooms.forEach(room => {
+                                        foundAnyRoom = true;
+                                        assetSelect.append(`<option value="${room.id}" data-price="${room.base_price}" data-name="${hotel.name} - ${room.room_type}">${room.room_type} (${hotel.name}) - $${room.base_price}</option>`);
+                                    });
+                                } else {
+                                    assetSelect.append(`<option value="" disabled>${hotel.name} (No Rooms Added Yet)</option>`);
+                                }
                             });
+                            if (!foundAnyRoom && data.assets.length === 0) {
+                                assetSelect.append('<option value="" disabled>No Hotels/Rooms found</option>');
+                            }
                         } else if (data.type === 'transport') {
                             data.assets.forEach(asset => {
                                 const displayName = `${asset.vehicle_type} (${asset.name})`;

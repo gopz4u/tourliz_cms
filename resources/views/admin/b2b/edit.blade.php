@@ -1138,7 +1138,7 @@
                                                                                                                                                                                                                                  </div>
                                                                                                                                                                                                                                  <div class="room-options d-grid gap-1 mt-2"></div>`;
                             const roomContainer = btn.querySelector('.room-options');
-                            if (item.rooms) {
+                            if (item.rooms && item.rooms.length > 0) {
                                 item.rooms.forEach(room => {
                                     const rb = document.createElement('div');
                                     rb.className = 'btn btn-sm btn-light border text-start d-flex justify-content-between align-items-center';
@@ -1146,6 +1146,11 @@
                                     rb.onclick = (e) => { e.stopPropagation(); selectItem(item, room); };
                                     roomContainer.appendChild(rb);
                                 });
+                            } else {
+                                const rb = document.createElement('div');
+                                rb.className = 'btn btn-sm btn-light border text-start text-muted';
+                                rb.innerHTML = `<span>No rooms added yet</span>`;
+                                roomContainer.appendChild(rb);
                             }
                         } else if (currentType === 'activities') {
                             btn.innerHTML = `<div class="d-flex justify-content-between"><strong>${item.name}</strong> <span class="text-primary fw-bold">${currency} ${item.base_price}</span></div><small class="text-muted d-block">${item.duration || ''}</small><small class="text-muted">${item.description || ''}</small>`;

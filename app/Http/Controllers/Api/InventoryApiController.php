@@ -165,12 +165,17 @@ class InventoryApiController extends Controller
 
         switch ($type) {
             case 'hotel':
+            case 'hotels':
+            case 'accommodation':
                 $data['assets'] = \App\Models\Hotel::with('rooms')->where('supplier_id', $id)->get();
+                $data['type'] = 'hotel'; // Normalize for frontend
                 break;
             case 'transport':
+            case 'transports':
                 $data['assets'] = \App\Models\Transport::where('supplier_id', $id)->get();
                 break;
             case 'activity':
+            case 'activities':
             case 'agent':
             case 'tickets':
                 $data['assets'] = \App\Models\Activity::where('supplier_id', $id)->get();
@@ -178,12 +183,13 @@ class InventoryApiController extends Controller
                 $data['extra_assets'] = \App\Models\EntryTicket::where('supplier_id', $id)->get();
                 break;
             case 'meal':
+            case 'meals':
                 $data['assets'] = \App\Models\Meal::where('supplier_id', $id)->get();
                 break;
             default:
                 // Try to find anything linked to this supplier
                 $allAssets = collect();
-                $allAssets = $allAssets->merge(\App\Models\Hotel::where('supplier_id', $id)->get());
+                $allAssets = $allAssets->merge(\App\Models\Hotel::with('rooms')->where('supplier_id', $id)->get());
                 $allAssets = $allAssets->merge(\App\Models\Transport::where('supplier_id', $id)->get());
                 $allAssets = $allAssets->merge(\App\Models\Activity::where('supplier_id', $id)->get());
                 if (class_exists(\App\Models\EntryTicket::class)) {
