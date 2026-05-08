@@ -1246,7 +1246,7 @@
                     
                     let dynamicLabel = 'Item / Service Type';
                     
-                    if (supplierType === 'hotel') {
+                    if (supplierType === 'hotel' || supplierType === 'hotels' || supplierType === 'accommodation') {
                         dynamicLabel = 'Room Type';
                         hotelContainer.show();
                         hotelSelect.html('<option value="">Loading...</option>').attr('disabled', true);
@@ -1376,7 +1376,7 @@
                     const type = itemRow.find('.amenity-type').val();
                     let total = 0;
                     
-                    if (type === 'hotel') {
+                    if (type === 'hotel' || type === 'hotels' || type === 'accommodation') {
                         const price = parseFloat(itemRow.find('.amenity-price').val()) || 0;
                         const days = parseFloat(itemRow.find('.amenity-days').val()) || 1;
                         const qty = parseFloat(itemRow.find('.amenity-qty').val()) || 1;

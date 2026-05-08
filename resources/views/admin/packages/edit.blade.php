@@ -1005,14 +1005,14 @@
                                     </div>
                                     
                                     <!-- Hotel specific -->
-                                    <div class="col-md-2 calc-days" style="${data.type === 'hotel' ? '' : 'display:none;'}">
+                                    <div class="col-md-2 calc-days" style="${data.type === 'hotel' || data.type === 'hotels' || data.type === 'accommodation' ? '' : 'display:none;'}">
                                         <label class="form-label small text-muted mb-1">Days/Nights</label>
                                         <input type="number" class="form-control form-control-sm amenity-days" value="${data.days || 1}" min="1" oninput="calcAmenityTotal('${amenityId}')">
                                     </div>
                                     
                                     <!-- General Quantity -->
                                     <div class="col-md-2 calc-qty" style="${data.type && data.type !== 'activity' && data.type !== 'ticket' && data.type !== 'entry_tickets' ? '' : 'display:none;'}">
-                                        <label class="form-label small text-muted mb-1">${data.type === 'hotel' ? 'Rooms Count' : (data.type === 'transport' ? 'Quantity/Hours' : 'Quantity')}</label>
+                                        <label class="form-label small text-muted mb-1">${data.type === 'hotel' || data.type === 'hotels' || data.type === 'accommodation' ? 'Rooms Count' : (data.type === 'transport' ? 'Quantity/Hours' : 'Quantity')}</label>
                                         <input type="number" class="form-control form-control-sm amenity-qty" value="${data.quantity || 1}" min="1" oninput="calcAmenityTotal('${amenityId}')">
                                     </div>
                                     
@@ -1070,7 +1070,7 @@
                     
                     let dynamicLabel = 'Item / Service Type';
                     
-                    if (supplierType === 'hotel') {
+                    if (supplierType === 'hotel' || supplierType === 'hotels' || supplierType === 'accommodation') {
                         dynamicLabel = 'Room Type';
                         hotelContainer.show();
                         hotelSelect.html('<option value="">Loading...</option>').attr('disabled', true);
@@ -1214,7 +1214,7 @@
                     const type = itemRow.find('.amenity-type').val();
                     let total = 0;
                     
-                    if (type === 'hotel') {
+                    if (type === 'hotel' || type === 'hotels' || type === 'accommodation') {
                         const price = parseFloat(itemRow.find('.amenity-price').val()) || 0;
                         const days = parseFloat(itemRow.find('.amenity-days').val()) || 1;
                         const qty = parseFloat(itemRow.find('.amenity-qty').val()) || 1;
