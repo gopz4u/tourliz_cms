@@ -1,501 +1,5 @@
-@extends('layouts.admin')
 
-@section('title', 'Create Package')
-
-@section('content')
-    <div class="page-header">
-        <h1 class="mb-0"><i class="bi bi-plus-circle"></i> Create New Package</h1>
-        <p class="text-muted mb-0">Add a new tour package</p>
-    </div>
-
-    <div class="card">
-        <div class="card-body">
-            <form id="package-form">
-                <div class="row">
-                    <div class="col-md-8">
-                        <div class="row">
-                            <div class="col-md-4">
-                                <div class="mb-3">
-                                    <label for="country_select" class="form-label"><i class="bi bi-geo-alt"></i>
-                                        Country</label>
-                                    <select class="form-select" id="country_select" name="country">
-                                        <option value="">Select Country</option>
-                                        @foreach($countries as $country)
-                                            <option value="{{ $country->name }}" {{ old('country') == $country->name ? 'selected' : '' }}>
-                                                {{ $country->name }}
-                                            </option>
-                                        @endforeach
-                                    </select>
-                                </div>
-                            </div>
-                            <div class="col-md-4">
-                                <div class="mb-3">
-                                    <label for="location_select" class="form-label"><i class="bi bi-map"></i>
-                                        Location</label>
-                                    <select class="form-select" id="location_select" name="location" disabled>
-                                        <option value="">Select Location</option>
-                                    </select>
-                                </div>
-                            </div>
-                            <div class="col-md-4">
-                                <div class="mb-3">
-                                    <label for="destination_id" class="form-label"><i class="bi bi-pin-map"></i>
-                                        Primary City</label>
-                                    <select class="form-select" id="destination_id" name="destination_id" disabled>
-                                        <option value="">Select City</option>
-                                    </select>
-                                </div>
-                            </div>
-                        </div>
-                        <small class="form-text text-muted mb-3 d-block">Choose a primary destination to associate this package
-                            with</small>
-
-                        <div class="mb-3">
-                            <label for="destination_ids" class="form-label"><i class="bi bi-geo"></i> Other Destinations Covered</label>
-                            <select class="form-select" id="destination_ids" name="destination_ids[]" multiple>
-                                <!-- Will be populated with all destinations -->
-                            </select>
-                            <small class="form-text text-muted">Select all cities/destinations covered in this package itinerary for better website display.</small>
-                        </div>
-
-                        <div class="mb-3">
-                            <div class="d-flex justify-content-between align-items-center mb-2">
-                                <label class="form-label mb-0"><i class="bi bi-shop"></i> Source Vendor(s)</label>
-                                <button type="button" class="btn btn-sm btn-outline-primary" onclick="addSupplierRow()">
-                                    <i class="bi bi-plus"></i> Add Vendor
-                                </button>
-                            </div>
-                            <div id="suppliers-container">
-                            </div>
-                            <small class="form-text text-muted">Select one or more 3rd party vendors</small>
-                        </div>
-
-                        <div class="mb-3">
-                            <div class="d-flex justify-content-between align-items-center mb-2">
-                                <label class="form-label mb-0"><i class="bi bi-tags"></i> Service Category</label>
-                                <button type="button" class="btn btn-sm btn-outline-primary" onclick="addCategoryRow()">
-                                    <i class="bi bi-plus"></i> Add Category
-                                </button>
-                            </div>
-                            <div id="categories-container">
-                            </div>
-                            <small class="form-text text-muted">Select one or more service categories</small>
-                        </div>
-
-                        <div class="mb-3">
-                            <label for="package_category" class="form-label"><i class="bi bi-star"></i> Package
-                                Category</label>
-                            <select class="form-select" id="package_category" name="package_category">
-                                <option value="">Select a package category (optional)</option>
-                                <option value="Honeymoon">Honeymoon</option>
-                                <option value="Budget">Budget</option>
-                                <option value="Standard">Standard</option>
-                                <option value="Premium">Premium</option>
-                                <option value="Platinum">Platinum</option>
-                            </select>
-                            <small class="form-text text-muted">Select the package category (Honeymoon, Budget, Standard,
-                                Premium, Platinum)</small>
-                        </div>
-
-                        <div class="mb-3">
-                            <label class="form-label"><i class="bi bi-airplane"></i> Flight Ticket</label>
-                            <div class="form-check">
-                                <input class="form-check-input" type="radio" name="includes_flight" id="includes_flight_yes"
-                                    value="1" {{ old('includes_flight') == '1' ? 'checked' : '' }}>
-                                <label class="form-check-label" for="includes_flight_yes">
-                                    With Flight Ticket
-                                </label>
-                            </div>
-                            <div class="form-check">
-                                <input class="form-check-input" type="radio" name="includes_flight" id="includes_flight_no"
-                                    value="0" {{ old('includes_flight', '0') == '0' ? 'checked' : '' }}>
-                                <label class="form-check-label" for="includes_flight_no">
-                                    Without Flight Ticket
-                                </label>
-                            </div>
-                            <small class="form-text text-muted">Select whether this package includes flight tickets</small>
-                        </div>
-
-                        <div class="mb-3">
-                            <label for="hotel_id" class="form-label"><i class="bi bi-building"></i> Main Hotel (Accommodation)</label>
-                            <select class="form-select select2" id="hotel_id" name="hotel_id">
-                                <option value="">-- Select Main Hotel --</option>
-                                @foreach($hotels as $hotel)
-                                    <option value="{{ $hotel->id }}" {{ old('hotel_id') == $hotel->id ? 'selected' : '' }}>{{ $hotel->name }}</option>
-                                @endforeach
-                            </select>
-                            <small class="text-muted">Primary accommodation for this package</small>
-                        </div>
-
-
-                        <!-- Hotel Amenities -->
-                        <div id="hotel-amenities" class="amenities-section" style="display: none;">
-                            <h6 class="mb-3"><i class="bi bi-star"></i> Hotel Amenities</h6>
-                            <div class="mb-3">
-                                <label for="star_rating" class="form-label">Star Rating</label>
-                                <select class="form-select" id="star_rating" name="star_rating">
-                                    <option value="">Select star rating</option>
-                                    <option value="1" {{ old('star_rating') == '1' ? 'selected' : '' }}>1 Star</option>
-                                    <option value="2" {{ old('star_rating') == '2' ? 'selected' : '' }}>2 Stars</option>
-                                    <option value="3" {{ old('star_rating') == '3' ? 'selected' : '' }}>3 Stars</option>
-                                    <option value="4" {{ old('star_rating') == '4' ? 'selected' : '' }}>4 Stars</option>
-                                    <option value="5" {{ old('star_rating') == '5' ? 'selected' : '' }}>5 Stars</option>
-                                </select>
-                            </div>
-                            <div class="mb-3">
-                                <label for="accommodation_type" class="form-label">Accommodation Type</label>
-                                <input type="text" class="form-control" id="accommodation_type" name="accommodation_type"
-                                    placeholder="e.g., Resort, Boutique Hotel, Villa" value="{{ old('accommodation_type') }}">
-                            </div>
-                        </div>
-
-                        <!-- Transportation Amenities -->
-                        <div id="transport-amenities" class="amenities-section" style="display: none;">
-                            <h6 class="mb-3"><i class="bi bi-car-front"></i> Transportation Amenities</h6>
-                            <div class="mb-3">
-                                <label for="vehicle_type" class="form-label">Vehicle Type</label>
-                                <input type="text" class="form-control" id="vehicle_type" name="vehicle_type"
-                                    placeholder="e.g., Sedan, SUV, Bus, Van, Motorcycle" value="{{ old('vehicle_type') }}">
-                            </div>
-                        </div>
-
-                        <!-- Entry Tickets Amenities -->
-                        <div id="ticket-amenities" class="amenities-section" style="display: none;">
-                            <h6 class="mb-3"><i class="bi bi-ticket-perforated"></i> Entry Ticket Amenities</h6>
-                            <div class="row">
-                                <div class="col-md-6">
-                                    <div class="mb-3">
-                                        <label for="ticket_name" class="form-label">Ticket Name</label>
-                                        <input type="text" class="form-control" id="ticket_name" name="ticket_name"
-                                            placeholder="e.g., Adult Ticket, Child Ticket, VIP Pass" value="{{ old('ticket_name') }}">
-                                    </div>
-                                </div>
-                                <div class="col-md-6">
-                                    <div class="mb-3">
-                                        <label for="ticket_count" class="form-label">Ticket Count</label>
-                                        <input type="number" class="form-control" id="ticket_count" name="ticket_count"
-                                            min="1" placeholder="Number of tickets" value="{{ old('ticket_count') }}">
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Cost Components Calculator -->
-                        <div class="mb-4 mt-4">
-                            <div class="d-flex justify-content-between align-items-center mb-3">
-                                <h6 class="mb-0"><i class="bi bi-calculator"></i> Package Cost Components</h6>
-                                <button type="button" class="btn btn-sm btn-primary" onclick="addAmenity()">
-                                    <i class="bi bi-plus"></i> Add Cost Component
-                                </button>
-                            </div>
-                            <div id="addon-amenities-container">
-                                <!-- Cost components will be added here dynamically -->
-                            </div>
-                            <small class="form-text text-muted">Add suppliers and select actual inventory (Rooms, Transport, Tickets) to dynamically calculate the package cost.</small>
-                        </div>
-
-                        <div class="mb-3">
-                            <label for="name" class="form-label">Name <span class="text-danger">*</span></label>
-                            <input type="text" class="form-control" id="name" name="name" value="{{ old('name') }}" required>
-                        </div>
-
-                        <div class="mb-3">
-                            <label for="slug" class="form-label">Slug</label>
-                            <input type="text" class="form-control" id="slug" name="slug"
-                                value="{{ old('slug') }}" placeholder="Auto-generated from name">
-                        </div>
-
-                        <div class="mb-3">
-                            <label for="short_description" class="form-label">Short Description</label>
-                            <textarea class="form-control" id="short_description" name="short_description"
-                                rows="3">{{ old('short_description') }}</textarea>
-                        </div>
-
-                        <div class="mb-3">
-                            <label for="description" class="form-label">Description</label>
-                            <div id="description-editor" style="height: 300px;"></div>
-                            <textarea id="description" name="description" style="display:none;">{{ old('description') }}</textarea>
-                        </div>
-
-                        <!-- Real-time Multi-currency Preview -->
-                        <div class="row mb-4" id="currency-preview-row" style="display: none;">
-                            <div class="col-12">
-                                <div class="bg-light p-3 rounded-3 border">
-                                    <div class="d-flex gap-4 overflow-auto pb-1" id="multi-currency-previews">
-                                        <!-- Will be populated by JS -->
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="row">
-                            <div class="col-md-4">
-                                <div class="mb-3">
-                                    <label for="net_price" class="form-label text-success"><i class="bi bi-tag-fill"></i>
-                                        Net Price (Vendor)</label>
-                                    <input type="number" step="0.01" class="form-control" id="net_price" name="net_price"
-                                        placeholder="Auto-calculated from itinerary" value="{{ old('net_price') }}">
-                                    <small class="text-muted">Auto-sum from itinerary days below</small>
-                                    <div id="itinerary-cost-breakdown" class="mt-2" style="display:none;">
-                                        <div class="card border-success">
-                                            <div class="card-body p-2">
-                                                <p class="mb-1 small fw-bold text-success"><i class="bi bi-calculator"></i> Itinerary Cost Breakdown</p>
-                                                <div id="cost-breakdown-rows" class="small text-muted"></div>
-                                                <hr class="my-1">
-                                                <p class="mb-0 small fw-bold">Total: <span id="cost-breakdown-total" class="text-success">0.00</span></p>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="col-md-4">
-                                <div class="mb-3">
-                                    <label for="markup_percentage" class="form-label text-primary"><i
-                                            class="bi bi-graph-up-arrow"></i> Markup (%)</label>
-                                    <div class="input-group">
-                                        <input type="number" step="0.01" class="form-control" id="markup_percentage"
-                                            name="markup_percentage" placeholder="Percentage" value="{{ old('markup_percentage', '0') }}">
-                                        <span class="input-group-text">%</span>
-                                    </div>
-                                    <small class="text-muted" id="markup-amount-display">Amount: 0.00</small>
-                                </div>
-                            </div>
-                            <div class="col-md-4">
-                                <div class="mb-3">
-                                    <label for="price" class="form-label text-danger fw-bold"><i
-                                            class="bi bi-cash-coin"></i> Selling Price (Adult)</label>
-                                    <input type="number" step="0.01" class="form-control fw-bold" id="price" name="price"
-                                        value="{{ old('price') }}" required>
-                                    <small class="text-muted">Final rate displayed on website</small>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Price Matrix Preview -->
-                        <div class="row mb-4">
-                            <div class="col-12">
-                                <div class="card border-info shadow-sm">
-                                    <div class="card-header bg-info text-white p-2">
-                                        <h6 class="mb-0 small"><i class="bi bi-grid-3x3"></i> Dynamic Price Matrix (Selling Price Per Pax)</h6>
-                                    </div>
-                                    <div class="card-body p-0">
-                                        <div class="table-responsive">
-                                            <table class="table table-sm table-bordered mb-0 text-center small">
-                                                <thead class="bg-light">
-                                                    <tr>
-                                                        <th>Group Size</th>
-                                                        <th>2 Pax</th>
-                                                        <th>4 Pax</th>
-                                                        <th>6 Pax</th>
-                                                        <th>10 Pax</th>
-                                                    </tr>
-                                                </thead>
-                                                <tbody>
-                                                    <tr>
-                                                        <td class="fw-bold bg-light">Price / Person</td>
-                                                        <td id="matrix-pax-2" class="text-primary fw-bold">$0.00</td>
-                                                        <td id="matrix-pax-4" class="text-primary fw-bold">$0.00</td>
-                                                        <td id="matrix-pax-6" class="text-primary fw-bold">$0.00</td>
-                                                        <td id="matrix-pax-10" class="text-primary fw-bold">$0.00</td>
-                                                    </tr>
-                                                </tbody>
-                                            </table>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="row">
-                            <div class="col-md-4">
-                                <!-- Discount Price moved here to align -->
-                                <div class="mb-3">
-                                    <label for="discount_price" class="form-label">Discount Price</label>
-                                    <input type="number" step="0.01" class="form-control" id="discount_price"
-                                        name="discount_price" value="{{ old('discount_price') }}">
-                                </div>
-                            </div>
-                            <div class="col-md-3">
-                                <div class="mb-3">
-                                    <label for="price_2_6" class="form-label">Kids Price (Age 2-6)</label>
-                                    <input type="number" step="0.01" class="form-control" id="price_2_6" name="price_2_6" value="{{ old('price_2_6') }}">
-                                </div>
-                            </div>
-                            <div class="col-md-3">
-                                <div class="mb-3">
-                                    <label for="price_6_10" class="form-label">Kids Price (Age 6-10)</label>
-                                    <input type="number" step="0.01" class="form-control" id="price_6_10" name="price_6_10" value="{{ old('price_6_10') }}">
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="row">
-                            <div class="col-md-4">
-                                <div class="mb-3">
-                                    <label for="currency" class="form-label">Currency</label>
-                                    <select class="form-select" id="currency" name="currency">
-                                        <option value="INR" {{ old('currency', 'INR') == 'INR' ? 'selected' : '' }}>INR - Indian Rupee</option>
-                                        <option value="USD" {{ old('currency') == 'USD' ? 'selected' : '' }}>USD - US Dollar</option>
-                                        <option value="MYR" {{ old('currency') == 'MYR' ? 'selected' : '' }}>MYR - Malaysian Ringgit</option>
-                                        <option value="SGD" {{ old('currency') == 'SGD' ? 'selected' : '' }}>SGD - Singapore Dollar</option>
-                                        <option value="AED" {{ old('currency') == 'AED' ? 'selected' : '' }}>AED - UAE Dirham</option>
-                                    </select>
-                                </div>
-                            </div>
-                            <div class="col-md-4">
-                                <div class="mb-3">
-                                    <label for="announcement_date" class="form-label">Announcement Date</label>
-                                    <input type="date" class="form-control" id="announcement_date" name="announcement_date" value="{{ old('announcement_date') }}">
-                                    <small class="form-text text-muted">Date when package is announced/available</small>
-                                </div>
-                            </div>
-                            <div class="col-md-2">
-                                <div class="mb-3">
-                                    <label for="total_pax" class="form-label">Total Pax</label>
-                                    <input type="number" class="form-control" id="total_pax" name="total_pax" min="1"
-                                        placeholder="Total" value="{{ old('total_pax') }}">
-                                </div>
-                            </div>
-                            <div class="col-md-2">
-                                <div class="mb-3">
-                                    <label for="min_pax" class="form-label">Min Pax</label>
-                                    <input type="number" class="form-control" id="min_pax" name="min_pax" min="1"
-                                        value="{{ old('min_pax', '1') }}">
-                                </div>
-                            </div>
-                            <div class="col-md-2">
-                                <div class="mb-3">
-                                    <label for="max_pax" class="form-label">Max Pax</label>
-                                    <input type="number" class="form-control" id="max_pax" name="max_pax" min="1" value="{{ old('max_pax') }}">
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="row">
-                            <div class="col-md-6">
-                                <div class="mb-3">
-                                    <label for="duration_days" class="form-label">Duration (Days)</label>
-                                    <input type="number" class="form-control" id="duration_days" name="duration_days"
-                                        min="0" value="{{ old('duration_days') }}">
-                                </div>
-                            </div>
-                            <div class="col-md-6">
-                                <div class="mb-3">
-                                    <label for="duration_nights" class="form-label">Duration (Nights)</label>
-                                    <input type="number" class="form-control" id="duration_nights" name="duration_nights"
-                                        min="0" value="{{ old('duration_nights') }}">
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="col-md-4">
-                        <div class="mb-3">
-                            <label for="image" class="form-label">Featured Image</label>
-                            <input type="file" class="form-control" id="image" name="image" accept="image/*">
-                            <small class="form-text text-muted">Main/Featured image (JPG, PNG, GIF, WEBP - Max 5MB)</small>
-                            <div id="image-preview-container" style="display:none; margin-top: 10px;">
-                                <img id="image-preview" class="image-preview" src="" alt="Preview">
-                                <button type="button" class="btn btn-sm btn-danger mt-2" onclick="clearImagePreview()">
-                                    <i class="bi bi-x-circle"></i> Remove Image
-                                </button>
-                            </div>
-                            <input type="hidden" id="image_path" name="image_path">
-                        </div>
-
-                        <div class="mb-3">
-                            <label for="gallery_images" class="form-label"><i class="bi bi-images"></i> Gallery
-                                Images</label>
-                            <input type="file" class="form-control" id="gallery_images" name="gallery_images[]"
-                                accept="image/*" multiple>
-                            <small class="form-text text-muted">Upload multiple images for gallery (JPG, PNG, GIF, WEBP -
-                                Max 5MB each)</small>
-                            <button type="button" class="btn btn-sm btn-secondary mt-2" id="upload-gallery-btn"
-                                style="display:none;">
-                                <i class="bi bi-upload"></i> Upload Selected Images
-                            </button>
-                        </div>
-
-                        <div id="gallery-preview-container" style="display:none;">
-                            <label class="form-label">Gallery Preview</label>
-                            <div id="gallery-grid" class="d-flex flex-wrap gap-2"
-                                style="max-height: 300px; overflow-y: auto;">
-                                <!-- Gallery images will be added here -->
-                            </div>
-                            <input type="hidden" id="gallery_paths" name="gallery_paths">
-                        </div>
-
-                        <div class="mb-3">
-                            <div class="form-check form-switch">
-                                <input class="form-check-input" type="checkbox" id="is_featured" name="is_featured" {{ old('is_featured') ? 'checked' : '' }}>
-                                <label class="form-check-label" for="is_featured">Featured</label>
-                            </div>
-                        </div>
-
-                        <div class="mb-3">
-                            <div class="form-check form-switch">
-                                <input class="form-check-input" type="checkbox" id="is_active" name="is_active" {{ old('is_active', true) ? 'checked' : '' }}>
-                                <label class="form-check-label" for="is_active">Active</label>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <hr>
-
-                <h5><i class="bi bi-calendar-range"></i> Day-by-Day Itinerary</h5>
-                <p class="text-muted small">Select a Country first to load available destinations for your daily flow.</p>
-                <div id="itinerary-days-container"></div>
-                <div class="mb-4">
-                    <button type="button" class="btn btn-outline-primary" onclick="addItineraryDay()">
-                        <i class="bi bi-plus-circle"></i> Add Day
-                    </button>
-                </div>
-
-                <hr>
-
-                <h5>SEO Settings</h5>
-                <div class="mb-3">
-                    <label for="meta_title" class="form-label">Meta Title</label>
-                    <input type="text" class="form-control" id="meta_title" name="meta_title">
-                </div>
-
-                <div class="mb-3">
-                    <label for="meta_description" class="form-label">Meta Description</label>
-                    <textarea class="form-control" id="meta_description" name="meta_description" rows="2"></textarea>
-                </div>
-
-                <div class="mb-3">
-                    <label for="meta_keywords" class="form-label">Meta Keywords</label>
-                    <input type="text" class="form-control" id="meta_keywords" name="meta_keywords">
-                </div>
-
-                <div class="d-flex justify-content-between">
-                    <a href="{{ route('admin.packages.index') }}" class="btn btn-secondary">
-                        <i class="bi bi-arrow-left"></i> Cancel
-                    </a>
-                    <button type="submit" class="btn btn-primary">
-                        <i class="bi bi-save"></i> Create Package
-                    </button>
-                </div>
-            </form>
-        </div>
-    </div>
-
-    @push('styles')
-        <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
-    @endpush
-
-    @push('scripts')
-        <!-- Quill Editor JS -->
-        <script src="https://cdn.quilljs.com/1.3.6/quill.js"></script>
-        <script>
             $(document).ready(function() {
-                const oldCountry = '{{ old('country') }}';
-                const oldLocation = '{{ old('location') }}';
-                const oldDestinationId = '{{ old('destination_id') }}';
-                const oldDestinationIds = @json(old('destination_ids', []));
-
                 // Fetch exchange rates for real-time preview
                 let cachedRates = [];
                 $.get('/api/v1/currency/rates', function(response) {
@@ -553,12 +57,7 @@
 
                 // Initialize Select2 on cascading selects immediately with placeholders
                 if ($.fn.select2) {
-                    $('#country_select').select2({
-                        theme: 'bootstrap-5',
-                        placeholder: 'Select Country',
-                        width: '100%',
-                        allowClear: true
-                    });
+                    // Select2 for country will be initialized inside loadCountries
                     $('#location_select').select2({
                         theme: 'bootstrap-5',
                         placeholder: 'Select Location',
@@ -573,14 +72,7 @@
                     });
                 }
 
-                // If old values exist, trigger cascading logic
-                if ($('#country_select').val()) {
-                    $('#country_select').trigger('change');
-                } else {
-                    // Only load from AJAX if not already populated or we want to ensure latest from Destinations table
-                    // loadCountries(); 
-                }
-                
+                loadCountries();
                 loadSuppliers();
 
                 // Handle category change to show/hide amenities
@@ -649,36 +141,82 @@
                     $('#categories-container').append(rowHtml);
                 };
 
-
-                $.ajax({
-                    url: '{{ route("admin.destinations.index", [], false) }}',
-                    type: 'GET',
-                    data: { per_page: 2000 },
-                    dataType: 'json',
-                    success: function (response) {
-                        const destinations = response.data || [];
-                        const multiSelect = $('#destination_ids');
-                        multiSelect.empty();
-                        if (Array.isArray(destinations)) {
-                            destinations.forEach(function (dest) {
-                                const isSelected = oldDestinationIds.includes(dest.id.toString()) ? 'selected' : '';
-                                multiSelect.append(`<option value="${dest.id}" ${isSelected}>${dest.city} (${dest.name}) - ${dest.country}</option>`);
-                            });
-                        }
-                        // Initialize select2
-                        if ($.fn.select2) {
-                            multiSelect.select2({
-                                theme: 'bootstrap-5',
-                                placeholder: "Select destinations",
-                                allowClear: true,
-                                width: '100%'
-                            });
-                        }
-                    },
-                    error: function (xhr, status, error) {
-                        console.error('Failed to load destinations:', error);
+                function loadCountries() {
+                    const countrySelect = $('#country_select');
+                    // Add a temporary loading state
+                    countrySelect.html('<option value="">Loading countries...</option>').attr('disabled', true);
+                    
+                    if ($.fn.select2 && countrySelect.data('select2')) {
+                        countrySelect.trigger('change.select2');
                     }
-                });
+
+                    // Load countries for the primary cascading select
+                    $.ajax({
+                        url: '"placeholder"',
+                        type: 'GET',
+                        dataType: 'json',
+                        success: function (response) {
+                            const countries = response.data || response;
+                            countrySelect.empty().append('<option value="">Select Country</option>');
+                            
+                            if (Array.isArray(countries)) {
+                                countries.forEach(function (country) {
+                                    countrySelect.append(`<option value="${country}">${country}</option>`);
+                                });
+                            }
+                            
+                            countrySelect.attr('disabled', false);
+                            
+                            // Initialize or Resync select2
+                            if ($.fn.select2) {
+                                if (countrySelect.data('select2')) {
+                                    countrySelect.trigger('change');
+                                } else {
+                                    countrySelect.select2({
+                                        theme: 'bootstrap-5',
+                                        placeholder: 'Select Country',
+                                        width: '100%',
+                                        allowClear: true
+                                    });
+                                }
+                            }
+                        },
+                        error: function (xhr, status, error) {
+                            console.error('Failed to load countries:', error);
+                            countrySelect.html('<option value="">Error loading countries</option>');
+                        }
+                    });
+
+                    // Load all destinations for the multi-select
+                    $.ajax({
+                        url: '"placeholder"',
+                        type: 'GET',
+                        data: { per_page: 2000 },
+                        dataType: 'json',
+                        success: function (response) {
+                            const destinations = response.data || [];
+                            const multiSelect = $('#destination_ids');
+                            multiSelect.empty();
+                            if (Array.isArray(destinations)) {
+                                destinations.forEach(function (dest) {
+                                    multiSelect.append(`<option value="${dest.id}">${dest.city} (${dest.name}) - ${dest.country}</option>`);
+                                });
+                            }
+                            // Initialize select2
+                            if ($.fn.select2) {
+                                multiSelect.select2({
+                                    theme: 'bootstrap-5',
+                                    placeholder: "Select destinations",
+                                    allowClear: true,
+                                    width: '100%'
+                                });
+                            }
+                        },
+                        error: function (xhr, status, error) {
+                            console.error('Failed to load destinations:', error);
+                        }
+                    });
+                }
 
                 let currentCountryDestinations = [];
 
@@ -700,32 +238,26 @@
 
                     if (country) {
                         $.ajax({
-                            url: '{{ route("admin.destinations.locations", [], false) }}',
+                            url: '"placeholder"',
                             type: 'GET',
                             data: { country: country },
                             dataType: 'json',
                             success: function (locations) {
                                 if (Array.isArray(locations)) {
                                     locations.forEach(function (location) {
-                                        const isSelected = (location === oldLocation) ? 'selected' : '';
-                                        locationSelect.append(`<option value="${location}" ${isSelected}>${location}</option>`);
+                                        locationSelect.append(`<option value="${location}">${location}</option>`);
                                     });
                                 }
                                 locationSelect.prop('disabled', false);
                                 if ($.fn.select2) {
                                     locationSelect.trigger('change.select2');
                                 }
-                                
-                                // If we just pre-selected a location from old(), trigger ITS change too
-                                if (locationSelect.val()) {
-                                    locationSelect.trigger('change');
-                                }
                             }
                         });
 
                         // Fetch all destinations for this country for the Day-by-Day builder
                         $.ajax({
-                            url: '{{ route("admin.destinations.index", [], false) }}',
+                            url: '"placeholder"',
                             type: 'GET',
                             data: { country: country, per_page: 2000 },
                             dataType: 'json',
@@ -773,118 +305,78 @@
                             </button>
                         </div>
                         <div class="card-body pt-3">
-                            <div class="row g-3 mb-3">
-                                <div class="col-md-8">
-                                    <label class="form-label small fw-bold text-uppercase tracking-wider text-muted" style="font-size: 0.65rem;">Day Theme / Title</label>
-                                    <div class="input-group input-group-sm border rounded-3 overflow-hidden">
-                                        <span class="input-group-text bg-white border-0"><i class="bi bi-fonts text-primary"></i></span>
-                                        <input type="text" class="form-control border-0 day-title" placeholder="e.g. Arrival in Bali & Beach Sunset" required>
-                                    </div>
+
+                            <div class="row g-2 mb-2">
+                                <div class="col-md-12">
+                                    <label class="form-label small fw-semibold">Day Title <span class="text-danger">*</span></label>
+                                    <input type="text" class="form-control form-control-sm day-title" placeholder="e.g. Arrival & Sightseeing" required>
                                 </div>
-                                <div class="col-md-4">
-                                    <label class="form-label small fw-bold text-uppercase tracking-wider text-muted" style="font-size: 0.65rem;">Stay Location</label>
-                                    <select class="form-select form-select-sm day-destinations select2-itinerary" multiple="multiple">
+                                <div class="col-md-12">
+                                    <label class="form-label small fw-semibold">Destinations</label>
+                                    <select class="form-select form-select-sm day-destinations" multiple="multiple">
                                         ${optionsHtml}
                                     </select>
                                 </div>
-                            </div>
-
-                            <div class="row g-3 mb-3">
-                                <div class="col-md-12">
-                                    <label class="form-label small fw-bold text-uppercase tracking-wider text-muted" style="font-size: 0.65rem;">Daily Narrative</label>
-                                    <textarea class="form-control form-control-sm day-description" rows="2" placeholder="Describe the day's highlights..." style="border-radius: 10px;"></textarea>
-                                </div>
-                            </div>
-
-                            <div class="bg-light rounded-4 p-3 mb-3 border border-dashed">
-                                <h6 class="small fw-black text-uppercase tracking-widest mb-3" style="color:#5a52e5; font-size: 0.7rem;">
-                                    <i class="bi bi-layers-half me-1"></i> MakeMyTrip Model Components
-                                </h6>
-                                
-                                <div class="space-y-3">
-                                    <!-- HOTEL SELECTION -->
-                                    <div class="itinerary-component-row p-2 bg-white rounded-3 shadow-sm border mb-2">
-                                        <div class="row g-2 align-items-center">
-                                            <div class="col-auto">
-                                                <div class="bg-primary-subtle text-primary rounded-3 p-2" style="width: 40px; height: 40px; display: flex; align-items: center; justify-content: center;">
-                                                    <i class="bi bi-building"></i>
-                                                </div>
-                                            </div>
-                                            <div class="col">
-                                                <label class="form-label small fw-bold mb-0">Accommodation</label>
-                                                <select class="form-select form-select-sm border-0 bg-transparent day-hotel p-0" style="box-shadow: none;">
-                                                    <option value="">No stay planned</option>
-                                                </select>
-                                            </div>
-                                            <div class="col-md-3">
-                                                <label class="form-label small fw-bold mb-0">Meal Plan</label>
-                                                <select class="form-select form-select-sm border-0 bg-transparent day-meal-plan-code p-0" style="box-shadow: none;">
-                                                    <option value="EP">EP (Room Only)</option>
-                                                    <option value="CP" selected>CP (Breakfast)</option>
-                                                    <option value="MAP">MAP (Breakfast + Dinner)</option>
-                                                    <option value="AP">AP (All Meals)</option>
-                                                </select>
-                                            </div>
-                                            <div class="col-auto">
-                                                <button type="button" class="btn btn-sm text-primary" onclick="toggleCustomHotel(this)"><i class="bi bi-pencil-square"></i></button>
-                                            </div>
-                                        </div>
-                                        <div class="custom-hotel-row mt-2" style="display:none;">
-                                            <input type="text" class="form-control form-control-sm day-custom-hotel" placeholder="Custom Hotel Name...">
-                                        </div>
-                                    </div>
-
-                                    <!-- TRANSPORT SELECTION -->
-                                    <div class="itinerary-component-row p-2 bg-white rounded-3 shadow-sm border mb-2">
-                                        <div class="row g-2 align-items-center">
-                                            <div class="col-auto">
-                                                <div class="bg-warning-subtle text-warning rounded-3 p-2" style="width: 40px; height: 40px; display: flex; align-items: center; justify-content: center;">
-                                                    <i class="bi bi-car-front"></i>
-                                                </div>
-                                            </div>
-                                            <div class="col">
-                                                <label class="form-label small fw-bold mb-0">Transfer / Transport</label>
-                                                <select class="form-select form-select-sm border-0 bg-transparent day-transport p-0" style="box-shadow: none;">
-                                                    <option value="">No transfer</option>
-                                                </select>
-                                            </div>
-                                            <div class="col-auto">
-                                                <button type="button" class="btn btn-sm text-warning" onclick="toggleCustomTransport(this)"><i class="bi bi-pencil-square"></i></button>
-                                            </div>
-                                        </div>
-                                        <div class="custom-transport-row mt-2" style="display:none;">
-                                            <input type="text" class="form-control form-control-sm day-custom-transport" placeholder="Custom Transport Info...">
-                                        </div>
-                                    </div>
-
-                                    <!-- ACTIVITIES SELECTION -->
-                                    <div class="itinerary-component-row p-2 bg-white rounded-3 shadow-sm border">
-                                        <div class="row g-2 align-items-start">
-                                            <div class="col-auto">
-                                                <div class="bg-success-subtle text-success rounded-3 p-2" style="width: 40px; height: 40px; display: flex; align-items: center; justify-content: center;">
-                                                    <i class="bi bi-geo-alt"></i>
-                                                </div>
-                                            </div>
-                                            <div class="col">
-                                                <label class="form-label small fw-bold mb-1">Activities & Sightseeing</label>
-                                                <select class="form-select form-select-sm day-activities select2-itinerary" multiple="multiple">
-                                                </select>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div class="row">
-                                <div class="col-md-12">
-                                    <label class="form-label small fw-bold text-uppercase tracking-wider text-muted" style="font-size: 0.65rem;">Meal Icons (Display Only)</label>
+                                <div class="col-md-6">
+                                    <label class="form-label small fw-semibold">Meals Included</label>
                                     <select class="form-select form-select-sm day-meals" multiple="multiple">
                                         <option value="Breakfast">Breakfast</option>
                                         <option value="Lunch">Lunch</option>
                                         <option value="Dinner">Dinner</option>
                                     </select>
                                 </div>
+                                <div class="col-md-12">
+                                    <label class="form-label small fw-semibold">Day Notes / Description</label>
+                                    <textarea class="form-control form-control-sm day-description" rows="2" placeholder="What happens on this day?"></textarea>
+                                </div>
                             </div>
+
+                            <hr class="my-2">
+                            <p class="small fw-semibold mb-2" style="color:var(--primary);"><i class="bi bi-link-45deg"></i> Linked Services (from Cost Components)</p>
+
+                            <!-- HOTEL ROW -->
+                            <div class="d-flex align-items-center gap-2 mb-2">
+                                <span class="badge bg-primary-subtle text-primary" style="border-radius:8px;font-size:0.7rem;width:70px;text-align:center;"><i class="bi bi-building"></i> Hotel</span>
+                                <select class="form-select form-select-sm flex-grow-1 day-hotel" name="itinerary[${itineraryDayCount}][hotel_id]">
+                                    <option value="">— Select hotel from components —</option>
+                                </select>
+                                <button type="button" class="btn btn-sm btn-outline-primary flex-shrink-0" title="Add a custom hotel not in the system" onclick="toggleCustomHotel(this)" style="border-radius:8px;white-space:nowrap;">
+                                    <i class="bi bi-plus"></i> Custom
+                                </button>
+                            </div>
+                            <div class="custom-hotel-row mb-2" style="display:none;">
+                                <div class="input-group input-group-sm">
+                                    <span class="input-group-text"><i class="bi bi-building-add"></i></span>
+                                    <input type="text" class="form-control form-control-sm day-custom-hotel" placeholder="e.g. The Marriott Resort, Genting Highlands">
+                                    <span class="input-group-text text-muted" style="font-size:0.7rem;">Custom</span>
+                                </div>
+                            </div>
+
+                            <!-- TRANSPORT ROW -->
+                            <div class="d-flex align-items-center gap-2 mb-2">
+                                <span class="badge bg-warning-subtle text-warning" style="border-radius:8px;font-size:0.7rem;width:70px;text-align:center;"><i class="bi bi-truck"></i> Transport</span>
+                                <select class="form-select form-select-sm flex-grow-1 day-transport" name="itinerary[${itineraryDayCount}][transport_id]">
+                                    <option value="">— Select transport from components —</option>
+                                </select>
+                                <button type="button" class="btn btn-sm btn-outline-warning flex-shrink-0" title="Add a custom transport" onclick="toggleCustomTransport(this)" style="border-radius:8px;white-space:nowrap;">
+                                    <i class="bi bi-plus"></i> Custom
+                                </button>
+                            </div>
+                            <div class="custom-transport-row mb-2" style="display:none;">
+                                <div class="input-group input-group-sm">
+                                    <span class="input-group-text"><i class="bi bi-car-front"></i></span>
+                                    <input type="text" class="form-control form-control-sm day-custom-transport" placeholder="e.g. Private Van Transfer, Airport Grab">
+                                    <span class="input-group-text text-muted" style="font-size:0.7rem;">Custom</span>
+                                </div>
+                            </div>
+
+                            <!-- ACTIVITIES ROW -->
+                            <div class="d-flex align-items-center gap-2">
+                                <span class="badge bg-success-subtle text-success" style="border-radius:8px;font-size:0.7rem;width:70px;text-align:center;"><i class="bi bi-lightning"></i> Activities</span>
+                                <select class="form-select form-select-sm flex-grow-1 day-activities" name="itinerary[${itineraryDayCount}][activity_ids][]" multiple="multiple">
+                                </select>
+                            </div>
+
                         </div>
                     </div>`;
 
@@ -955,7 +447,6 @@
                     $('#itinerary_breakdown').val(JSON.stringify(breakdown));
                 };
                 
-
                 window.updateDayVendorDropdowns = function() {
                     const hotels = [];
                     const transports = [];
@@ -1037,15 +528,14 @@
 
                     if (location) {
                         $.ajax({
-                            url: '{{ route("admin.destinations.cities", [], false) }}',
+                            url: '"placeholder"',
                             type: 'GET',
                             data: { country: country, location: location },
                             dataType: 'json',
                             success: function (cities) {
                                 if (Array.isArray(cities)) {
                                     cities.forEach(function (city) {
-                                        const isSelected = (city.id == oldDestinationId) ? 'selected' : '';
-                                        destinationSelect.append(`<option value="${city.id}" ${isSelected}>${city.city} (${city.name})</option>`);
+                                        destinationSelect.append(`<option value="${city.id}">${city.city} (${city.name})</option>`);
                                     });
                                 }
                                 destinationSelect.prop('disabled', false);
@@ -1061,7 +551,7 @@
                     const params = {};
                     if (destinationId) params.destination_id = destinationId;
                     
-                    $.get('{{ route("admin.suppliers.index", [], false) }}', params, function (data) {
+                    $.get('"placeholder"', params, function (data) {
                         const suppliers = data.data || data;
                         if (Array.isArray(suppliers)) {
                             cachedSuppliers = suppliers;
@@ -1121,7 +611,7 @@
                         formData.append('image', file);
 
                         $.ajax({
-                            url: '{{ route("admin.upload.image", [], false) }}',
+                            url: '"placeholder"',
                             type: 'POST',
                             data: formData,
                             processData: false,
@@ -1227,7 +717,7 @@
 
                 // Add-on Amenities Management
                 let amenityCounter = 0;
-                const allSuppliers = @json($suppliers);
+                const allSuppliers = {};
 
                 window.addAmenity = function () {
                     const container = $('#addon-amenities-container');
@@ -1480,7 +970,7 @@
                     if (logic === 'fixed') {
                         itemRow.find('.calc-base-price, .calc-days, .calc-qty').show();
                     } else if (logic === 'per_pax') {
-                        itemRow.find('.calc-days, .calc-qty, .calc-adult-price, .calc-child-price').show();
+                        itemRow.find('.calc-adult-price, .calc-child-price').show();
                     } else if (logic === 'sharing') {
                         itemRow.find('.calc-days, .calc-sharing-double, .calc-sharing-single, .calc-sharing-triple, .calc-sharing-extrabed').show();
                     } else if (logic === 'tiered_transport') {
@@ -1558,19 +1048,15 @@
                     } else if (logic === 'per_pax') {
                         const adPrice = parseFloat(itemRow.find('.amenity-adult-price').val()) || 0;
                         const chPrice = parseFloat(itemRow.find('.amenity-child-price').val()) || 0;
-                        const days = parseFloat(itemRow.find('.amenity-days').val()) || 1;
-                        const qty = parseFloat(itemRow.find('.amenity-qty').val()) || 1;
-                        total = (adPrice * pax * days * qty); 
+                        // For calculation in CMS, we might assume 1 adult / 1 child if not specified, 
+                        // but usually it's better to calculate "Unit Price" here and multiply in preview.
+                        // For now, let's just do a simple sum for the 'Net Price' field.
+                        total = adPrice + chPrice; 
                     } else if (logic === 'sharing') {
-                        const doublePrice = parseFloat(itemRow.find('.amenity-double-price').val()) || 0;
-                        const singlePrice = parseFloat(itemRow.find('.amenity-single-price').val()) || 0;
                         const days = parseFloat(itemRow.find('.amenity-days').val()) || 1;
-                        if (pax % 2 === 0) {
-                            total = (doublePrice * (pax / 2)) * days;
-                        } else {
-                            const pairs = Math.floor(pax / 2);
-                            total = (doublePrice * pairs * days) + (singlePrice * days);
-                        }
+                        const doublePrice = parseFloat(itemRow.find('.amenity-double-price').val()) || 0;
+                        // Use Double Sharing as the base total for estimation
+                        total = (doublePrice / 2) * days * pax; 
                     } else if (logic === 'tiered_transport') {
                         const days = parseFloat(itemRow.find('.amenity-days').val()) || 1;
                         const vehicles = [];
@@ -1629,9 +1115,9 @@
                         const id = row.attr('data-amenity-id');
                         const name = row.find('.amenity-name').val() || 'Unnamed Item';
                         
-                        if (type === 'hotel') hotels.push({id: id, name: name});
-                        else if (type === 'transport') transports.push({id: id, name: name});
-                        else if (type === 'activity') activities.push({id: id, name: name});
+                        if (type === 'hotel') hotels.push({id, name});
+                        else if (type === 'transport') transports.push({id, name});
+                        else if (type === 'activity') activities.push({id, name});
                     });
 
                     $('.itinerary-day').each(function() {
@@ -1699,19 +1185,10 @@
                                 totalNet += price * days * qty;
                             } else if (logic === 'per_pax') {
                                 const adPrice = parseFloat(row.find('.amenity-adult-price').val()) || 0;
-                                totalNet += adPrice * paxCount * days * qty;
+                                totalNet += adPrice * paxCount; // Matrix assumes all adults for simplicity
                             } else if (logic === 'sharing') {
                                 const doublePrice = parseFloat(row.find('.amenity-double-price').val()) || 0;
-                                const singlePrice = parseFloat(row.find('.amenity-single-price').val()) || 0;
-                                
-                                if (paxCount % 2 === 0) {
-                                    // Even number: everyone shares
-                                    totalNet += (doublePrice * (paxCount / 2)) * days;
-                                } else {
-                                    // Odd number: one person pays single supplement
-                                    const pairs = Math.floor(paxCount / 2);
-                                    totalNet += (doublePrice * pairs * days) + (singlePrice * days);
-                                }
+                                totalNet += (doublePrice / 2) * days * paxCount;
                             } else if (logic === 'tiered_transport') {
                                 const vehicles = [];
                                 row.find('.vehicle-tier-check:checked').each(function() {
@@ -1854,7 +1331,6 @@
                             transport: dayCard.find('.day-transport').val() || null,
                             custom_transport: customTransport,
                             activities: dayCard.find('.day-activities').val() || [],
-                            meal_plan_code: dayCard.find('.day-meal-plan-code').val() || 'CP',
                             meals: dayCard.find('.day-meals').val() || [],
                             description: dayCard.find('.day-description').val(),
                         });
@@ -1879,7 +1355,6 @@
 
                         net_price: $('#net_price').val() ? parseFloat($('#net_price').val()) : null,
                         markup_percentage: $('#markup_percentage').val() ? parseFloat($('#markup_percentage').val()) : 0,
-                        hotel_id: $('#hotel_id').val() || null,
                         markup_amount: (parseFloat($('#net_price').val() || 0) * (parseFloat($('#markup_percentage').val() || 0) / 100)),
 
                         price: parseFloat(priceValue),
@@ -1889,8 +1364,6 @@
                         currency: $('#currency').val() || 'INR',
                         announcement_date: $('#announcement_date').val() || null,
                         total_pax: $('#total_pax').val() ? parseInt($('#total_pax').val()) : null,
-                        min_pax: $('#min_pax').val() ? parseInt($('#min_pax').val()) : 1,
-                        max_pax: $('#max_pax').val() ? parseInt($('#max_pax').val()) : null,
                         duration_days: $('#duration_days').val() ? parseInt($('#duration_days').val()) : null,
                         duration_nights: $('#duration_nights').val() ? parseInt($('#duration_nights').val()) : null,
                         image: $('#image_path').val() || null,
@@ -1904,7 +1377,7 @@
                     };
 
                     $.ajax({
-                        url: '{{ route("admin.packages.store", [], false) }}',
+                        url: '"placeholder"',
                         type: 'POST',
                         data: formData,
                         success: function (response) {
@@ -1958,6 +1431,4 @@
                 $('#gallery-modal-img').attr('src', url);
                 new bootstrap.Modal(document.getElementById('gallery-modal')).show();
             };
-        </script>
-    @endpush
-@endsection
+        

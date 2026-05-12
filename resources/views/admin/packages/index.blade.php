@@ -175,7 +175,7 @@
                                                     <td>${categoryHtml}</td>
                                                     <td><small>${amenitiesHtml}</small></td>
                                                     <td>${currencySymbol} ${price}${discountPrice ? ' <small class="text-muted">(Was ${currencySymbol}${discountPrice})</small>' : ''}</td>
-                                                    <td>${duration}</td>
+                                                    <td>${duration}<br><small class="text-muted">Pax: ${pkg.min_pax || 1}-${pkg.max_pax || pkg.total_pax || '∞'}</small></td>
                                                     <td>
                                                         <span class="badge ${isActive ? 'bg-success' : 'bg-secondary'} badge-status">
                                                             ${isActive ? 'Active' : 'Inactive'}
@@ -192,11 +192,14 @@
                                                     </td>
                                                     <td>
                                                         <a href="/admin/itineraries/${pkg.id}/edit" class="btn btn-sm btn-info btn-action text-white" title="Manage Itinerary">
-                                                            <i class="bi bi-calendar3"></i>
-                                                        </a>
-                                                        <a href="/admin/packages/${pkg.id}/edit" class="btn btn-sm btn-primary btn-action">
-                                                            <i class="bi bi-pencil"></i>
-                                                        </a>
+                                                             <i class="bi bi-calendar3"></i>
+                                                         </a>
+                                                         <button onclick="duplicatePackage(${pkg.id})" class="btn btn-sm btn-secondary btn-action" title="Duplicate Package">
+                                                             <i class="bi bi-files"></i>
+                                                         </button>
+                                                         <a href="/admin/packages/${pkg.id}/edit" class="btn btn-sm btn-primary btn-action">
+                                                             <i class="bi bi-pencil"></i>
+                                                         </a>
                                                         <a href="/book/package/${pkg.id}" class="btn btn-sm btn-success btn-action">
                                                             <i class="bi bi-ticket"></i>
                                                         </a>
@@ -258,6 +261,35 @@
                             }
                         }
                         console.error('Error deleting package:', xhr);
+                        alert(errorMsg);
+                    }
+                });
+            }
+
+            function duplicatePackage(id) {
+                if (!confirm('Are you sure you want to duplicate this package?')) return;
+
+                $.ajax({
+                    url: `/admin/packages/${id}/duplicate`,
+                    type: 'POST',
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'Accept': 'application/json',
+                        'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                    },
+                    success: function (response) {
+                        loadPackages();
+                        alert(response.message || 'Package duplicated successfully');
+                    },
+                    error: function (xhr) {
+                        let errorMsg = 'Error duplicating package';
+                        if (xhr.responseJSON) {
+                            if (xhr.responseJSON.error) {
+                                errorMsg = xhr.responseJSON.error;
+                            } else if (xhr.responseJSON.message) {
+                                errorMsg = xhr.responseJSON.message;
+                            }
+                        }
                         alert(errorMsg);
                     }
                 });

@@ -17,7 +17,7 @@ class PackageController extends Controller
      */
     public function index(Request $request)
     {
-        $query = Package::with(['destination'])->where('status', true);
+        $query = Package::with(['destination'])->where('status', 'active');
 
         // Filter by price range
         if ($request->has('min_price')) {
@@ -64,7 +64,7 @@ class PackageController extends Controller
     {
         $package = Package::with(['destination'])
             ->where('slug', $slug)
-            ->where('status', true)
+            ->where('status', 'active')
             ->firstOrFail();
 
         return new PackageResource($package);
@@ -79,7 +79,7 @@ class PackageController extends Controller
     public function gallery($id)
     {
         $package = Package::where('id', $id)
-            ->where('status', true)
+            ->where('status', 'active')
             ->firstOrFail();
 
         $gallery = $package->gallery ?? [];
@@ -102,7 +102,7 @@ class PackageController extends Controller
     public function destinations(Request $request)
     {
         $query = Package::with(['destination'])
-            ->where('status', true);
+            ->where('status', 'active');
 
         // Filter by place_id if provided
         if ($request->has('destination_id')) {
@@ -151,7 +151,7 @@ class PackageController extends Controller
         ]);
 
         $query = Package::with(['destination'])
-            ->where('status', true)
+            ->where('status', 'active')
             ->where('category', $request->category);
 
         // Filter by price range
@@ -194,7 +194,7 @@ class PackageController extends Controller
     {
         $package = Package::with(['destination'])
             ->where('slug', $slug)
-            ->where('status', true)
+            ->where('status', 'active')
             ->firstOrFail();
 
         if (!$package->hasItinerary()) {

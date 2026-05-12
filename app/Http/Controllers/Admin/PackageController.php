@@ -57,7 +57,7 @@ class PackageController extends Controller
     public function getByPlace($destinationId)
     {
         $packages = Package::where('destination_id', $destinationId)
-            ->where('status', true)
+            ->where('status', 'active')
             ->orderBy('name')
             ->get(['id', 'name']);
 
@@ -69,8 +69,10 @@ class PackageController extends Controller
      */
     public function create()
     {
+        $countries = \App\Models\Country::where('status', true)->orderBy('name')->get();
         $suppliers = \App\Models\Supplier::where('is_active', true)->orderBy('name')->get();
-        return view('admin.packages.create', compact('suppliers'));
+        $hotels = \App\Models\Hotel::where('is_active', true)->orderBy('name')->get();
+        return view('admin.packages.create', compact('countries', 'suppliers', 'hotels'));
     }
 
     /**
@@ -80,6 +82,7 @@ class PackageController extends Controller
     {
         $validated = $request->validate([
             'destination_id' => 'nullable|exists:destinations,id',
+            'hotel_id' => 'nullable|exists:hotels,id',
             'destination_ids' => 'nullable|array',
             'supplier_ids' => 'nullable|array',
             'categories' => 'nullable|array',
@@ -114,6 +117,8 @@ class PackageController extends Controller
             'price_6_10' => 'nullable|numeric|min:0',
             'announcement_date' => 'nullable|date',
             'total_pax' => 'nullable|integer|min:1',
+            'min_pax' => 'nullable|integer|min:1',
+            'max_pax' => 'nullable|integer|min:1',
             'duration_days' => 'nullable|integer|min:0',
             'duration_nights' => 'nullable|integer|min:0',
             'image' => 'nullable|string',
@@ -126,6 +131,7 @@ class PackageController extends Controller
             'meta_title' => 'nullable|string',
             'meta_description' => 'nullable|string',
             'meta_keywords' => 'nullable|string',
+            'availability' => 'nullable|array',
         ]);
 
         if (!isset($validated['slug'])) {
@@ -158,6 +164,8 @@ class PackageController extends Controller
             'duration' => $this->formatDuration($validated['duration_days'] ?? null, $validated['duration_nights'] ?? null),
             'announcement_date' => $validated['announcement_date'] ?? null,
             'total_pax' => $validated['total_pax'] ?? null,
+            'min_pax' => $validated['min_pax'] ?? 1,
+            'max_pax' => $validated['max_pax'] ?? null,
             'image' => $validated['image'] ?? null,
             'gallery' => $validated['gallery'] ?? [],
             'addon_amenities' => $validated['addon_amenities'] ?? [],
@@ -165,15 +173,86 @@ class PackageController extends Controller
             'excluded_services' => $validated['exclusions'] ?? [],
             'itinerary' => $this->normalizeItinerary($validated['itinerary'] ?? []),
             'featured' => isset($validated['is_featured']) ? (bool) $validated['is_featured'] : false,
-            'status' => isset($validated['is_active']) ? (bool) $validated['is_active'] : true,
+            'status' => isset($validated['is_active']) && $validated['is_active'] ? 'active' : 'inactive',
             'meta_title' => $validated['meta_title'] ?? null,
             'meta_description' => $validated['meta_description'] ?? null,
             'meta_keywords' => $validated['meta_keywords'] ?? null,
+            'availability' => $validated['availability'] ?? null,
         ];
 
-        $package = Package::create($packageData);
+        \DB::beginTransaction();
+        try {
+            $package = Package::create($packageData);
 
-        return response()->json($package, 201);
+            // Save Structured Itinerary
+            $this->saveStructuredItinerary($package, $validated['itinerary'] ?? [], $validated['addon_amenities'] ?? []);
+
+            \DB::commit();
+            return response()->json($package, 201);
+        } catch (\Exception $e) {
+            \DB::rollBack();
+            return response()->json(['message' => 'Error creating package: ' . $e->getMessage()], 500);
+        }
+    }
+
+    /**
+     * Save structured itinerary data to relational tables
+     */
+    private function saveStructuredItinerary(Package $package, array $itinerary, array $addonAmenities)
+    {
+        // Clear existing (for updates, though this is store)
+        $package->days()->delete();
+
+        foreach ($itinerary as $index => $dayData) {
+            $day = $package->days()->create([
+                'day_number' => $dayData['day'] ?? ($index + 1),
+                'title' => $dayData['title'] ?? null,
+                'description' => $dayData['description'] ?? null,
+                'meal_plan' => $dayData['meals'] ?? [],
+            ]);
+
+            // Link Hotel
+            if (!empty($dayData['hotel'])) {
+                $hotelRef = $dayData['hotel']; // e.g. "hotel_18"
+                if (strpos($hotelRef, 'hotel_') === 0) {
+                    $assetId = str_replace('hotel_', '', $hotelRef);
+                    // Find the component in addonAmenities to get actual hotel_id/room_type_id
+                    foreach ($addonAmenities as $amenity) {
+                        if ($amenity['type'] === 'hotel' && (string)$amenity['asset_id'] === (string)$assetId) {
+                            $day->hotels()->create([
+                                'hotel_id' => $amenity['hotel_id'],
+                                'room_type_id' => $amenity['asset_id'],
+                                'meal_plan_code' => $dayData['meal_plan_code'] ?? 'CP',
+                                'is_primary' => true
+                            ]);
+                            break;
+                        }
+                    }
+                }
+            }
+
+            // Link Transport
+            if (!empty($dayData['transport'])) {
+                $transRef = $dayData['transport'];
+                if (strpos($transRef, 'transport_') === 0) {
+                    $assetId = str_replace('transport_', '', $transRef);
+                    $day->transports()->create([
+                        'transport_id' => $assetId
+                    ]);
+                }
+            }
+
+            // Link Activities
+            $activityRefs = $dayData['activities'] ?? [];
+            foreach ($activityRefs as $ref) {
+                if (strpos($ref, 'activity_') === 0) {
+                    $assetId = str_replace('activity_', '', $ref);
+                    $day->activities()->create([
+                        'activity_id' => $assetId
+                    ]);
+                }
+            }
+        }
     }
 
     /**
@@ -306,8 +385,15 @@ class PackageController extends Controller
      */
     public function edit($id)
     {
+        $package = Package::withTrashed()->findOrFail($id);
         $suppliers = \App\Models\Supplier::where('is_active', true)->orderBy('name')->get();
-        return view('admin.packages.edit', ['id' => $id, 'suppliers' => $suppliers]);
+        $hotels = \App\Models\Hotel::where('is_active', true)->orderBy('name')->get();
+        return view('admin.packages.edit', [
+            'id' => $id,
+            'package' => $package,
+            'suppliers' => $suppliers,
+            'hotels' => $hotels
+        ]);
     }
     /**
      * Update the specified resource in storage.
@@ -351,6 +437,8 @@ class PackageController extends Controller
             'price_6_10' => 'nullable|numeric|min:0',
             'announcement_date' => 'nullable|date',
             'total_pax' => 'nullable|integer|min:1',
+            'min_pax' => 'nullable|integer|min:1',
+            'max_pax' => 'nullable|integer|min:1',
             'currency' => 'nullable|string|in:INR,USD,MYR,SGD,AED',
             'duration_days' => 'nullable|integer|min:0',
             'duration_nights' => 'nullable|integer|min:0',
@@ -364,6 +452,7 @@ class PackageController extends Controller
             'meta_title' => 'nullable|string',
             'meta_description' => 'nullable|string',
             'meta_keywords' => 'nullable|string',
+            'availability' => 'nullable|array',
         ]);
 
         // Handle boolean fields
@@ -396,6 +485,8 @@ class PackageController extends Controller
             'duration' => $this->formatDuration($validated['duration_days'] ?? null, $validated['duration_nights'] ?? null),
             'announcement_date' => $validated['announcement_date'] ?? null,
             'total_pax' => $validated['total_pax'] ?? null,
+            'min_pax' => $validated['min_pax'] ?? 1,
+            'max_pax' => $validated['max_pax'] ?? null,
             'image' => $validated['image'] ?? null,
             'gallery' => $validated['gallery'] ?? [],
             'addon_amenities' => $validated['addon_amenities'] ?? [],
@@ -403,15 +494,26 @@ class PackageController extends Controller
             'excluded_services' => $validated['exclusions'] ?? [],
             'itinerary' => $validated['itinerary'] ?? [],
             'featured' => isset($validated['is_featured']) ? (bool) $validated['is_featured'] : false,
-            'status' => isset($validated['is_active']) ? (bool) $validated['is_active'] : true,
+            'status' => isset($validated['is_active']) && $validated['is_active'] ? 'active' : 'inactive',
             'meta_title' => $validated['meta_title'] ?? null,
             'meta_description' => $validated['meta_description'] ?? null,
             'meta_keywords' => $validated['meta_keywords'] ?? null,
+            'availability' => $validated['availability'] ?? null,
         ];
 
-        $package->update($packageData);
+        \DB::beginTransaction();
+        try {
+            $package->update($packageData);
 
-        return response()->json($package);
+            // Save Structured Itinerary
+            $this->saveStructuredItinerary($package, $validated['itinerary'] ?? [], $validated['addon_amenities'] ?? []);
+
+            \DB::commit();
+            return response()->json($package);
+        } catch (\Exception $e) {
+            \DB::rollBack();
+            return response()->json(['message' => 'Error updating package: ' . $e->getMessage()], 500);
+        }
     }
     /**
      * Remove the specified resource from storage.
@@ -489,6 +591,41 @@ class PackageController extends Controller
 
             return response()->json([
                 'error' => 'Error deleting package',
+                'message' => $e->getMessage()
+            ], 500);
+        }
+    }
+    /**
+     * Duplicate the specified resource.
+     */
+    public function duplicate($id): \Illuminate\Http\JsonResponse
+    {
+        try {
+            $original = Package::findOrFail($id);
+            $new = $original->replicate();
+            
+            // Append " (Copy)" to the name
+            $new->name = $original->name . ' (Copy)';
+            
+            // Generate a unique slug
+            $slug = Str::slug($new->name);
+            $count = Package::where('slug', 'like', $slug . '%')->count();
+            $new->slug = $count ? $slug . '-' . ($count + 1) : $slug;
+            
+            // Set status to inactive by default for safety
+            $new->status = 'inactive';
+            $new->featured = false;
+            
+            $new->save();
+
+            return response()->json([
+                'message' => 'Package duplicated successfully',
+                'package' => $new
+            ]);
+        } catch (\Exception $e) {
+            \Log::error('Error duplicating package: ' . $e->getMessage());
+            return response()->json([
+                'error' => 'Error duplicating package',
                 'message' => $e->getMessage()
             ], 500);
         }

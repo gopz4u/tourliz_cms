@@ -155,8 +155,20 @@ class InventoryApiController extends Controller
     public function supplierAssets(Request $request, $id)
     {
         $supplier = \App\Models\Supplier::findOrFail($id);
-        $type = trim(strtolower($supplier->type));
+        $rawType = trim(strtolower($supplier->type));
         
+        // Normalize type
+        $type = $rawType;
+        if (str_contains($rawType, 'hotel') || str_contains($rawType, 'accommodation')) {
+            $type = 'hotel';
+        } elseif (str_contains($rawType, 'transport')) {
+            $type = 'transport';
+        } elseif (str_contains($rawType, 'activity') || str_contains($rawType, 'ticket') || str_contains($rawType, 'attraction')) {
+            $type = 'activity';
+        } elseif (str_contains($rawType, 'meal')) {
+            $type = 'meal';
+        }
+
         $data = [
             'supplier' => $supplier,
             'type' => $type,
@@ -165,26 +177,18 @@ class InventoryApiController extends Controller
 
         switch ($type) {
             case 'hotel':
-            case 'hotels':
-            case 'accommodation':
                 $data['assets'] = \App\Models\Hotel::with('rooms')->where('supplier_id', $id)->get()->values();
-                $data['type'] = 'hotel'; // Normalize for frontend
                 break;
             case 'transport':
-            case 'transports':
-                $data['assets'] = \App\Models\Transport::where('supplier_id', $id)->get();
+                $data['assets'] = \App\Models\Transport::where('supplier_id', $id)->get()->values();
                 break;
             case 'activity':
-            case 'activities':
-            case 'agent':
-            case 'tickets':
-                $data['assets'] = \App\Models\Activity::where('supplier_id', $id)->get();
+                $data['assets'] = \App\Models\Activity::where('supplier_id', $id)->get()->values();
                 // Also load entry tickets if they exist for this supplier
-                $data['extra_assets'] = \App\Models\EntryTicket::where('supplier_id', $id)->get();
+                $data['extra_assets'] = \App\Models\EntryTicket::where('supplier_id', $id)->get()->values();
                 break;
             case 'meal':
-            case 'meals':
-                $data['assets'] = \App\Models\Meal::where('supplier_id', $id)->get();
+                $data['assets'] = \App\Models\Meal::where('supplier_id', $id)->get()->values();
                 break;
             default:
                 // Try to find anything linked to this supplier
@@ -198,7 +202,6 @@ class InventoryApiController extends Controller
                 $allAssets = $allAssets->merge(\App\Models\Meal::where('supplier_id', $id)->get());
                 
                 $data['assets'] = $allAssets->values();
-                break;
         }
 
         return response()->json($data);

@@ -79,6 +79,7 @@ class BookingController extends Controller
             // Contact Method
             'contact_method' => 'nullable|in:email,whatsapp,phone,query',
             'whatsapp_number' => 'nullable|string|max:50',
+            'room_id' => 'nullable|exists:hotel_rooms,id',
         ]);
 
         $package = Package::with([
@@ -87,8 +88,11 @@ class BookingController extends Controller
             }
         ])->findOrFail($validated['package_id']);
 
-        // Calculate amounts
-        $basePrice = $package->price ?? 0;
+        // Calculate amounts using pricing service for accuracy
+        $service = new \App\Services\PackagePricingService();
+        $pricingResult = $service->calculatePrice($package, $validated['adults'], $validated['room_id'] ?? null);
+        
+        $basePrice = $pricingResult['total_selling'];
         $addonsAmount = 0;
         $servicesAmount = 0;
 
@@ -156,6 +160,7 @@ class BookingController extends Controller
         // Prepare booking data
         $bookingData = [
             'package_id' => $package->id,
+            'hotel_room_id' => $validated['room_id'] ?? null,
             'admin_id' => $request->user()->id ?? null,
             'name' => $validated['name'],
             'email' => $validated['email'],
@@ -353,6 +358,40 @@ class BookingController extends Controller
                 'booking_id' => $booking->id,
             ]);
         }
+    }
+
+    /**
+     * Calculate price dynamically for frontend.
+     */
+    public function calculatePricing(Request $request, $slug)
+    {
+        $request->validate([
+            'adults' => 'required|integer|min:1',
+            'children' => 'nullable|integer|min:0',
+            'room_config' => 'nullable|string|in:single,double,triple,quad',
+            'room_id' => 'nullable|exists:hotel_rooms,id',
+        ]);
+
+        $package = Package::where('slug', $slug)->orWhere('id', $slug)->firstOrFail();
+        $paxCount = $request->adults;
+        
+        // Use the new Pricing Service
+        $service = new \App\Services\PackagePricingService();
+        $result = $service->calculatePrice($package, $paxCount, $request->room_id);
+
+        // Optional: Manual Room Type Override logic
+        // If the user selects 'triple' but there are 4 people, 
+        // the service usually handles it, but we can refine here if needed.
+
+        $currency = $package->currency ?? 'MYR';
+        
+        return response()->json([
+            'success' => true,
+            'per_pax' => \App\Helpers\CurrencyHelper::format($result['per_pax'], $currency),
+            'total' => \App\Helpers\CurrencyHelper::format($result['total_selling'], $currency),
+            'raw_per_pax' => $result['per_pax'],
+            'raw_total' => $result['total_selling']
+        ]);
     }
 }
 

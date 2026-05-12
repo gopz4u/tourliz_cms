@@ -249,6 +249,77 @@
             width: 18px;
             height: 18px;
         }
+        .gallery-grid .main-image-container img {
+            border-radius: 8px 0 0 8px;
+        }
+        .gallery-grid .col-md-4 .row .col-6:nth-child(2) .thumbnail {
+            border-radius: 0 8px 0 0;
+        }
+        .gallery-grid .col-md-4 .row .col-6:last-child .thumbnail {
+            border-radius: 0 0 8px 0;
+        }
+        .thumbnail-item {
+            overflow: hidden;
+            border-radius: 4px;
+        }
+        .thumbnail-item img {
+            transition: transform 0.3s;
+            cursor: pointer;
+        }
+        .thumbnail-item img:hover {
+            transform: scale(1.05);
+        }
+        .gallery-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            color: #fff;
+            border-radius: 0 0 8px 0;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        .gallery-overlay:hover {
+            background: rgba(0,0,0,0.6);
+        }
+        .timeline-container {
+            position: relative;
+            padding-left: 20px;
+        }
+        .timeline-container::before {
+            content: '';
+            position: absolute;
+            left: 39px;
+            top: 20px;
+            bottom: 20px;
+            width: 2px;
+            background: #e0e0e0;
+            z-index: 0;
+        }
+        .timeline-day-marker {
+            position: relative;
+            z-index: 1;
+            width: 40px;
+            height: 40px;
+            background: #dc3545;
+            color: #fff;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            box-shadow: 0 0 0 5px #fff;
+        }
+        .itinerary-card {
+            transition: transform 0.3s, box-shadow 0.3s;
+            border: 1px solid #f0f0f0;
+        }
+        .itinerary-card:hover {
+            transform: translateX(5px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05) !important;
+        }
     </style>
 </head>
 
@@ -270,28 +341,38 @@
         <div class="row">
             <!-- Left Column -->
             <div class="col-lg-8">
-                <!-- Image Gallery -->
-                <div class="row mb-4">
-                    <div class="col-md-9">
-                        <div class="main-image-container">
-                            <img id="main-image" src="{{ getImageUrl($package->image) }}" alt="{{ $package->name }}"
-                                class="main-image">
+                <!-- Premium Gallery Grid -->
+                <div class="row g-2 mb-4 gallery-grid">
+                    <div class="col-md-8">
+                        <div class="main-image-container h-100 mb-0">
+                            <img id="main-image" src="{{ getImageUrl($package->image) }}" alt="{{ $package->name }}" class="main-image h-100" style="min-height: 400px;">
                         </div>
-                        <a href="#" class="gallery-link" onclick="openGallery(); return false;">
-                            {{ count($package->gallery ?? []) + 1 }} Property & Guest Photos →
-                        </a>
                     </div>
-                    <div class="col-md-3">
-                        <div class="thumbnail-container">
-                            @if($package->image)
-                                <img src="{{ getImageUrl($package->image) }}" alt="Main" class="thumbnail active"
-                                    onclick="changeMainImage('{{ getImageUrl($package->image) }}', this)">
-                            @endif
-                            @if($package->gallery)
-                                @foreach(array_slice($package->gallery, 0, 3) as $img)
-                                    <img src="{{ getImageUrl($img) }}" alt="Gallery" class="thumbnail"
-                                        onclick="changeMainImage('{{ getImageUrl($img) }}', this)">
-                                @endforeach
+                    <div class="col-md-4">
+                        <div class="row g-2 h-100">
+                            @php
+                                $galleryItems = array_slice($package->gallery ?? [], 0, 4);
+                            @endphp
+                            @foreach($galleryItems as $index => $img)
+                                <div class="col-6">
+                                    <div class="thumbnail-item h-100 position-relative">
+                                        <img src="{{ getImageUrl($img) }}" alt="Gallery" class="thumbnail w-100 h-100" style="object-fit: cover; min-height: 196px;" onclick="openGallery({{ $index + 1 }})">
+                                        @if($index === 3 && count($package->gallery ?? []) > 4)
+                                            <div class="gallery-overlay d-flex align-items-center justify-content-center" onclick="openGallery(4)">
+                                                <span class="text-white fw-bold">+{{ count($package->gallery) - 4 }} Photos</span>
+                                            </div>
+                                        @endif
+                                    </div>
+                                </div>
+                            @endforeach
+                            @if(count($galleryItems) < 4)
+                                @for($i=0; $i < (4 - count($galleryItems)); $i++)
+                                    <div class="col-6">
+                                        <div class="thumbnail-item h-100 bg-light d-flex align-items-center justify-content-center border rounded" style="min-height: 196px;">
+                                            <i class="bi bi-image text-muted fs-2"></i>
+                                        </div>
+                                    </div>
+                                @endfor
                             @endif
                         </div>
                     </div>
@@ -361,37 +442,33 @@
                 @if($package->itinerary && count($package->itinerary) > 0)
                     <div class="mb-5">
                         <h2 class="section-title mb-4"><i class="bi bi-calendar3 me-2 text-danger"></i>Detailed Itinerary</h2>
-                        <div class="accordion" id="itineraryAccordion">
+                        <div class="timeline-container">
                             @foreach($package->formatted_itinerary as $index => $day)
-                                <div class="accordion-item border-0 mb-3 shadow-sm rounded overflow-hidden">
-                                    <h2 class="accordion-header">
-                                        <button class="accordion-button {{ $index === 0 ? '' : 'collapsed' }}" type="button" data-bs-toggle="collapse" data-bs-target="#day{{ $day['day'] }}">
-                                            <div class="d-flex align-items-center w-100">
-                                                <div class="bg-danger text-white rounded-circle d-flex align-items-center justify-content-center me-3" style="min-width: 40px; height: 40px; font-weight: bold;">
-                                                    {{ $day['day'] }}
-                                                </div>
+                                <div class="d-flex mb-4">
+                                    <div class="timeline-day-marker me-4">
+                                        {{ $day['day'] }}
+                                    </div>
+                                    <div class="itinerary-card card border-0 shadow-sm rounded-4 flex-grow-1 overflow-hidden">
+                                        <div class="card-header bg-white border-0 py-3">
+                                            <div class="d-flex justify-content-between align-items-center">
                                                 <div>
-                                                    <div class="text-muted small text-uppercase">Day {{ $day['day'] }}</div>
-                                                    <div class="fw-bold">{{ $day['title'] }}</div>
+                                                    <span class="text-muted small text-uppercase fw-bold">Day {{ $day['day'] }}</span>
+                                                    <h5 class="fw-bold mb-0 text-dark">{{ $day['title'] }}</h5>
                                                 </div>
+                                                <i class="bi bi-chevron-down text-muted"></i>
                                             </div>
-                                        </button>
-                                    </h2>
-                                    <div id="day{{ $day['day'] }}" class="accordion-collapse collapse {{ $index === 0 ? 'show' : '' }}" data-bs-parent="#itineraryAccordion">
-                                        <div class="accordion-body bg-white pt-0">
-                                            <div class="ps-5 ms-2 border-start py-3">
+                                        </div>
+                                        <div class="card-body pt-0">
+                                            <div class="ps-1 py-2">
                                                 <!-- Places/Attractions -->
                                                 @if(isset($day['places']) && count($day['places']) > 0)
                                                     <div class="mb-3">
-                                                        <h6 class="fw-bold small text-uppercase text-danger mb-2">Places to Visit:</h6>
-                                                        <div class="row g-2">
+                                                        <div class="d-flex flex-wrap gap-2">
                                                             @foreach($day['places'] as $p)
-                                                                <div class="col-md-6">
-                                                                    <div class="d-flex align-items-center">
-                                                                        <i class="bi bi-geo-alt-fill text-danger me-2"></i>
-                                                                        <span>{{ $p['place_name'] ?? $p['name'] ?? 'Attraction' }} @if(isset($p['visit_duration'])) <small class="text-muted">({{ $p['visit_duration'] }})</small>@endif</span>
-                                                                    </div>
-                                                                </div>
+                                                                <span class="badge bg-light text-dark border py-2 px-3 rounded-pill">
+                                                                    <i class="bi bi-geo-alt-fill text-danger me-1"></i>
+                                                                    {{ $p['place_name'] ?? $p['name'] ?? 'Attraction' }}
+                                                                </span>
                                                             @endforeach
                                                         </div>
                                                     </div>
@@ -400,14 +477,15 @@
                                                 <!-- Activities -->
                                                 @if(isset($day['activities']) && count($day['activities']) > 0)
                                                     <div class="mb-3">
-                                                        <h6 class="fw-bold small text-uppercase text-danger mb-2">Activities:</h6>
+                                                        <h6 class="fw-bold small text-uppercase text-danger mb-2">Activities & Highlights:</h6>
                                                         @foreach($day['activities'] as $act)
                                                             <div class="d-flex mb-2">
-                                                                <i class="bi bi-camera-fill text-danger me-2 mt-1"></i>
+                                                                <div class="bg-danger-subtle rounded-circle p-1 me-2" style="width: 24px; height: 24px; display: flex; align-items: center; justify-content: center;">
+                                                                    <i class="bi bi-camera-fill text-danger small"></i>
+                                                                </div>
                                                                 <div>
-                                                                    <strong>{{ $act['attraction_name'] ?? $act['name'] ?? 'Activity' }}</strong>
-                                                                    @if(isset($act['time'])) <small class="text-muted text-uppercase ms-1">{{ $act['time'] }}</small>@endif
-                                                                    @if(isset($act['description'])) <p class="small text-muted mb-0">{{ $act['description'] }}</p>@endif
+                                                                    <strong class="small">{{ $act['attraction_name'] ?? $act['name'] ?? 'Activity' }}</strong>
+                                                                    @if(isset($act['description'])) <p class="extra-small text-muted mb-0">{{ $act['description'] }}</p>@endif
                                                                 </div>
                                                             </div>
                                                         @endforeach
@@ -416,36 +494,34 @@
 
                                                 <div class="row g-3">
                                                     <!-- Accommodation -->
-                                                    @if(isset($day['hotel']))
+                                                    @if(isset($day['hotel']) && !empty($day['hotel']['name']))
                                                         <div class="col-md-6">
-                                                            <div class="p-2 border rounded bg-light">
-                                                                <h6 class="small fw-bold mb-1"><i class="bi bi-building me-1"></i> Stay</h6>
-                                                                <div class="small">{{ $day['hotel']['name'] ?? 'Selected Hotel' }}</div>
+                                                            <div class="p-3 border rounded-4 bg-light h-100">
+                                                                <h6 class="small fw-bold mb-2"><i class="bi bi-building me-2 text-primary"></i> Accommodation</h6>
+                                                                <div class="small text-dark fw-medium">{{ $day['hotel']['name'] }}</div>
                                                             </div>
                                                         </div>
                                                     @endif
 
                                                     <!-- Meals -->
-                                                    @if(isset($day['meals']))
+                                                    @php $m = []; 
+                                                        if(($day['meals']['breakfast'] ?? '') == 'Included' || ($day['meals']['breakfast'] ?? '') != '') $m[] = 'Breakfast';
+                                                        if(($day['meals']['lunch'] ?? '') == 'Included' || ($day['meals']['lunch'] ?? '') != '') $m[] = 'Lunch';
+                                                        if(($day['meals']['dinner'] ?? '') == 'Included' || ($day['meals']['dinner'] ?? '') != '') $m[] = 'Dinner';
+                                                    @endphp
+                                                    @if(count($m) > 0)
                                                         <div class="col-md-6">
-                                                            <div class="p-2 border rounded bg-light">
-                                                                <h6 class="small fw-bold mb-1"><i class="bi bi-cup-hot me-1"></i> Meals</h6>
-                                                                <div class="small">
-                                                                    @php $m = []; 
-                                                                        if(($day['meals']['breakfast'] ?? '') == 'Included' || ($day['meals']['breakfast'] ?? '') != '') $m[] = 'Breakfast';
-                                                                        if(($day['meals']['lunch'] ?? '') == 'Included' || ($day['meals']['lunch'] ?? '') != '') $m[] = 'Lunch';
-                                                                        if(($day['meals']['dinner'] ?? '') == 'Included' || ($day['meals']['dinner'] ?? '') != '') $m[] = 'Dinner';
-                                                                    @endphp
-                                                                    {{ count($m) > 0 ? implode(', ', $m) : 'Not Specified' }}
-                                                                </div>
+                                                            <div class="p-3 border rounded-4 bg-light h-100">
+                                                                <h6 class="small fw-bold mb-2"><i class="bi bi-cup-hot me-2 text-warning"></i> Meals Included</h6>
+                                                                <div class="small text-dark fw-medium">{{ implode(', ', $m) }}</div>
                                                             </div>
                                                         </div>
                                                     @endif
                                                 </div>
 
                                                 @if(isset($day['notes']) && $day['notes'])
-                                                    <div class="mt-3 p-2 border-start border-4 border-info bg-info bg-opacity-10 small">
-                                                        <i class="bi bi-info-circle me-1 text-info"></i> {{ $day['notes'] }}
+                                                    <div class="mt-3 p-3 rounded-4 bg-info bg-opacity-10 border-start border-4 border-info">
+                                                        <div class="small text-dark"><i class="bi bi-info-circle-fill me-2 text-info"></i>{{ $day['notes'] }}</div>
                                                     </div>
                                                 @endif
                                             </div>
@@ -482,27 +558,85 @@
             <!-- Right Column - Booking Card -->
             <div class="col-lg-4">
                 <div class="booking-card">
-                    <h3 class="section-title mb-3">Standard Package</h3>
-                    <p class="mb-3">Fits {{ $package->min_persons ?? 1 }}-{{ $package->max_persons ?? 2 }} Adults</p>
+                    <div class="mb-4">
+                        <div class="row g-2 mb-3">
+                            <div class="col-6">
+                                <label class="form-label small fw-bold">Adults</label>
+                                <select id="booking_adults" class="form-select form-select-sm" onchange="updateBookingPricing()">
+                                    @php
+                                        $minPax = $package->min_pax ?? 1;
+                                        $maxPax = $package->max_pax ?? 20;
+                                        $defaultAdults = max(2, $minPax);
+                                        if ($defaultAdults > $maxPax) $defaultAdults = $maxPax;
+                                    @endphp
+                                    @for($i=$minPax; $i<=$maxPax; $i++)
+                                        <option value="{{ $i }}" {{ $i == $defaultAdults ? 'selected' : '' }}>{{ $i }} {{ $i == 1 ? 'Adult' : 'Adults' }}</option>
+                                    @endfor
+                                </select>
+                            </div>
+                            <div class="col-6">
+                                <label class="form-label small fw-bold">Kids (2-12)</label>
+                                <select id="booking_children" class="form-select form-select-sm" onchange="updateBookingPricing()">
+                                    @for($i=0; $i<=10; $i++)
+                                        <option value="{{ $i }}">{{ $i }} {{ $i == 1 ? 'Kid' : 'Kids' }}</option>
+                                    @endfor
+                                </select>
+                            </div>
+                        </div>
 
-                    <div class="free-cancellation">
-                        <input type="checkbox" id="free-cancellation" checked disabled>
-                        <label for="free-cancellation">Free Cancellation before travel date</label>
-                    </div>
+                        @php
+                            $associatedHotels = $package->associated_hotels;
+                        @endphp
 
-                    <div class="mb-3">
-                        @if($package->discount_price)
-                            <div class="price-strikethrough" data-price="{{ $package->discount_price }}"
-                                data-currency="{{ $package->currency ?? 'INR' }}">
-                                {{ \App\Helpers\CurrencyHelper::format($package->discount_price, $package->currency ?? 'MYR') }}
+                        @if($associatedHotels && $associatedHotels->isNotEmpty())
+                            <label class="form-label small fw-bold mb-2">Select Room Type</label>
+                            <div class="mb-3">
+                                <select id="booking_room_id" class="form-select form-select-sm" onchange="updateBookingPricing()">
+                                    @foreach($associatedHotels as $hotel)
+                                        <optgroup label="{{ $hotel->name }}">
+                                            @foreach($hotel->rooms as $room)
+                                                <option value="{{ $room->id }}">{{ $room->room_type }} ({{ $room->capacity }} Pax)</option>
+                                            @endforeach
+                                        </optgroup>
+                                    @endforeach
+                                </select>
+                            </div>
+                        @else
+                            <label class="form-label small fw-bold mb-2">Room Configuration</label>
+                            <div class="room-options mb-3">
+                                <div class="form-check small mb-1">
+                                    <input class="form-check-input room-config" type="radio" name="room_config" id="config_double" value="double" checked onchange="updateBookingPricing()">
+                                    <label class="form-check-label" for="config_double">Double/Twin Sharing</label>
+                                </div>
+                                <div class="form-check small mb-1" id="triple_option_container">
+                                    <input class="form-check-input room-config" type="radio" name="room_config" id="config_triple" value="triple" onchange="updateBookingPricing()">
+                                    <label class="form-check-label" for="config_triple">Triple Sharing (Extra Bed)</label>
+                                </div>
+                                <div class="form-check small mb-1" id="quad_option_container">
+                                    <input class="form-check-input room-config" type="radio" name="room_config" id="config_quad" value="quad" onchange="updateBookingPricing()">
+                                    <label class="form-check-label" for="config_quad">Quad/Family Sharing</label>
+                                </div>
+                                <div class="form-check small">
+                                    <input class="form-check-input room-config" type="radio" name="room_config" id="config_single" value="single" onchange="updateBookingPricing()">
+                                    <label class="form-check-label" for="config_single">Single Occupancy</label>
+                                </div>
                             </div>
                         @endif
-                        <div class="price-current" data-price="{{ $package->price }}"
-                            data-currency="{{ $package->currency ?? 'INR' }}">
-                            {{ \App\Helpers\CurrencyHelper::format($package->price, $package->currency ?? 'MYR') }}
+                    </div>
+
+                    <div class="pricing-summary bg-light p-3 rounded-3 mb-3">
+                        <div class="d-flex justify-content-between align-items-center mb-1">
+                            <span class="text-muted small">Per Person:</span>
+                            <span class="h4 mb-0 text-danger fw-bold" id="display_per_pax">
+                                {{ \App\Helpers\CurrencyHelper::format($package->price, $package->currency ?? 'MYR') }}
+                            </span>
                         </div>
-                        <div class="price-label">Per Person:</div>
-                        <div class="price-label mt-1">+ Taxes & fees included</div>
+                        <div class="d-flex justify-content-between align-items-center border-top pt-2">
+                            <span class="fw-bold small">Total Price:</span>
+                            <span class="h5 mb-0 text-dark" id="display_total">
+                                {{ \App\Helpers\CurrencyHelper::format($package->price * 2, $package->currency ?? 'MYR') }}
+                            </span>
+                        </div>
                     </div>
 
                     @auth
@@ -659,7 +793,70 @@
             modal.show();
         }
 
+        function updateBookingPricing() {
+            const adults = parseInt($('#booking_adults').val()) || 1;
+            const children = parseInt($('#booking_children').val()) || 0;
+            const roomId = $('#booking_room_id').val() || null;
+            
+            // Auto-select room configuration based on number of adults (only if room select is not present)
+            if (!$('#booking_room_id').length) {
+                if (adults === 1) {
+                    $('#config_single').prop('checked', true);
+                } else if (adults === 2) {
+                    $('#config_double').prop('checked', true);
+                } else if (adults === 3) {
+                    $('#config_triple').prop('checked', true);
+                } else if (adults >= 4) {
+                    $('#config_quad').prop('checked', true);
+                }
+            }
+
+            const roomConfig = $('input[name="room_config"]:checked').val() || 'double';
+            
+            // Toggle room options based on pax count (only if room select is not present)
+            if (!$('#booking_room_id').length) {
+                if (adults < 3) {
+                    $('#triple_option_container').addClass('opacity-50');
+                    if (roomConfig === 'triple') $('#config_double').prop('checked', true);
+                } else {
+                    $('#triple_option_container').removeClass('opacity-50');
+                }
+                
+                if (adults < 4) {
+                    $('#quad_option_container').addClass('opacity-50');
+                    if (roomConfig === 'quad') $('#config_double').prop('checked', true);
+                } else {
+                    $('#quad_option_container').removeClass('opacity-50');
+                }
+            }
+
+            // AJAX call to calculate price
+            $.ajax({
+                url: '{{ route("packages.calculate-price", $package->slug) }}',
+                method: 'POST',
+                data: {
+                    adults: adults,
+                    children: children,
+                    room_config: roomConfig,
+                    room_id: roomId,
+                    _token: '{{ csrf_token() }}'
+                },
+                success: function(response) {
+                    if (response.success) {
+                        $('#display_per_pax').text(response.per_pax);
+                        $('#display_total').text(response.total);
+                    }
+                },
+                error: function() {
+                    console.error('Failed to update pricing');
+                }
+            });
+        }
+
         $(document).ready(function() {
+            // Initial price calculation
+            updateBookingPricing();
+            
             $('#quoteForm').on('submit', function(e) {
                 e.preventDefault();
                 

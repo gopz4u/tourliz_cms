@@ -13,6 +13,7 @@ class Package extends Model
     protected $fillable = [
         'destination_id',
         'destination_ids',
+        'hotel_id',
         'supplier_id',
         'supplier_ids',
         'category',
@@ -39,6 +40,8 @@ class Package extends Model
         'currency',
         'announcement_date',
         'total_pax',
+        'min_pax',
+        'max_pax',
         'duration',
         'image',
         'gallery',
@@ -50,6 +53,7 @@ class Package extends Model
         'meta_title',
         'meta_description',
         'meta_keywords',
+        'availability',
     ];
 
     protected $casts = [
@@ -61,14 +65,17 @@ class Package extends Model
         'included_services' => 'array',
         'excluded_services' => 'array',
         'itinerary' => 'array',
+        'availability' => 'array',
         'price' => 'decimal:2',
         'discount_price' => 'decimal:2',
         'price_2_6' => 'decimal:2',
         'price_6_10' => 'decimal:2',
         'announcement_date' => 'date',
         'total_pax' => 'integer',
+        'min_pax' => 'integer',
+        'max_pax' => 'integer',
         'featured' => 'boolean',
-        'status' => 'boolean',
+        'status' => 'string',
         'includes_flight' => 'boolean',
         'star_rating' => 'integer',
         'ticket_count' => 'integer',
@@ -76,7 +83,9 @@ class Package extends Model
 
     protected $appends = [
         'average_rating',
-        'reviews_count'
+        'reviews_count',
+        'is_active',
+        'is_featured'
     ];
 
     public function getRouteKeyName()
@@ -107,7 +116,7 @@ class Package extends Model
      */
     public function getIsActiveAttribute()
     {
-        return $this->status;
+        return $this->status === 'active';
     }
 
     /**
@@ -191,8 +200,42 @@ class Package extends Model
         return round($this->reviews()->avg('rating') ?: 5, 1);
     }
 
+    public function hotel()
+    {
+        return $this->belongsTo(Hotel::class);
+    }
+
     public function getReviewsCountAttribute()
     {
         return $this->reviews()->count();
+    }
+
+    /**
+     * Get hotels associated with this package via cost components
+     */
+    public function getAssociatedHotelsAttribute()
+    {
+        $amenities = $this->addon_amenities ?: [];
+        $hotelIds = [];
+        
+        // Include main hotel if set
+        if ($this->hotel_id) $hotelIds[] = $this->hotel_id;
+        
+        foreach ($amenities as $amenity) {
+            if (($amenity['type'] ?? '') === 'hotel' && !empty($amenity['supplier_id'])) {
+                if (!empty($amenity['supplier_id'])) $hotelIds[] = $amenity['supplier_id'];
+            }
+        }
+        
+        $hotelIds = array_unique($hotelIds);
+        
+        if (empty($hotelIds)) return collect();
+        
+        return \App\Models\Hotel::whereIn('id', $hotelIds)->with('rooms')->get();
+    }
+
+    public function days()
+    {
+        return $this->hasMany(PackageDay::class)->orderBy('day_number');
     }
 }

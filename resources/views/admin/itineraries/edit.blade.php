@@ -231,6 +231,9 @@
 
 @endsection
 
+    <!-- SortableJS for drag-and-drop reordering -->
+    <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
+
 @push('scripts')
 <script>
 // ── Data ─────────────────────────────────────────────────────────────
@@ -286,6 +289,24 @@ function renderBuilder() {
 
     // Activate first day by default
     if (itinerary.length > 0 && activeDayIndex === null) setActiveDay(0);
+
+    // Initialize Sortable
+    new Sortable(container, {
+        animation: 150,
+        handle: '.day-card .card-header', // Drag by header
+        onEnd: function (evt) {
+            // Reorder itinerary array
+            const movedItem = itinerary.splice(evt.oldIndex, 1)[0];
+            itinerary.splice(evt.newIndex, 0, movedItem);
+            
+            // Re-label day numbers
+            itinerary.forEach((d, i) => { d.day = i + 1; });
+            
+            // Re-render
+            renderBuilder();
+            setActiveDay(evt.newIndex);
+        }
+    });
 }
 
 // ── Build a single day card ──────────────────────────────────────────
@@ -370,6 +391,9 @@ function createDayCard(day, index) {
                     </div>
                 </div>
                 <div class="d-flex gap-1">
+                    <button class="btn btn-sm btn-outline-secondary" onclick="duplicateDay(${index})" title="Duplicate Day">
+                        <i class="bi bi-files"></i>
+                    </button>
                     <button class="btn btn-sm btn-outline-secondary" data-bs-toggle="collapse" data-bs-target="#day-body-${index}">
                         <i class="bi bi-chevron-down"></i>
                     </button>
@@ -709,6 +733,17 @@ window.addDay = function() {
     document.getElementById('itinerary-builder').appendChild(card);
     setActiveDay(itinerary.length - 1);
     card.scrollIntoView({ behavior: 'smooth', block: 'start' });
+};
+
+window.duplicateDay = function(index) {
+    const original = itinerary[index];
+    const copy = JSON.parse(JSON.stringify(original));
+    copy.day = itinerary.length + 1;
+    copy.title = copy.title + ' (Copy)';
+    itinerary.push(copy);
+    renderBuilder();
+    setActiveDay(itinerary.length - 1);
+    document.querySelector('.day-card:last-child').scrollIntoView({ behavior: 'smooth', block: 'start' });
 };
 
 window.removeDay = function(index) {

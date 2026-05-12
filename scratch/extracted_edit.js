@@ -1,532 +1,4 @@
-@extends('layouts.admin')
 
-@section('title', 'Edit Package')
-
-@section('content')
-    <div class="page-header">
-        <h1 class="mb-0"><i class="bi bi-pencil"></i> Edit Package</h1>
-        <p class="text-muted mb-0">Update package information</p>
-    </div>
-
-    <div class="card border-0 shadow-sm rounded-4">
-        <div class="card-header bg-transparent border-bottom-0 pt-3 px-4">
-            <ul class="nav nav-pills gap-2" id="packageTab" role="tablist">
-                <li class="nav-item">
-                    <button class="nav-link active rounded-pill px-4 fw-bold" id="details-tab" data-bs-toggle="tab" data-bs-target="#details-pane" type="button" role="tab">
-                        <i class="bi bi-info-circle me-1"></i> Package Details
-                    </button>
-                </li>
-                <li class="nav-item">
-                    <button class="nav-link rounded-pill px-4 fw-bold" id="availability-tab" data-bs-toggle="tab" data-bs-target="#availability-pane" type="button" role="tab">
-                        <i class="bi bi-calendar-check me-1"></i> Availability & Limits
-                    </button>
-                </li>
-            </ul>
-        </div>
-        <div class="card-body p-4">
-            <form id="package-form">
-                <div class="tab-content" id="packageTabContent">
-                    <div class="tab-pane fade show active" id="details-pane" role="tabpanel">
-                        <div class="row">
-                    <div class="col-md-8">
-                        <div class="row">
-                            <div class="col-md-4">
-                                <div class="mb-3">
-                                    <label for="country_select" class="form-label"><i class="bi bi-geo-alt"></i>
-                                        Country</label>
-                                    <select class="form-select" id="country_select" name="country">
-                                        <option value="">Select Country</option>
-                                    </select>
-                                </div>
-                            </div>
-                            <div class="col-md-4">
-                                <div class="mb-3">
-                                    <label for="location_select" class="form-label"><i class="bi bi-map"></i>
-                                        Location</label>
-                                    <select class="form-select" id="location_select" name="location">
-                                        <option value="">Select Location</option>
-                                    </select>
-                                </div>
-                            </div>
-                            <div class="col-md-4">
-                                <div class="mb-3">
-                                    <label for="destination_id" class="form-label"><i class="bi bi-pin-map"></i>
-                                        Primary City</label>
-                                    <select class="form-select" id="destination_id" name="destination_id">
-                                        <option value="">Select City</option>
-                                    </select>
-                                </div>
-                            </div>
-                        </div>
-                        <small class="form-text text-muted mb-3 d-block">Choose a primary destination to associate this package
-                            with</small>
-
-                        <div class="mb-3">
-                            <label for="destination_ids" class="form-label"><i class="bi bi-geo"></i> Other Destinations Covered</label>
-                            <select class="form-select" id="destination_ids" name="destination_ids[]" multiple>
-                                <!-- Will be populated with all destinations -->
-                            </select>
-                            <small class="form-text text-muted">Select all cities/destinations covered in this package itinerary for better website display.</small>
-                        </div>
-
-                        <div class="mb-3">
-                            <div class="d-flex justify-content-between align-items-center mb-2">
-                                <label class="form-label mb-0"><i class="bi bi-shop"></i> Source Vendor(s)</label>
-                                <button type="button" class="btn btn-sm btn-outline-primary" onclick="addSupplierRow()">
-                                    <i class="bi bi-plus"></i> Add Vendor
-                                </button>
-                            </div>
-                            <div id="suppliers-container">
-                            </div>
-                            <small class="form-text text-muted">Select one or more 3rd party vendors</small>
-                        </div>
-
-                        <div class="mb-3">
-                            <div class="d-flex justify-content-between align-items-center mb-2">
-                                <label class="form-label mb-0"><i class="bi bi-tags"></i> Service Category</label>
-                                <button type="button" class="btn btn-sm btn-outline-primary" onclick="addCategoryRow()">
-                                    <i class="bi bi-plus"></i> Add Category
-                                </button>
-                            </div>
-                            <div id="categories-container">
-                            </div>
-                            <small class="form-text text-muted">Select one or more service categories</small>
-                        </div>
-
-                        <div class="mb-3">
-                            <label for="package_category" class="form-label"><i class="bi bi-star"></i> Package
-                                Category</label>
-                            <select class="form-select" id="package_category" name="package_category">
-                                <option value="">Select a package category (optional)</option>
-                                <option value="Honeymoon">Honeymoon</option>
-                                <option value="Budget">Budget</option>
-                                <option value="Standard">Standard</option>
-                                <option value="Premium">Premium</option>
-                                <option value="Platinum">Platinum</option>
-                            </select>
-                            <small class="form-text text-muted">Select the package category (Honeymoon, Budget, Standard,
-                                Premium, Platinum)</small>
-                        </div>
-
-                        <div class="mb-3">
-                            <label class="form-label"><i class="bi bi-airplane"></i> Flight Ticket</label>
-                            <div class="form-check">
-                                <input class="form-check-input" type="radio" name="includes_flight" id="includes_flight_yes"
-                                    value="1">
-                                <label class="form-check-label" for="includes_flight_yes">
-                                    With Flight Ticket
-                                </label>
-                            </div>
-                            <div class="form-check">
-                                <input class="form-check-input" type="radio" name="includes_flight" id="includes_flight_no"
-                                    value="0">
-                                <label class="form-check-label" for="includes_flight_no">
-                                    Without Flight Ticket
-                                </label>
-                            </div>
-                            <small class="form-text text-muted">Select whether this package includes flight tickets</small>
-                        </div>
-
-                        <div class="mb-3">
-                            <label for="hotel_id" class="form-label"><i class="bi bi-building"></i> Main Hotel (Accommodation)</label>
-                            <select class="form-select select2" id="hotel_id" name="hotel_id">
-                                <option value="">-- Select Main Hotel --</option>
-                                @foreach($hotels as $hotel)
-                                    <option value="{{ $hotel->id }}" {{ ($package->hotel_id ?? '') == $hotel->id ? 'selected' : '' }}>{{ $hotel->name }}</option>
-                                @endforeach
-                            </select>
-                            <small class="text-muted">Primary accommodation for this package</small>
-                        </div>
-
-
-                        <!-- Hotel Amenities -->
-                        <div id="hotel-amenities" class="amenities-section" style="display: none;">
-                            <h6 class="mb-3"><i class="bi bi-star"></i> Hotel Amenities</h6>
-                            <div class="mb-3">
-                                <label for="star_rating" class="form-label">Star Rating</label>
-                                <select class="form-select" id="star_rating" name="star_rating">
-                                    <option value="">Select star rating</option>
-                                    <option value="1">1 Star</option>
-                                    <option value="2">2 Stars</option>
-                                    <option value="3">3 Stars</option>
-                                    <option value="4">4 Stars</option>
-                                    <option value="5">5 Stars</option>
-                                </select>
-                            </div>
-                            <div class="mb-3">
-                                <label for="accommodation_type" class="form-label">Accommodation Type</label>
-                                <input type="text" class="form-control" id="accommodation_type" name="accommodation_type"
-                                    placeholder="e.g., Resort, Boutique Hotel, Villa">
-                            </div>
-                        </div>
-
-                        <!-- Transportation Amenities -->
-                        <div id="transport-amenities" class="amenities-section" style="display: none;">
-                            <h6 class="mb-3"><i class="bi bi-car-front"></i> Transportation Amenities</h6>
-                            <div class="mb-3">
-                                <label for="vehicle_type" class="form-label">Vehicle Type</label>
-                                <input type="text" class="form-control" id="vehicle_type" name="vehicle_type"
-                                    placeholder="e.g., Sedan, SUV, Bus, Van, Motorcycle">
-                            </div>
-                        </div>
-
-                        <!-- Entry Tickets Amenities -->
-                        <div id="ticket-amenities" class="amenities-section" style="display: none;">
-                            <h6 class="mb-3"><i class="bi bi-ticket-perforated"></i> Entry Ticket Amenities</h6>
-                            <div class="row">
-                                <div class="col-md-6">
-                                    <div class="mb-3">
-                                        <label for="ticket_name" class="form-label">Ticket Name</label>
-                                        <input type="text" class="form-control" id="ticket_name" name="ticket_name"
-                                            placeholder="e.g., Adult Ticket, Child Ticket, VIP Pass">
-                                    </div>
-                                </div>
-                                <div class="col-md-6">
-                                    <div class="mb-3">
-                                        <label for="ticket_count" class="form-label">Ticket Count</label>
-                                        <input type="number" class="form-control" id="ticket_count" name="ticket_count"
-                                            min="1" placeholder="Number of tickets">
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Cost Components Calculator -->
-                        <div class="mb-4 mt-4">
-                            <div class="d-flex justify-content-between align-items-center mb-3">
-                                <h6 class="mb-0"><i class="bi bi-calculator"></i> Package Cost Components</h6>
-                                <button type="button" class="btn btn-sm btn-primary" onclick="addAmenity()">
-                                    <i class="bi bi-plus"></i> Add Cost Component
-                                </button>
-                            </div>
-                            <div id="addon-amenities-container">
-                                <!-- Cost components will be added here dynamically -->
-                            </div>
-                            <small class="form-text text-muted">Add suppliers and select actual inventory (Rooms, Transport, Tickets) to dynamically calculate the package cost.</small>
-                        </div>
-
-                        <div class="mb-3">
-                            <label for="name" class="form-label">Name <span class="text-danger">*</span></label>
-                            <input type="text" class="form-control" id="name" name="name" required>
-                        </div>
-
-                        <div class="mb-3">
-                            <label for="slug" class="form-label">Slug</label>
-                            <input type="text" class="form-control" id="slug" name="slug">
-                        </div>
-
-                        <div class="mb-3">
-                            <label for="short_description" class="form-label">Short Description</label>
-                            <textarea class="form-control" id="short_description" name="short_description"
-                                rows="3"></textarea>
-                        </div>
-
-                        <div class="mb-3">
-                            <label for="description" class="form-label">Description</label>
-                            <div id="description-editor" style="height: 300px;"></div>
-                            <textarea id="description" name="description" style="display:none;"></textarea>
-                        </div>
-
-                        <div class="row">
-                            <div class="col-md-4">
-                                <div class="mb-3">
-                                    <label for="net_price" class="form-label text-success"><i class="bi bi-tag-fill"></i>
-                                        Net Price (Vendor)</label>
-                                    <input type="number" step="0.01" class="form-control" id="net_price" name="net_price"
-                                        placeholder="Vendor Cost">
-                                    <small class="text-muted">Total cost from vendors</small>
-                                </div>
-                            </div>
-                            <div class="col-md-4">
-                                <div class="mb-3">
-                                    <label for="markup_percentage" class="form-label text-primary"><i
-                                            class="bi bi-graph-up-arrow"></i> Markup (%)</label>
-                                    <div class="input-group">
-                                        <input type="number" step="0.01" class="form-control" id="markup_percentage"
-                                            name="markup_percentage" placeholder="Percentage" value="0">
-                                        <span class="input-group-text">%</span>
-                                    </div>
-                                    <small class="text-muted" id="markup-amount-display">Amount: 0.00</small>
-                                </div>
-                            </div>
-                            <div class="col-md-4">
-                                <div class="mb-3">
-                                    <label for="price" class="form-label text-danger fw-bold"><i
-                                            class="bi bi-cash-coin"></i> Selling Price (Adult)</label>
-                                    <input type="number" step="0.01" class="form-control fw-bold" id="price" name="price"
-                                        required>
-                                    <small class="text-muted">Final rate displayed on website</small>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Price Matrix Preview -->
-                        <div class="row mb-4">
-                            <div class="col-12">
-                                <div class="card border-info shadow-sm">
-                                    <div class="card-header bg-info text-white p-2">
-                                        <h6 class="mb-0 small"><i class="bi bi-grid-3x3"></i> Dynamic Price Matrix (Selling Price Per Pax)</h6>
-                                    </div>
-                                    <div class="card-body p-0">
-                                        <div class="table-responsive">
-                                            <table class="table table-sm table-bordered mb-0 text-center small">
-                                                <thead class="bg-light">
-                                                    <tr>
-                                                        <th>Group Size</th>
-                                                        <th>2 Pax</th>
-                                                        <th>4 Pax</th>
-                                                        <th>6 Pax</th>
-                                                        <th>10 Pax</th>
-                                                    </tr>
-                                                </thead>
-                                                <tbody>
-                                                    <tr>
-                                                        <td class="fw-bold bg-light">Price / Person</td>
-                                                        <td id="matrix-pax-2" class="text-primary fw-bold">$0.00</td>
-                                                        <td id="matrix-pax-4" class="text-primary fw-bold">$0.00</td>
-                                                        <td id="matrix-pax-6" class="text-primary fw-bold">$0.00</td>
-                                                        <td id="matrix-pax-10" class="text-primary fw-bold">$0.00</td>
-                                                    </tr>
-                                                </tbody>
-                                            </table>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Real-time Multi-currency Preview -->
-                        <div class="row mb-4" id="currency-preview-row" style="display: none;">
-                            <div class="col-12">
-                                <div class="bg-light p-3 rounded-4 border">
-                                    <div class="d-flex gap-4 overflow-auto pb-1" id="multi-currency-previews">
-                                        <!-- Will be populated by JS -->
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="row">
-                            <!-- Removed Original Price col since it is moved above -->
-                            <div class="col-md-4">
-                                <div class="mb-3">
-                                    <label for="discount_price" class="form-label">Discount Price</label>
-                                    <input type="number" step="0.01" class="form-control" id="discount_price"
-                                        name="discount_price">
-                                </div>
-                            </div>
-                            <div class="col-md-3">
-                                <div class="mb-3">
-                                    <label for="price_2_6" class="form-label">Kids Price (Age 2-6)</label>
-                                    <input type="number" step="0.01" class="form-control" id="price_2_6" name="price_2_6">
-                                </div>
-                            </div>
-                            <div class="col-md-3">
-                                <div class="mb-3">
-                                    <label for="price_6_10" class="form-label">Kids Price (Age 6-10)</label>
-                                    <input type="number" step="0.01" class="form-control" id="price_6_10" name="price_6_10">
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="row">
-                            <div class="col-md-4">
-                                <div class="mb-3">
-                                    <label for="currency" class="form-label">Currency</label>
-                                    <select class="form-select" id="currency" name="currency">
-                                        <option value="MYR">MYR - Malaysian Ringgit</option>
-                                        <option value="INR">INR - Indian Rupee</option>
-                                        <option value="USD">USD - US Dollar</option>
-                                        <option value="SGD">SGD - Singapore Dollar</option>
-                                        <option value="AED">AED - UAE Dirham</option>
-                                    </select>
-                                </div>
-                            </div>
-                            <div class="col-md-4">
-                                <div class="mb-3">
-                                    <label for="announcement_date" class="form-label">Announcement Date</label>
-                                    <input type="date" class="form-control" id="announcement_date" name="announcement_date">
-                                    <small class="form-text text-muted">Date when package is announced/available</small>
-                                </div>
-                            </div>
-                            <div class="col-md-2">
-                                <div class="mb-3">
-                                    <label for="total_pax" class="form-label">Total Pax</label>
-                                    <input type="number" class="form-control" id="total_pax" name="total_pax" min="1"
-                                        placeholder="Total" value="{{ $package->total_pax }}">
-                                </div>
-                            </div>
-                            <div class="col-md-2">
-                                <div class="mb-3">
-                                    <label for="min_pax" class="form-label">Min Pax</label>
-                                    <input type="number" class="form-control" id="min_pax" name="min_pax" min="1"
-                                        value="{{ $package->min_pax ?? 1 }}">
-                                </div>
-                            </div>
-                            <div class="col-md-2">
-                                <div class="mb-3">
-                                    <label for="max_pax" class="form-label">Max Pax</label>
-                                    <input type="number" class="form-control" id="max_pax" name="max_pax" min="1"
-                                        value="{{ $package->max_pax }}">
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="row">
-                            <div class="col-md-6">
-                                <div class="mb-3">
-                                    <label for="duration_days" class="form-label">Duration (Days)</label>
-                                    <input type="number" class="form-control" id="duration_days" name="duration_days"
-                                        min="0">
-                                </div>
-                            </div>
-                            <div class="col-md-6">
-                                <div class="mb-3">
-                                    <label for="duration_nights" class="form-label">Duration (Nights)</label>
-                                    <input type="number" class="form-control" id="duration_nights" name="duration_nights"
-                                        min="0">
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="col-md-4">
-                        <div class="mb-3">
-                            <label for="image" class="form-label">Featured Image</label>
-                            <input type="file" class="form-control" id="image" name="image" accept="image/*">
-                            <small class="form-text text-muted">Main/Featured image (JPG, PNG, GIF, WEBP - Max 5MB)</small>
-                            <div id="image-preview-container" style="display:none; margin-top: 10px;">
-                                <img id="image-preview" class="image-preview" src="" alt="Preview" style="display:none;">
-                                <button type="button" class="btn btn-sm btn-danger mt-2" onclick="clearImagePreview()"
-                                    style="display:none;">
-                                    <i class="bi bi-x-circle"></i> Remove Image
-                                </button>
-                            </div>
-                            <input type="hidden" id="image_path" name="image_path">
-                        </div>
-
-                        <div class="mb-3">
-                            <label for="gallery_images" class="form-label"><i class="bi bi-images"></i> Gallery
-                                Images</label>
-                            <input type="file" class="form-control" id="gallery_images" name="gallery_images[]"
-                                accept="image/*" multiple>
-                            <small class="form-text text-muted">Upload multiple images for gallery (JPG, PNG, GIF, WEBP -
-                                Max 5MB each)</small>
-                            <button type="button" class="btn btn-sm btn-secondary mt-2" id="upload-gallery-btn"
-                                style="display:none;">
-                                <i class="bi bi-upload"></i> Upload Selected Images
-                            </button>
-                        </div>
-
-                        <div id="gallery-preview-container">
-                            <label class="form-label">Gallery Preview</label>
-                            <div id="gallery-grid" class="d-flex flex-wrap gap-2"
-                                style="max-height: 300px; overflow-y: auto;">
-                                <!-- Gallery images will be added here -->
-                            </div>
-                            <input type="hidden" id="gallery_paths" name="gallery_paths">
-                        </div>
-
-                        <div class="mb-3 mt-3">
-                            <div class="form-check form-switch">
-                                <input class="form-check-input" type="checkbox" id="is_featured" name="is_featured">
-                                <label class="form-check-label" for="is_featured">Featured</label>
-                            </div>
-                        </div>
-
-                        <div class="mb-3">
-                            <div class="form-check form-switch">
-                                <input class="form-check-input" type="checkbox" id="is_active" name="is_active">
-                                <label class="form-check-label" for="is_active">Active</label>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <hr>
-
-                <h5>SEO Settings</h5>
-                <div class="mb-3">
-                    <label for="meta_title" class="form-label">Meta Title</label>
-                    <input type="text" class="form-control" id="meta_title" name="meta_title">
-                </div>
-
-                <div class="mb-3">
-                    <label for="meta_description" class="form-label">Meta Description</label>
-                    <textarea class="form-control" id="meta_description" name="meta_description" rows="2"></textarea>
-                </div>
-
-                <div class="mb-3">
-                    <label for="meta_keywords" class="form-label">Meta Keywords</label>
-                    <input type="text" class="form-control" id="meta_keywords" name="meta_keywords">
-                </div>
-
-                    </div> <!-- End Details Pane -->
-
-                    <div class="tab-pane fade" id="availability-pane" role="tabpanel">
-                        <div class="row">
-                            <div class="col-md-6">
-                                <div class="card bg-light border-0 rounded-4 mb-4">
-                                    <div class="card-body">
-                                        <h5 class="fw-bold mb-3"><i class="bi bi-calendar-x text-danger me-2"></i>Blackout Dates</h5>
-                                        <p class="small text-muted mb-3">Add dates when this package is NOT available for booking (e.g. holidays, off-season).</p>
-                                        
-                                        <div class="input-group mb-3">
-                                            <input type="date" class="form-control" id="blackout_date_input">
-                                            <button class="btn btn-danger" type="button" onclick="addBlackoutDate()">Add Date</button>
-                                        </div>
-
-                                        <div id="blackout-dates-list" class="d-flex flex-wrap gap-2">
-                                            <!-- Dates will be listed here -->
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="col-md-6">
-                                <div class="card bg-light border-0 rounded-4 mb-4">
-                                    <div class="card-body">
-                                        <h5 class="fw-bold mb-3"><i class="bi bi-person-check text-primary me-2"></i>Booking Capacity</h5>
-                                        <p class="small text-muted mb-3">Control how many bookings can be accepted per day.</p>
-                                        
-                                        <div class="mb-3">
-                                            <label class="form-label small fw-bold">Daily Booking Limit</label>
-                                            <input type="number" class="form-control" name="daily_limit" id="daily_limit" placeholder="e.g. 5 (0 for unlimited)" value="0">
-                                            <small class="text-muted">Maximum number of separate bookings allowed on any single date.</small>
-                                        </div>
-
-                                        <div class="mb-3">
-                                            <label class="form-label small fw-bold">Instant Booking</label>
-                                            <div class="form-check form-switch">
-                                                <input class="form-check-input" type="checkbox" id="instant_booking" name="instant_booking" checked>
-                                                <label class="form-check-label" for="instant_booking">Enable instant confirmation</label>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div> <!-- End Availability Pane -->
-                </div> <!-- End Tab Content -->
-
-                <div class="d-flex justify-content-between mt-4">
-                    <div>
-                        <a href="{{ route('admin.packages.index') }}" class="btn btn-secondary me-2">
-                            <i class="bi bi-arrow-left"></i> Cancel
-                        </a>
-                        <a href="/admin/itineraries/{{ $id }}/edit" class="btn btn-info text-white">
-                            <i class="bi bi-calendar3"></i> Manage Itinerary
-                        </a>
-                    </div>
-                    <button type="submit" class="btn btn-primary">
-                        <i class="bi bi-save"></i> Update Package
-                    </button>
-                </div>
-            </form>
-        </div>
-    </div>
-
-    @push('scripts')
-        <script>
             var descriptionEditor;
             // Gallery images array
             let galleryImages = [];
@@ -582,7 +54,7 @@
 
                 $('#price, #currency').on('input change', updateCurrencyPreview);
 
-                const packageId = {{ $id }};
+                const packageId = "placeholder";
 
                 // Handle category change to show/hide amenities
                 window.handleCategoryChange = function () {
@@ -642,7 +114,7 @@
 
 
                 // Load existing data
-                $.get('{{ route("admin.packages.show", $id, false) }}', function (pkg) {
+                $.get('"placeholder"', function (pkg) {
 
                     // Load destinations and set selected value
                     loadDestinations(pkg.destination_id, pkg.destination_ids || []);
@@ -656,9 +128,6 @@
                     $('#short_description').val(pkg.short_description || '');
                     $('#net_price').val(pkg.net_price || '');
                     $('#markup_percentage').val(pkg.markup_percentage || 0);
-                    $('#hotel_id').val(pkg.hotel_id || '');
-                    $('#min_pax').val(pkg.min_pax || 1);
-                    $('#max_pax').val(pkg.max_pax || '');
                     $('#price').val(pkg.price);
 
                     // Trigger calculation to update amounts
@@ -670,8 +139,6 @@
                     $('#currency').val(pkg.currency || 'MYR');
                     $('#announcement_date').val(pkg.announcement_date ? pkg.announcement_date.split('T')[0] : '');
                     $('#total_pax').val(pkg.total_pax || '');
-                    $('#min_pax').val(pkg.min_pax || 1);
-                    $('#max_pax').val(pkg.max_pax || '');
 
                     // Set category and amenities
                     const savedCategories = pkg.categories || (pkg.category ? [pkg.category] : []);
@@ -743,15 +210,6 @@
                     $('#meta_title').val(pkg.meta_title || '');
                     $('#meta_description').val(pkg.meta_description || '');
                     $('#meta_keywords').val(pkg.meta_keywords || '');
-
-                    // Load availability
-                    if (pkg.availability) {
-                        $('#daily_limit').val(pkg.availability.daily_limit || 0);
-                        $('#instant_booking').prop('checked', pkg.availability.instant_booking !== false);
-                        if (pkg.availability.blackout_dates) {
-                            pkg.availability.blackout_dates.forEach(date => addBlackoutDateToList(date));
-                        }
-                    }
                 }).fail(function () {
                     alert('Error loading package data');
                 });
@@ -760,7 +218,7 @@
                 function loadDestinations(selectedId = null, selectedIds = []) {
                     // Load all destinations for the multi-select first
                     $.ajax({
-                        url: '{{ route("admin.destinations.index", [], false) }}',
+                        url: '"placeholder"',
                         type: 'GET',
                         data: { per_page: 2000 },
                         dataType: 'json',
@@ -790,7 +248,7 @@
 
                     // Then load countries for the primary cascading select
                     $.ajax({
-                        url: '{{ route("admin.destinations.countries", [], false) }}',
+                        url: '"placeholder"',
                         type: 'GET',
                         dataType: 'json',
                         success: function (response) {
@@ -816,7 +274,7 @@
                             if (selectedId) {
                                 // If we have a selectedId, we need to find its country and location first
                                 $.ajax({
-                                    url: '{{ route("admin.destinations.show", "", false) }}/' + selectedId,
+                                    url: '"placeholder"/' + selectedId,
                                     type: 'GET',
                                     dataType: 'json',
                                     success: function (dest) {
@@ -859,7 +317,7 @@
 
                     if (country) {
                         $.ajax({
-                            url: '{{ route("admin.destinations.locations", [], false) }}',
+                            url: '"placeholder"',
                             type: 'GET',
                             data: { country: country },
                             dataType: 'json',
@@ -897,7 +355,7 @@
 
                     if (location) {
                         $.ajax({
-                            url: '{{ route("admin.destinations.cities", [], false) }}',
+                            url: '"placeholder"',
                             type: 'GET',
                             data: { country: country, location: location },
                             dataType: 'json',
@@ -924,7 +382,7 @@
 
                 // Supplier Loading
                 function loadSuppliers(selectedIds = []) {
-                    $.get('{{ route("admin.suppliers.index", [], false) }}', function (data) {
+                    $.get('"placeholder"', function (data) {
                         const suppliers = data.data || data;
                         if (Array.isArray(suppliers)) {
                             cachedSuppliers = suppliers;
@@ -950,7 +408,7 @@
                         formData.append('image', file);
 
                         $.ajax({
-                            url: '{{ route("admin.upload.image", [], false) }}',
+                            url: '"placeholder"',
                             type: 'POST',
                             data: formData,
                             processData: false,
@@ -1081,7 +539,7 @@
 
                 // Add-on Amenities Management
                 let amenityCounter = 0;
-                const allSuppliers = @json($suppliers);
+                const allSuppliers = {};
 
                 window.addAmenity = function (data = {}) {
                     const container = $('#addon-amenities-container');
@@ -1354,7 +812,7 @@
                     if (logic === 'fixed') {
                         itemRow.find('.calc-base-price, .calc-days, .calc-qty').show();
                     } else if (logic === 'per_pax') {
-                        itemRow.find('.calc-days, .calc-qty, .calc-adult-price, .calc-child-price').show();
+                        itemRow.find('.calc-adult-price, .calc-child-price').show();
                     } else if (logic === 'sharing') {
                         itemRow.find('.calc-days, .calc-sharing-double, .calc-sharing-single, .calc-sharing-triple, .calc-sharing-extrabed').show();
                     } else if (logic === 'tiered_transport') {
@@ -1436,19 +894,11 @@
                     } else if (logic === 'per_pax') {
                         const adPrice = parseFloat(itemRow.find('.amenity-adult-price').val()) || 0;
                         const chPrice = parseFloat(itemRow.find('.amenity-child-price').val()) || 0;
-                        const days = parseFloat(itemRow.find('.amenity-days').val()) || 1;
-                        const qty = parseFloat(itemRow.find('.amenity-qty').val()) || 1;
-                        total = (adPrice * pax * days * qty); 
+                        total = adPrice + chPrice; 
                     } else if (logic === 'sharing') {
-                        const doublePrice = parseFloat(itemRow.find('.amenity-double-price').val()) || 0;
-                        const singlePrice = parseFloat(itemRow.find('.amenity-single-price').val()) || 0;
                         const days = parseFloat(itemRow.find('.amenity-days').val()) || 1;
-                        if (pax % 2 === 0) {
-                            total = (doublePrice * (pax / 2)) * days;
-                        } else {
-                            const pairs = Math.floor(pax / 2);
-                            total = (doublePrice * pairs * days) + (singlePrice * days);
-                        }
+                        const doublePrice = parseFloat(itemRow.find('.amenity-double-price').val()) || 0;
+                        total = (doublePrice / 2) * days * pax; 
                     } else if (logic === 'tiered_transport') {
                         const days = parseFloat(itemRow.find('.amenity-days').val()) || 1;
                         const vehicles = [];
@@ -1567,19 +1017,10 @@
                                 totalNet += price * days * qty;
                             } else if (logic === 'per_pax') {
                                 const adPrice = parseFloat(row.find('.amenity-adult-price').val()) || 0;
-                                totalNet += adPrice * paxCount * days * qty;
+                                totalNet += adPrice * paxCount;
                             } else if (logic === 'sharing') {
                                 const doublePrice = parseFloat(row.find('.amenity-double-price').val()) || 0;
-                                const singlePrice = parseFloat(row.find('.amenity-single-price').val()) || 0;
-                                
-                                if (paxCount % 2 === 0) {
-                                    // Even number: everyone shares
-                                    totalNet += (doublePrice * (paxCount / 2)) * days;
-                                } else {
-                                    // Odd number: one person pays single supplement
-                                    const pairs = Math.floor(paxCount / 2);
-                                    totalNet += (doublePrice * pairs * days) + (singlePrice * days);
-                                }
+                                totalNet += (doublePrice / 2) * days * paxCount;
                             } else if (logic === 'tiered_transport') {
                                 const vehicles = [];
                                 row.find('.vehicle-tier-check:checked').each(function() {
@@ -1744,7 +1185,6 @@
 
                         net_price: $('#net_price').val() ? parseFloat($('#net_price').val()) : null,
                         markup_percentage: $('#markup_percentage').val() ? parseFloat($('#markup_percentage').val()) : 0,
-                        hotel_id: $('#hotel_id').val() || null,
                         markup_amount: (parseFloat($('#net_price').val() || 0) * (parseFloat($('#markup_percentage').val() || 0) / 100)),
 
                         price: parseFloat(priceValue),
@@ -1754,8 +1194,6 @@
                         currency: $('#currency').val() || 'MYR',
                         announcement_date: $('#announcement_date').val() || null,
                         total_pax: $('#total_pax').val() ? parseInt($('#total_pax').val()) : null,
-                        min_pax: $('#min_pax').val() ? parseInt($('#min_pax').val()) : 1,
-                        max_pax: $('#max_pax').val() ? parseInt($('#max_pax').val()) : null,
                         duration_days: $('#duration_days').val() ? parseInt($('#duration_days').val()) : null,
                         duration_nights: $('#duration_nights').val() ? parseInt($('#duration_nights').val()) : null,
                         image: $('#image_path').val() || null,
@@ -1765,11 +1203,6 @@
                         meta_title: $('#meta_title').val() || null,
                         meta_description: $('#meta_description').val() || null,
                         meta_keywords: $('#meta_keywords').val() || null,
-                        availability: {
-                            blackout_dates: $('.blackout-date-item').map(function() { return $(this).data('date'); }).get(),
-                            daily_limit: parseInt($('#daily_limit').val()) || 0,
-                            instant_booking: $('#instant_booking').is(':checked')
-                        },
                         _method: 'PUT'
                     };
 
@@ -1779,7 +1212,7 @@
                         data: formData,
                         success: function (response) {
                             alert('Package updated successfully!');
-                            window.location.href = '{{ route("admin.packages.index") }}';
+                            window.location.href = '"placeholder"';
                         },
                         error: function (xhr) {
                             let errorMsg = 'Error updating package';
@@ -1797,35 +1230,4 @@
                     });
                 });
             });
-
-            window.addBlackoutDate = function() {
-                const date = $('#blackout_date_input').val();
-                if (!date) return;
-                
-                // Check if already exists
-                let exists = false;
-                $('.blackout-date-item').each(function() {
-                    if ($(this).data('date') === date) exists = true;
-                });
-                
-                if (exists) {
-                    alert('This date is already in the list.');
-                    return;
-                }
-                
-                addBlackoutDateToList(date);
-                $('#blackout_date_input').val('');
-            };
-
-            function addBlackoutDateToList(date) {
-                const html = `
-                    <div class="blackout-date-item badge bg-white border text-dark p-2 d-flex align-items-center gap-2 rounded-pill" data-date="${date}">
-                        <span class="fw-bold">${date}</span>
-                        <i class="bi bi-x-circle text-danger cursor-pointer" onclick="$(this).closest('.blackout-date-item').remove()"></i>
-                    </div>
-                `;
-                $('#blackout-dates-list').append(html);
-            }
-        </script>
-    @endpush
-@endsection
+        

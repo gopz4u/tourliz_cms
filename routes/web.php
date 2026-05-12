@@ -91,8 +91,10 @@ Route::middleware('guest')->group(function () {
 // Logout Route (accessible to authenticated users)
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout')->middleware('auth');
 
-// Public Package Detail Page
+// Public Package Routes
+Route::get('/packages', [PackageController::class, 'index'])->name('packages.index');
 Route::get('/packages/{slug}', [PackageController::class, 'show'])->name('packages.show');
+Route::post('/packages/{slug}/calculate-price', [BookingController::class, 'calculatePricing'])->name('packages.calculate-price');
 Route::post('/packages/{slug}/get-quote', [BookingController::class, 'getQuote'])->name('bookings.get-quote');
 
 // Booking routes (auth required)
@@ -125,6 +127,7 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:admin'])->grou
 
         // Packages Management
         Route::resource('packages', AdminPackageController::class);
+        Route::post('/packages/{id}/duplicate', [AdminPackageController::class, 'duplicate'])->name('packages.duplicate');
         Route::get('/packages/by-destination/{destinationId}', [AdminPackageController::class, 'getByPlace'])->name('packages.by-destination');
 
         // Services Management
