@@ -51,4 +51,9 @@ class PackageDay extends Model
     {
         return $this->hasMany(PackageDayAttraction::class);
     }
+
+    public function meals_list()
+    {
+        return $this->hasMany(PackageDayMeal::class);
+    }
 }

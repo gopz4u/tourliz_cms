@@ -19,11 +19,13 @@ class PackageController extends Controller
     {
         if ($request->wantsJson() || $request->ajax()) {
             try {
-                $query = Package::withTrashed()->with([
-                    'destination' => function ($q) {
-                        $q->withTrashed(); // Include soft-deleted destinations
-                    }
-                ]);
+                $query = Package::withTrashed()
+                    ->withCount('reviews')
+                    ->with([
+                        'destination' => function ($q) {
+                            $q->withTrashed();
+                        }
+                    ]);
 
                 if ($request->has('search')) {
                     $query->where('name', 'like', '%' . $request->search . '%');
@@ -34,7 +36,7 @@ class PackageController extends Controller
                     $query->where('destination_id', $request->destination_id);
                 }
 
-                $packages = $query->orderBy('created_at', 'desc')->paginate(15);
+                $packages = $query->orderBy('created_at', 'desc')->paginate(100);
 
                 return response()->json($packages);
             } catch (\Exception $e) {
@@ -71,8 +73,23 @@ class PackageController extends Controller
     {
         $countries = \App\Models\Country::where('status', true)->orderBy('name')->get();
         $suppliers = \App\Models\Supplier::where('is_active', true)->orderBy('name')->get();
-        $hotels = \App\Models\Hotel::where('is_active', true)->orderBy('name')->get();
-        return view('admin.packages.create', compact('countries', 'suppliers', 'hotels'));
+        $hotels = \App\Models\Hotel::with(['roomTypes', 'supplier'])->where('is_active', true)->orderBy('name')->get();
+        $activities = \App\Models\Activity::with('supplier')->where('is_active', true)->orderBy('name')->get();
+        $destinations = \App\Models\Destination::orderBy('name')->get();
+        $transportRoutes = \App\Models\Transport::with('supplier')->get();
+        $entryTickets = \App\Models\EntryTicket::with('supplier')->get();
+        $meals = \App\Models\Meal::with('supplier')->get();
+        
+        return view('admin.packages.create', compact(
+            'countries', 
+            'suppliers', 
+            'hotels', 
+            'activities', 
+            'destinations', 
+            'transportRoutes',
+            'entryTickets',
+            'meals'
+        ));
     }
 
     /**
@@ -112,6 +129,12 @@ class PackageController extends Controller
             'description' => 'nullable|string',
             'short_description' => 'nullable|string',
             'price' => 'required|numeric|min:0',
+            'net_price' => 'nullable|numeric|min:0',
+            'markup_percentage' => 'nullable|numeric|min:0',
+            'markup_amount' => 'nullable|numeric|min:0',
+            'gst_percentage' => 'nullable|numeric|min:0',
+            'tcs_percentage' => 'nullable|numeric|min:0',
+            'tax_amount' => 'nullable|numeric|min:0',
             'discount_price' => 'nullable|numeric|min:0',
             'price_2_6' => 'nullable|numeric|min:0',
             'price_6_10' => 'nullable|numeric|min:0',
@@ -121,13 +144,13 @@ class PackageController extends Controller
             'max_pax' => 'nullable|integer|min:1',
             'duration_days' => 'nullable|integer|min:0',
             'duration_nights' => 'nullable|integer|min:0',
-            'image' => 'nullable|string',
-            'gallery' => 'nullable|array',
-            'inclusions' => 'nullable|array',
-            'exclusions' => 'nullable|array',
-            'itinerary' => 'nullable|array',
-            'is_featured' => 'boolean',
-            'is_active' => 'boolean',
+            'image' => 'nullable',
+            'gallery' => 'nullable',
+            'inclusions' => 'nullable',
+            'exclusions' => 'nullable',
+            'itinerary' => 'nullable',
+            'is_featured' => 'nullable',
+            'is_active' => 'nullable',
             'meta_title' => 'nullable|string',
             'meta_description' => 'nullable|string',
             'meta_keywords' => 'nullable|string',
@@ -137,6 +160,10 @@ class PackageController extends Controller
         if (!isset($validated['slug'])) {
             $validated['slug'] = Str::slug($validated['name']);
         }
+
+        // Handle File Uploads
+        $heroPath = $this->handleFileUpload($request, 'image');
+        $galleryPaths = $this->handleMultipleFileUpload($request, 'gallery');
 
         // Map form fields to database columns
         $packageData = [
@@ -157,27 +184,34 @@ class PackageController extends Controller
             'description' => $validated['description'] ?? null,
             'short_description' => $validated['short_description'] ?? null,
             'price' => $validated['price'],
+            'net_price' => $request->net_price ?? null,
+            'markup_percentage' => $request->markup_percentage ?? null,
+            'markup_amount' => $request->markup_amount ?? null,
+            'gst_percentage' => $request->gst_percentage ?? null,
+            'tcs_percentage' => $request->tcs_percentage ?? null,
+            'tax_amount' => $request->tax_amount ?? null,
             'discount_price' => $validated['discount_price'] ?? null,
-            'price_2_6' => $validated['price_2_6'] ?? null,
-            'price_6_10' => $validated['price_6_10'] ?? null,
             'currency' => $validated['currency'] ?? 'MYR',
             'duration' => $this->formatDuration($validated['duration_days'] ?? null, $validated['duration_nights'] ?? null),
             'announcement_date' => $validated['announcement_date'] ?? null,
             'total_pax' => $validated['total_pax'] ?? null,
             'min_pax' => $validated['min_pax'] ?? 1,
             'max_pax' => $validated['max_pax'] ?? null,
-            'image' => $validated['image'] ?? null,
-            'gallery' => $validated['gallery'] ?? [],
+            'image' => $heroPath ?? null,
+            'gallery' => $galleryPaths ?? [],
             'addon_amenities' => $validated['addon_amenities'] ?? [],
-            'included_services' => $validated['inclusions'] ?? [],
-            'excluded_services' => $validated['exclusions'] ?? [],
-            'itinerary' => $this->normalizeItinerary($validated['itinerary'] ?? []),
+            'included_services' => $request->inclusions ?? '',
+            'excluded_services' => $request->exclusions ?? '',
+            'itinerary' => json_decode($request->itinerary_data, true) ?? [],
             'featured' => isset($validated['is_featured']) ? (bool) $validated['is_featured'] : false,
             'status' => isset($validated['is_active']) && $validated['is_active'] ? 'active' : 'inactive',
             'meta_title' => $validated['meta_title'] ?? null,
             'meta_description' => $validated['meta_description'] ?? null,
             'meta_keywords' => $validated['meta_keywords'] ?? null,
             'availability' => $validated['availability'] ?? null,
+            'is_trending' => $request->has('is_trending'),
+            'cancellation_policy' => $request->cancellation_policy,
+            'terms' => $request->terms,
         ];
 
         \DB::beginTransaction();
@@ -185,71 +219,111 @@ class PackageController extends Controller
             $package = Package::create($packageData);
 
             // Save Structured Itinerary
-            $this->saveStructuredItinerary($package, $validated['itinerary'] ?? [], $validated['addon_amenities'] ?? []);
+            $itineraryData = json_decode($request->itinerary_data, true) ?? [];
+            $this->saveStructuredItinerary($package, $itineraryData);
 
             \DB::commit();
             return response()->json($package, 201);
         } catch (\Exception $e) {
             \DB::rollBack();
+            \Log::error('Package creation failed: ' . $e->getMessage(), ['trace' => $e->getTraceAsString()]);
             return response()->json(['message' => 'Error creating package: ' . $e->getMessage()], 500);
         }
+    }
+
+    private function handleFileUpload($request, $key)
+    {
+        if ($request->hasFile($key)) {
+            $file = $request->file($key);
+            $filename = time() . '_' . $file->getClientOriginalName();
+            $file->move(public_path('uploads/packages'), $filename);
+            return 'uploads/packages/' . $filename;
+        }
+        return null;
+    }
+
+    private function handleMultipleFileUpload($request, $key)
+    {
+        $urls = [];
+        if ($request->hasFile($key)) {
+            foreach ($request->file($key) as $file) {
+                $filename = time() . '_' . $file->getClientOriginalName();
+                $file->move(public_path('uploads/packages/gallery'), $filename);
+                $urls[] = 'uploads/packages/gallery/' . $filename;
+            }
+        }
+        return $urls;
     }
 
     /**
      * Save structured itinerary data to relational tables
      */
-    private function saveStructuredItinerary(Package $package, array $itinerary, array $addonAmenities)
+    private function saveStructuredItinerary(Package $package, array $itinerary)
     {
-        // Clear existing (for updates, though this is store)
         $package->days()->delete();
 
-        foreach ($itinerary as $index => $dayData) {
+        foreach ($itinerary as $dayData) {
             $day = $package->days()->create([
-                'day_number' => $dayData['day'] ?? ($index + 1),
+                'day_number' => $dayData['day_number'] ?? 1,
                 'title' => $dayData['title'] ?? null,
                 'description' => $dayData['description'] ?? null,
                 'meal_plan' => $dayData['meals'] ?? [],
             ]);
 
-            // Link Hotel
-            if (!empty($dayData['hotel'])) {
-                $hotelRef = $dayData['hotel']; // e.g. "hotel_18"
-                if (strpos($hotelRef, 'hotel_') === 0) {
-                    $assetId = str_replace('hotel_', '', $hotelRef);
-                    // Find the component in addonAmenities to get actual hotel_id/room_type_id
-                    foreach ($addonAmenities as $amenity) {
-                        if ($amenity['type'] === 'hotel' && (string)$amenity['asset_id'] === (string)$assetId) {
-                            $day->hotels()->create([
-                                'hotel_id' => $amenity['hotel_id'],
-                                'room_type_id' => $amenity['asset_id'],
-                                'meal_plan_code' => $dayData['meal_plan_code'] ?? 'CP',
-                                'is_primary' => true
-                            ]);
-                            break;
-                        }
+            // Link Multiple Hotels
+            if (!empty($dayData['hotels']) && is_array($dayData['hotels'])) {
+                foreach($dayData['hotels'] as $h) {
+                    if(!empty($h['hotel_id'])) {
+                        $day->hotels()->create([
+                            'hotel_id' => $h['hotel_id'],
+                            'meal_plan_code' => 'CP',
+                            'is_primary' => count($dayData['hotels']) === 1
+                        ]);
+                    }
+                }
+            } elseif (!empty($dayData['hotel_id'])) { // Fallback for legacy format
+                $day->hotels()->create(['hotel_id' => $dayData['hotel_id'], 'meal_plan_code' => 'CP', 'is_primary' => true]);
+            }
+
+            // Link Multiple Transports
+            if (!empty($dayData['transports']) && is_array($dayData['transports'])) {
+                foreach($dayData['transports'] as $t) {
+                    if(!empty($t['transport_id'])) {
+                        $day->transports()->create(['transport_id' => $t['transport_id']]);
+                    }
+                }
+            } elseif (!empty($dayData['transport_id'])) { // Fallback
+                $day->transports()->create(['transport_id' => $dayData['transport_id']]);
+            }
+
+            // Link Multiple Activities
+            if (!empty($dayData['activities']) && is_array($dayData['activities'])) {
+                foreach($dayData['activities'] as $a) {
+                    if(!empty($a['activity_id'])) {
+                        $day->activities()->create(['activity_id' => $a['activity_id']]);
+                    }
+                }
+            } elseif (!empty($dayData['activity_ids'])) { // Fallback
+                foreach ($dayData['activity_ids'] as $id) {
+                    if ($id) $day->activities()->create(['activity_id' => $id]);
+                }
+            }
+
+            // Link Multiple Entry Tickets (Attractions)
+            if (!empty($dayData['tickets']) && is_array($dayData['tickets'])) {
+                foreach($dayData['tickets'] as $t) {
+                    if(!empty($t['ticket_id'])) {
+                        $day->attractions()->create(['attraction_id' => $t['ticket_id']]);
                     }
                 }
             }
 
-            // Link Transport
-            if (!empty($dayData['transport'])) {
-                $transRef = $dayData['transport'];
-                if (strpos($transRef, 'transport_') === 0) {
-                    $assetId = str_replace('transport_', '', $transRef);
-                    $day->transports()->create([
-                        'transport_id' => $assetId
-                    ]);
-                }
-            }
-
-            // Link Activities
-            $activityRefs = $dayData['activities'] ?? [];
-            foreach ($activityRefs as $ref) {
-                if (strpos($ref, 'activity_') === 0) {
-                    $assetId = str_replace('activity_', '', $ref);
-                    $day->activities()->create([
-                        'activity_id' => $assetId
-                    ]);
+            // Link Multiple Meals
+            if (!empty($dayData['meals_list']) && is_array($dayData['meals_list'])) {
+                foreach($dayData['meals_list'] as $m) {
+                    if(!empty($m['meal_id'])) {
+                        $day->meals_list()->create(['meal_id' => $m['meal_id']]);
+                    }
                 }
             }
         }
@@ -385,14 +459,25 @@ class PackageController extends Controller
      */
     public function edit($id)
     {
-        $package = Package::withTrashed()->findOrFail($id);
+        $package = Package::withTrashed()->with(['days.hotels', 'days.transports', 'days.activities', 'days.attractions'])->findOrFail($id);
+        $destinations = \App\Models\Destination::orderBy('name')->get();
+        $hotels = \App\Models\Hotel::with(['roomTypes', 'supplier'])->orderBy('name')->get();
+        $transportRoutes = \App\Models\Transport::with('supplier')->orderBy('name')->get();
+        $activities = \App\Models\Activity::with('supplier')->orderBy('name')->get();
+        $entryTickets = \App\Models\EntryTicket::with('supplier')->orderBy('attraction_name')->get();
+        $meals = \App\Models\Meal::with('supplier')->orderBy('name')->get();
         $suppliers = \App\Models\Supplier::where('is_active', true)->orderBy('name')->get();
-        $hotels = \App\Models\Hotel::where('is_active', true)->orderBy('name')->get();
+
         return view('admin.packages.edit', [
             'id' => $id,
             'package' => $package,
-            'suppliers' => $suppliers,
-            'hotels' => $hotels
+            'destinations' => $destinations,
+            'hotels' => $hotels,
+            'transportRoutes' => $transportRoutes,
+            'activities' => $activities,
+            'entryTickets' => $entryTickets,
+            'meals' => $meals,
+            'suppliers' => $suppliers
         ]);
     }
     /**
@@ -402,103 +487,69 @@ class PackageController extends Controller
     {
         $package = Package::withTrashed()->findOrFail($id);
 
-        $validated = $request->validate([
-            'destination_id' => 'nullable|exists:destinations,id',
-            'destination_ids' => 'nullable|array',
-            'supplier_ids' => 'nullable|array',
-            'categories' => 'nullable|array',
-            'package_category' => 'nullable|string|in:Honeymoon,Budget,Standard,Premium,Platinum',
-            'includes_flight' => 'nullable',
-            'star_rating' => 'nullable|integer|min:1|max:5',
-            'vehicle_type' => 'nullable|string|max:255',
-            'accommodation_type' => 'nullable|string|max:255',
-            'ticket_count' => 'nullable|integer|min:1',
-            'ticket_name' => 'nullable|string|max:255',
-            'addon_amenities' => 'nullable|array',
-            'addon_amenities.*.type' => 'required|string',
-            'addon_amenities.*.name' => 'required|string|max:255',
-            'addon_amenities.*.value' => 'nullable|string|max:255',
-            'addon_amenities.*.supplier_id' => 'nullable',
-            'addon_amenities.*.asset_id' => 'nullable',
-            'addon_amenities.*.price' => 'nullable|numeric|min:0',
-            'addon_amenities.*.adult_price' => 'nullable|numeric|min:0',
-            'addon_amenities.*.child_price' => 'nullable|numeric|min:0',
-            'addon_amenities.*.quantity' => 'nullable|numeric|min:0',
-            'addon_amenities.*.days' => 'nullable|numeric|min:0',
-            'addon_amenities.*.adult_count' => 'nullable|numeric|min:0',
-            'addon_amenities.*.child_count' => 'nullable|numeric|min:0',
-            'name' => 'required|string|max:255',
-            'slug' => ['nullable', 'string', 'max:255', Rule::unique('packages')->ignore($package->id)],
-            'description' => 'nullable|string',
-            'short_description' => 'nullable|string',
-            'price' => 'required|numeric|min:0',
-            'discount_price' => 'nullable|numeric|min:0',
-            'price_2_6' => 'nullable|numeric|min:0',
-            'price_6_10' => 'nullable|numeric|min:0',
-            'announcement_date' => 'nullable|date',
-            'total_pax' => 'nullable|integer|min:1',
-            'min_pax' => 'nullable|integer|min:1',
-            'max_pax' => 'nullable|integer|min:1',
-            'currency' => 'nullable|string|in:INR,USD,MYR,SGD,AED',
-            'duration_days' => 'nullable|integer|min:0',
-            'duration_nights' => 'nullable|integer|min:0',
-            'image' => 'nullable|string',
-            'gallery' => 'nullable|array',
-            'inclusions' => 'nullable|array',
-            'exclusions' => 'nullable|array',
-            'itinerary' => 'nullable|array',
-            'is_featured' => 'boolean',
-            'is_active' => 'boolean',
-            'meta_title' => 'nullable|string',
-            'meta_description' => 'nullable|string',
-            'meta_keywords' => 'nullable|string',
-            'availability' => 'nullable|array',
+        // Map UI checkboxes to booleans
+        $request->merge([
+            'is_featured' => $request->has('is_featured'),
+            'is_active' => $request->has('is_active'),
+            'is_trending' => $request->has('is_trending'),
         ]);
 
-        // Handle boolean fields
-        $validated['includes_flight'] = isset($validated['includes_flight']) && ($validated['includes_flight'] == 1 || $validated['includes_flight'] === true || $validated['includes_flight'] === '1' || $validated['includes_flight'] === 'true');
+        $validated = $request->validate([
+            'name' => 'required|string|max:255',
+            'destination_id' => 'required|exists:destinations,id',
+            'package_category' => 'nullable|string',
+            'price' => 'required|numeric',
+            'net_price' => 'nullable|numeric',
+            'markup_percentage' => 'nullable|numeric',
+            'markup_amount' => 'nullable|numeric',
+            'gst_percentage' => 'nullable|numeric',
+            'tcs_percentage' => 'nullable|numeric',
+            'tax_amount' => 'nullable|numeric',
+            'min_pax' => 'nullable|integer',
+            'max_pax' => 'nullable|integer',
+            'includes_flight' => 'nullable',
+            'meta_title' => 'nullable|string|max:255',
+            'meta_description' => 'nullable|string',
+            'meta_keywords' => 'nullable|string',
+        ]);
 
-        // Map form fields to database columns
+        // Handle File Uploads
+        $heroPath = $this->handleFileUpload($request, 'image') ?: $package->image;
+        $galleryPaths = $this->handleMultipleFileUpload($request, 'gallery');
+        if (empty($galleryPaths)) {
+            $galleryPaths = $package->gallery;
+        } else {
+            $galleryPaths = array_merge($package->gallery ?? [], $galleryPaths);
+        }
+
         $packageData = [
-            'destination_id' => $validated['destination_id'] ?? null,
-            'destination_ids' => $validated['destination_ids'] ?? [],
-            'supplier_ids' => $validated['supplier_ids'] ?? [],
-            'supplier_id' => isset($validated['supplier_ids']) && count($validated['supplier_ids']) > 0 ? $validated['supplier_ids'][0] : null,
-            'categories' => $validated['categories'] ?? [],
-            'category' => isset($validated['categories']) && count($validated['categories']) > 0 ? $validated['categories'][0] : null,
-            'package_category' => $validated['package_category'] ?? null,
-            'includes_flight' => $validated['includes_flight'] ?? false,
-            'star_rating' => $validated['star_rating'] ?? null,
-            'vehicle_type' => $validated['vehicle_type'] ?? null,
-            'accommodation_type' => $validated['accommodation_type'] ?? null,
-            'ticket_count' => $validated['ticket_count'] ?? null,
-            'ticket_name' => $validated['ticket_name'] ?? null,
             'name' => $validated['name'],
-            'slug' => $validated['slug'] ?? $package->slug,
-            'description' => $validated['description'] ?? null,
-            'short_description' => $validated['short_description'] ?? null,
+            'destination_id' => $validated['destination_id'],
+            'package_category' => $validated['package_category'],
             'price' => $validated['price'],
-            'discount_price' => $validated['discount_price'] ?? null,
-            'price_2_6' => $validated['price_2_6'] ?? null,
-            'price_6_10' => $validated['price_6_10'] ?? null,
-            'currency' => $validated['currency'] ?? 'MYR',
-            'duration' => $this->formatDuration($validated['duration_days'] ?? null, $validated['duration_nights'] ?? null),
-            'announcement_date' => $validated['announcement_date'] ?? null,
-            'total_pax' => $validated['total_pax'] ?? null,
+            'net_price' => $request->net_price ?? $package->net_price,
+            'markup_percentage' => $request->markup_percentage ?? $package->markup_percentage,
+            'markup_amount' => $request->markup_amount ?? $package->markup_amount,
+            'gst_percentage' => $request->gst_percentage ?? $package->gst_percentage,
+            'tcs_percentage' => $request->tcs_percentage ?? $package->tcs_percentage,
+            'tax_amount' => $request->tax_amount ?? $package->tax_amount,
             'min_pax' => $validated['min_pax'] ?? 1,
-            'max_pax' => $validated['max_pax'] ?? null,
-            'image' => $validated['image'] ?? null,
-            'gallery' => $validated['gallery'] ?? [],
-            'addon_amenities' => $validated['addon_amenities'] ?? [],
-            'included_services' => $validated['inclusions'] ?? [],
-            'excluded_services' => $validated['exclusions'] ?? [],
-            'itinerary' => $validated['itinerary'] ?? [],
-            'featured' => isset($validated['is_featured']) ? (bool) $validated['is_featured'] : false,
-            'status' => isset($validated['is_active']) && $validated['is_active'] ? 'active' : 'inactive',
-            'meta_title' => $validated['meta_title'] ?? null,
-            'meta_description' => $validated['meta_description'] ?? null,
-            'meta_keywords' => $validated['meta_keywords'] ?? null,
-            'availability' => $validated['availability'] ?? null,
+            'max_pax' => $validated['max_pax'] ?? 10,
+            'includes_flight' => $request->includes_flight == '1',
+            'image' => $heroPath,
+            'gallery' => $galleryPaths,
+            'short_description' => $request->short_description,
+            'included_services' => $request->included_services,
+            'excluded_services' => $request->excluded_services,
+            'cancellation_policy' => $request->cancellation_policy,
+            'terms' => $request->terms,
+            'featured' => (bool) $request->is_featured,
+            'status' => $request->is_active ? 'active' : 'inactive',
+            'is_trending' => (bool) $request->is_trending,
+            'meta_title' => $validated['meta_title'],
+            'meta_description' => $validated['meta_description'],
+            'meta_keywords' => $validated['meta_keywords'],
+            'duration' => $this->formatDuration($request->duration_days, $request->duration_nights),
         ];
 
         \DB::beginTransaction();
@@ -506,12 +557,14 @@ class PackageController extends Controller
             $package->update($packageData);
 
             // Save Structured Itinerary
-            $this->saveStructuredItinerary($package, $validated['itinerary'] ?? [], $validated['addon_amenities'] ?? []);
+            $itineraryData = json_decode($request->itinerary_data, true) ?? [];
+            $this->saveStructuredItinerary($package, $itineraryData);
 
             \DB::commit();
             return response()->json($package);
         } catch (\Exception $e) {
             \DB::rollBack();
+            \Log::error('Package update failed: ' . $e->getMessage());
             return response()->json(['message' => 'Error updating package: ' . $e->getMessage()], 500);
         }
     }
