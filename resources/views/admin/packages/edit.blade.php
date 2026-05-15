@@ -247,10 +247,20 @@
                         <div class="col-md-8">
                             <div class="row g-4">
                                 <div class="col-md-6">
+                                    <label class="premium-label">Country</label>
+                                    <select name="country_id" id="country_id" class="form-select select2" required>
+                                        <option value="">Select Country</option>
+                                        @foreach($countries as $country)
+                                            <option value="{{ $country->id }}" {{ $package->country_id == $country->id ? 'selected' : '' }}>{{ $country->name }}</option>
+                                        @endforeach
+                                    </select>
+                                </div>
+                                <div class="col-md-6">
                                     <label class="premium-label">Primary Destination</label>
-                                    <select name="destination_id" class="form-select select2" required>
+                                    <select name="destination_id" id="destination_id" class="form-select select2" required>
+                                        <option value="">Select Primary City</option>
                                         @foreach($destinations as $dest)
-                                            <option value="{{ $dest->id }}" {{ $package->destination_id == $dest->id ? 'selected' : '' }}>{{ $dest->name }}</option>
+                                            <option value="{{ $dest->id }}" data-country="{{ $dest->country_id }}" {{ $package->destination_id == $dest->id ? 'selected' : '' }}>{{ $dest->name }}</option>
                                         @endforeach
                                     </select>
                                 </div>
@@ -618,6 +628,47 @@
 
     $(document).ready(function() {
         $('.select2').select2({ theme: 'bootstrap-5' });
+        
+        // Country to Destination Cascading
+        $('#country_id').on('change', function() {
+            let countryId = $(this).val();
+            let destSelect = $('#destination_id');
+            
+            // Clear current selection
+            destSelect.val(null).trigger('change');
+            
+            // Hide all options first
+            destSelect.find('option').each(function() {
+                let optCountry = $(this).data('country');
+                if (!countryId || !optCountry || optCountry == countryId || $(this).val() === "") {
+                    $(this).prop('disabled', false);
+                } else {
+                    $(this).prop('disabled', true);
+                }
+            });
+            
+            // Re-init select2 to refresh disabled states
+            destSelect.select2({ theme: 'bootstrap-5' });
+        });
+
+        // Trigger initial filter
+        if ($('#country_id').val()) {
+            let countryId = $('#country_id').val();
+            let destSelect = $('#destination_id');
+            let currentVal = destSelect.val();
+            
+            destSelect.find('option').each(function() {
+                let optCountry = $(this).data('country');
+                if (!countryId || !optCountry || optCountry == countryId || $(this).val() === "") {
+                    $(this).prop('disabled', false);
+                } else {
+                    $(this).prop('disabled', true);
+                }
+            });
+            destSelect.select2({ theme: 'bootstrap-5' });
+            destSelect.val(currentVal).trigger('change.select2');
+        }
+
         quillEditors['highlight'] = initQuillEditor('#highlight-editor-container', 200);
         quillEditors['inc'] = initQuillEditor('#inc-editor-container', 200);
         quillEditors['exc'] = initQuillEditor('#exc-editor-container', 200);

@@ -27,6 +27,7 @@ class PackageController extends Controller
 
                 $query->withCount('reviews')
                     ->with([
+                        'country',
                         'destination' => function ($q) {
                             $q->withTrashed();
                         }
@@ -103,6 +104,7 @@ class PackageController extends Controller
     public function store(Request $request): \Illuminate\Http\JsonResponse
     {
         $validated = $request->validate([
+            'country_id' => 'required|exists:countries,id',
             'destination_id' => 'nullable|exists:destinations,id',
             'hotel_id' => 'nullable|exists:hotels,id',
             'destination_ids' => 'nullable|array',
@@ -172,6 +174,7 @@ class PackageController extends Controller
 
         // Map form fields to database columns
         $packageData = [
+            'country_id' => $validated['country_id'] ?? null,
             'destination_id' => $validated['destination_id'] ?? null,
             'destination_ids' => $validated['destination_ids'] ?? [],
             'supplier_ids' => $validated['supplier_ids'] ?? [],
@@ -501,6 +504,7 @@ class PackageController extends Controller
 
         $validated = $request->validate([
             'name' => 'required|string|max:255',
+            'country_id' => 'required|exists:countries,id',
             'destination_id' => 'required|exists:destinations,id',
             'package_category' => 'nullable|string',
             'price' => 'required|numeric',
@@ -529,6 +533,7 @@ class PackageController extends Controller
 
         $packageData = [
             'name' => $validated['name'],
+            'country_id' => $validated['country_id'],
             'destination_id' => $validated['destination_id'],
             'package_category' => $validated['package_category'],
             'price' => $validated['price'],

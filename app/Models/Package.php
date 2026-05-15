@@ -11,6 +11,7 @@ class Package extends Model
     use HasFactory, SoftDeletes;
 
     protected $fillable = [
+        'country_id',
         'destination_id',
         'destination_ids',
         'hotel_id',
@@ -108,6 +109,11 @@ class Package extends Model
     /**
      * Get the destination that owns the package.
      */
+    public function country()
+    {
+        return $this->belongsTo(Country::class);
+    }
+
     public function destination()
     {
         return $this->belongsTo(Destination::class, 'destination_id');

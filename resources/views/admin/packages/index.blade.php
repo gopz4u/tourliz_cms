@@ -204,7 +204,9 @@
                     </div>
                 </div>
                 <h6 class="fw-bold text-dark mb-1 text-truncate">{NAME}</h6>
-                <p class="text-muted small mb-4 mt-auto"><i class="bi bi-geo-alt-fill text-primary me-1"></i> {DESTINATION}</p>
+                <p class="text-muted small mb-4 mt-auto">
+                    <i class="bi bi-geo-alt-fill text-primary me-1"></i> {COUNTRY} • {DESTINATION}
+                </p>
                 <div class="d-flex justify-content-between align-items-center">
                     <div>
                         <p class="text-muted x-small mb-0">Starting at</p>
@@ -289,6 +291,7 @@
                         .replace(/{ID}/g, pkg.id)
                         .replace(/{NAME}/g, pkg.name)
                         .replace(/{IMAGE}/g, pkg.image ? '/' + pkg.image : 'https://placehold.co/600x400?text=' + encodeURIComponent(pkg.name))
+                        .replace(/{COUNTRY}/g, pkg.country ? pkg.country.name : 'Intl')
                         .replace(/{DESTINATION}/g, pkg.destination ? pkg.destination.name : 'Various')
                         .replace(/{PRICE}/g, pkg.price ? parseFloat(pkg.price).toLocaleString() : '0')
                         .replace(/{DURATION}/g, pkg.duration || 'Flexible')
