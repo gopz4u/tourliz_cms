@@ -355,13 +355,21 @@
             text: "This will create a draft copy of this experience.",
             icon: 'question',
             showCancelButton: true,
-            confirmButtonText: 'Yes, duplicate'
+            confirmButtonText: 'Yes, duplicate',
+            showLoaderOnConfirm: true,
+            preConfirm: () => {
+                return $.post(`/admin/packages/${id}/duplicate`)
+                    .catch(err => {
+                        Swal.showValidationMessage(
+                            `Request failed: ${err.responseJSON?.message || err.statusText}`
+                        );
+                    });
+            },
+            allowOutsideClick: () => !Swal.isLoading()
         }).then((result) => {
             if (result.isConfirmed) {
-                $.post(`/admin/packages/${id}/duplicate`, function() {
-                    Swal.fire('Success!', 'Copy created successfully.', 'success');
-                    loadPackages();
-                });
+                Swal.fire('Success!', 'Copy created successfully.', 'success');
+                loadPackages();
             }
         })
     }
