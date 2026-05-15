@@ -848,7 +848,11 @@
             success: (res) => { Swal.fire({ icon: 'success', title: 'Package Created!', text: 'Your multi-vendor experience is now live.' }).then(() => window.location.href = '{{ route("admin.packages.index") }}'); },
             error: (err) => {
                 let msg = 'Review your configuration and try again.';
-                if (err.status === 422 && err.responseJSON.errors) msg = Object.values(err.responseJSON.errors).flat().join('<br>');
+                if (err.status === 422 && err.responseJSON.errors) {
+                    msg = Object.values(err.responseJSON.errors).flat().join('<br>');
+                } else {
+                    msg = err.responseJSON?.message || err.statusText || 'Server Error';
+                }
                 Swal.fire({ icon: 'error', title: 'Configuration Error', html: `<div class="text-start small">${msg}</div>` });
             }
         });

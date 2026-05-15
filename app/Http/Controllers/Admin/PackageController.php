@@ -505,7 +505,7 @@ class PackageController extends Controller
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'country_id' => 'required|exists:countries,id',
-            'destination_id' => 'required|exists:destinations,id',
+            'destination_id' => 'nullable|exists:destinations,id',
             'package_category' => 'nullable|string',
             'price' => 'required|numeric',
             'net_price' => 'nullable|numeric',
@@ -533,8 +533,8 @@ class PackageController extends Controller
 
         $packageData = [
             'name' => $validated['name'],
-            'country_id' => $validated['country_id'],
-            'destination_id' => $validated['destination_id'],
+            'country_id' => $validated['country_id'] ?? $package->country_id,
+            'destination_id' => $validated['destination_id'] ?? $package->destination_id,
             'package_category' => $validated['package_category'],
             'price' => $validated['price'],
             'net_price' => $request->net_price ?? $package->net_price,
