@@ -49,6 +49,15 @@ Route::get('/git-pull', function () {
     }
 });
 
+Route::get('/migrate-db', function () {
+    try {
+        \Artisan::call('migrate', ['--force' => true]);
+        return '<pre>' . \Artisan::output() . '</pre>';
+    } catch (\Exception $e) {
+        return 'Error: ' . $e->getMessage();
+    }
+});
+
 Route::get('/storage-debug', function () {
     $testFile = 'images/1765304789_3GWdmy3yhV.jpeg';
     $paths = [
