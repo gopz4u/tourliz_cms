@@ -49,6 +49,15 @@ Route::get('/git-pull', function () {
     }
 });
 
+Route::get('/migrate-status', function () {
+    try {
+        \Artisan::call('migrate:status');
+        return '<pre>' . \Artisan::output() . '</pre>';
+    } catch (\Exception $e) {
+        return 'Error: ' . $e->getMessage();
+    }
+});
+
 Route::get('/migrate-db', function () {
     try {
         \Artisan::call('migrate', ['--force' => true]);
