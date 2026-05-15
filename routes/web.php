@@ -58,9 +58,15 @@ Route::get('/migrate-status', function () {
     }
 });
 
-Route::get('/migrate-db', function () {
+Route::get('/migrate-file', function (\Illuminate\Http\Request $request) {
+    $file = $request->query('file');
+    if (!$file) return 'Please provide a ?file=filename parameter';
+    
     try {
-        \Artisan::call('migrate', ['--force' => true]);
+        \Artisan::call('migrate', [
+            '--path' => '/database/migrations/' . $file,
+            '--force' => true
+        ]);
         return '<pre>' . \Artisan::output() . '</pre>';
     } catch (\Exception $e) {
         return 'Error: ' . $e->getMessage();
