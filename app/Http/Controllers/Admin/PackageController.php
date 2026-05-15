@@ -19,8 +19,13 @@ class PackageController extends Controller
     {
         if ($request->wantsJson() || $request->ajax()) {
             try {
-                $query = Package::withTrashed()
-                    ->withCount('reviews')
+                $query = Package::query();
+                
+                if ($request->has('trash')) {
+                    $query->onlyTrashed();
+                }
+
+                $query->withCount('reviews')
                     ->with([
                         'destination' => function ($q) {
                             $q->withTrashed();

@@ -323,22 +323,28 @@
     function deletePackage(id) {
         Swal.fire({
             title: 'Delete Experience?',
-            text: "This action cannot be undone and will remove all itinerary data.",
+            text: "This action will soft-delete the package. You can force-delete it later to remove all data permanently.",
             icon: 'warning',
             showCancelButton: true,
             confirmButtonColor: '#ef4444',
             cancelButtonColor: '#64748b',
-            confirmButtonText: 'Yes, remove it!'
+            confirmButtonText: 'Yes, remove it!',
+            showLoaderOnConfirm: true,
+            preConfirm: () => {
+                return $.ajax({
+                    url: `/admin/packages/${id}`,
+                    type: 'DELETE'
+                }).catch(err => {
+                    Swal.showValidationMessage(
+                        `Request failed: ${err.responseJSON?.message || err.statusText}`
+                    );
+                });
+            },
+            allowOutsideClick: () => !Swal.isLoading()
         }).then((result) => {
             if (result.isConfirmed) {
-                $.ajax({
-                    url: `/admin/packages/${id}`,
-                    type: 'DELETE',
-                    success: function() {
-                        Swal.fire('Deleted!', 'Package has been removed.', 'success');
-                        loadPackages();
-                    }
-                });
+                Swal.fire('Deleted!', 'Package has been removed from active inventory.', 'success');
+                loadPackages();
             }
         })
     }
