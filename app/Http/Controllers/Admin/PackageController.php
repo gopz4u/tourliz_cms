@@ -468,6 +468,7 @@ class PackageController extends Controller
     public function edit($id)
     {
         $package = Package::withTrashed()->with(['days.hotels', 'days.transports', 'days.activities', 'days.attractions'])->findOrFail($id);
+        $countries = \App\Models\Country::where('status', true)->orderBy('name')->get();
         $destinations = \App\Models\Destination::orderBy('name')->get();
         $hotels = \App\Models\Hotel::with(['roomTypes', 'supplier'])->orderBy('name')->get();
         $transportRoutes = \App\Models\Transport::with('supplier')->orderBy('name')->get();
@@ -479,6 +480,7 @@ class PackageController extends Controller
         return view('admin.packages.edit', [
             'id' => $id,
             'package' => $package,
+            'countries' => $countries,
             'destinations' => $destinations,
             'hotels' => $hotels,
             'transportRoutes' => $transportRoutes,
