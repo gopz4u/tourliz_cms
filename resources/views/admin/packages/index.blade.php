@@ -195,8 +195,7 @@
                             <i class="bi bi-three-dots-vertical fs-5"></i>
                         </button>
                         <ul class="dropdown-menu dropdown-menu-end shadow border-0 rounded-4 p-2">
-                            <li><a class="dropdown-item rounded-3 py-2" href="/admin/packages/{ID}/edit"><i class="bi bi-pencil me-2"></i> Edit Master</a></li>
-                            <li><a class="dropdown-item rounded-3 py-2" href="/admin/itineraries/{ID}/edit"><i class="bi bi-calendar3 me-2"></i> Edit Itinerary</a></li>
+                            <li><a class="dropdown-item rounded-3 py-2" href="/admin/packages/{ID}/edit"><i class="bi bi-pencil me-2"></i> Edit Package</a></li>
                             <li><button class="dropdown-item rounded-3 py-2 text-primary" onclick="duplicatePackage({ID})"><i class="bi bi-files me-2"></i> Duplicate</button></li>
                             <li><hr class="dropdown-divider"></li>
                             <li><button class="dropdown-item rounded-3 py-2 text-danger" onclick="deletePackage({ID})"><i class="bi bi-trash me-2"></i> Delete</button></li>

@@ -599,13 +599,7 @@
                 @endif
 
                 <div class="sidebar-section-title mt-4">Operations</div>
-                <li>
-                    <a href="{{ route('admin.itineraries.index') }}" class="{{ request()->routeIs('admin.itineraries.*') ? 'active' : '' }}">
-                        <i class="bi bi-calendar-check-fill main-icon"></i>
-                        <span>Itineraries</span>
-                        <i class="bi bi-arrow-right nav-arrow"></i>
-                    </a>
-                </li>
+                <!-- Itineraries managed directly within Package page -->
                 <li class="nav-item">
                             <a class="nav-link {{ request()->routeIs('admin.reviews.*') ? 'active' : '' }} d-flex justify-content-between align-items-center"
                                 href="{{ route('admin.reviews.index') }}">

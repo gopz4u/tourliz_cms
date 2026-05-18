@@ -208,8 +208,8 @@ class PackageController extends Controller
             'image' => $heroPath ?? null,
             'gallery' => $galleryPaths ?? [],
             'addon_amenities' => $validated['addon_amenities'] ?? [],
-            'included_services' => $request->inclusions ?? '',
-            'excluded_services' => $request->exclusions ?? '',
+            'included_services' => $request->included_services ?? $request->inclusions ?? '',
+            'excluded_services' => $request->excluded_services ?? $request->exclusions ?? '',
             'itinerary' => json_decode($request->itinerary_data, true) ?? [],
             'featured' => isset($validated['is_featured']) ? (bool) $validated['is_featured'] : false,
             'status' => isset($validated['is_active']) && $validated['is_active'] ? 'active' : 'inactive',
@@ -533,6 +533,8 @@ class PackageController extends Controller
             $galleryPaths = array_merge($package->gallery ?? [], $galleryPaths);
         }
 
+        $itineraryData = json_decode($request->itinerary_data, true) ?? [];
+
         $packageData = [
             'name' => $validated['name'],
             'country_id' => $validated['country_id'] ?? $package->country_id,
@@ -555,6 +557,7 @@ class PackageController extends Controller
             'excluded_services' => $request->excluded_services,
             'cancellation_policy' => $request->cancellation_policy,
             'terms' => $request->terms,
+            'itinerary' => $itineraryData,
             'featured' => (bool) $request->is_featured,
             'status' => $request->is_active ? 'active' : 'inactive',
             'is_trending' => (bool) $request->is_trending,
@@ -569,7 +572,6 @@ class PackageController extends Controller
             $package->update($packageData);
 
             // Save Structured Itinerary
-            $itineraryData = json_decode($request->itinerary_data, true) ?? [];
             $this->saveStructuredItinerary($package, $itineraryData);
 
             \DB::commit();
