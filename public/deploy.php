@@ -46,6 +46,24 @@ if (!$projectRoot) {
 echo "<strong>Project Root Found:</strong> $projectRoot<br><br>";
 chdir($projectRoot);
 
+// Diagnostic info for .git permissions
+echo "<strong>--- .git Directory Permissions Diagnostic ---</strong><br>";
+if (file_exists('.git')) {
+    echo ".git directory permissions: " . substr(sprintf('%o', fileperms('.git')), -4) . "<br>";
+    echo ".git directory owner ID: " . fileowner('.git') . "<br>";
+    if (file_exists('.git/FETCH_HEAD')) {
+        echo ".git/FETCH_HEAD permissions: " . substr(sprintf('%o', fileperms('.git/FETCH_HEAD')), -4) . "<br>";
+        echo ".git/FETCH_HEAD owner ID: " . fileowner('.git/FETCH_HEAD') . "<br>";
+    } else {
+        echo ".git/FETCH_HEAD does not exist.<br>";
+    }
+    // List some directories
+    echo "Current PHP script executing user ID: " . getmyuid() . " / Name: " . get_current_user() . "<br>";
+} else {
+    echo "Warning: .git directory does not exist in " . getcwd() . "<br>";
+}
+echo "----------------------------------------------<br><br>";
+
 echo "<strong>1. Running Git Pull...</strong><br>";
 $gitOutput = shell_exec('git pull origin main 2>&1');
 echo "<pre>$gitOutput</pre>";
