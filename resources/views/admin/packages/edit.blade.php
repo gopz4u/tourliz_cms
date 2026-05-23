@@ -573,6 +573,7 @@
                 <option value="activity">Activity</option>
                 <option value="ticket">Entry Ticket</option>
                 <option value="meal">Meal</option>
+                <option value="spot">Tourist Spot</option>
             </select>
         </div>
         <div class="col-md-3">
@@ -616,6 +617,7 @@
         $activityList = $activities->map(function($a) { return ['id' => $a->id, 'name' => $a->name, 'supplier_id' => $a->supplier_id, 'price' => $a->base_price]; });
         $ticketList = $entryTickets->map(function($et) { return ['id' => $et->id, 'name' => $et->attraction_name, 'supplier_id' => $et->supplier_id, 'price' => $et->adult_price]; });
         $mealList = $meals->map(function($m) { return ['id' => $m->id, 'name' => $m->name, 'supplier_id' => $m->supplier_id, 'price' => $m->price]; });
+        $touristSpotList = $touristSpots->map(function($ts) { return ['id' => $ts->id, 'name' => $ts->name, 'supplier_id' => $ts->supplier_id, 'price' => 0]; });
     @endphp
 
     const inventory = {
@@ -623,7 +625,8 @@
         transport: @json($transportList),
         activity: @json($activityList),
         ticket: @json($ticketList),
-        meal: @json($mealList)
+        meal: @json($mealList),
+        spot: @json($touristSpotList)
     };
 
     $(document).ready(function() {
@@ -674,7 +677,34 @@
         quillEditors['exc'] = initQuillEditor('#exc-editor-container', 200);
 
         @php
-            $initialItinerary = $package->days->map(function($day) {
+            $initialItinerary = $package->days->map(function($day) use ($package) {
+                // Find matching day in the JSON itinerary to get spots
+                $jsonDay = null;
+                if (is_array($package->itinerary)) {
+                    foreach ($package->itinerary as $jd) {
+                        $jdNumber = $jd['day_number'] ?? $jd['day'] ?? null;
+                        if ($jdNumber == $day->day_number) {
+                            $jsonDay = $jd;
+                            break;
+                        }
+                    }
+                }
+                
+                $spots = [];
+                if ($jsonDay && isset($jsonDay['spots']) && is_array($jsonDay['spots'])) {
+                    foreach ($jsonDay['spots'] as $s) {
+                        $spotId = $s['tourist_spot_id'] ?? $s['id'] ?? null;
+                        if ($spotId) {
+                            $spotModel = \App\Models\TouristSpot::find($spotId);
+                            $spots[] = [
+                                'type' => 'spot',
+                                'id' => $spotId,
+                                'supplier_id' => $spotModel ? $spotModel->supplier_id : null
+                            ];
+                        }
+                    }
+                }
+
                 return [
                     'day_number' => $day->day_number,
                     'title' => $day->title,
@@ -685,7 +715,8 @@
                         $day->transports->map(function($t) { return ['type' => 'transport', 'id' => $t->transport_id, 'supplier_id' => $t->transport->supplier_id ?? null]; })->toArray(),
                         $day->activities->map(function($a) { return ['type' => 'activity', 'id' => $a->activity_id, 'supplier_id' => $a->activity->supplier_id ?? null]; })->toArray(),
                         $day->attractions->map(function($at) { return ['type' => 'ticket', 'id' => $at->attraction_id, 'supplier_id' => $at->attraction->supplier_id ?? null]; })->toArray(),
-                        $day->meals_list->map(function($m) { return ['type' => 'meal', 'id' => $m->meal_id, 'supplier_id' => $m->meal->supplier_id ?? null]; })->toArray()
+                        $day->meals_list->map(function($m) { return ['type' => 'meal', 'id' => $m->meal_id, 'supplier_id' => $m->meal->supplier_id ?? null]; })->toArray(),
+                        $spots
                     )
                 ];
             });
@@ -892,7 +923,7 @@
         const formData = new FormData(document.getElementById('package-wizard-form'));
         let itinerary = [];
         $('.itinerary-day-card').each(function() {
-            let day = { day_number: $(this).attr('data-day'), title: $(this).find('.day-title-in').val(), description: $(this).find('.day-desc-in').val(), meals: [], hotels: [], transports: [], activities: [], tickets: [], meals_list: [] };
+            let day = { day_number: $(this).attr('data-day'), title: $(this).find('.day-title-in').val(), description: $(this).find('.day-desc-in').val(), meals: [], hotels: [], transports: [], activities: [], tickets: [], meals_list: [], spots: [] };
             $(this).find('.meal-cb:checked').each(function() { day.meals.push($(this).val()); });
             $(this).find('.service-row').each(function() {
                 let type = $(this).find('.service-type').val();
@@ -903,6 +934,7 @@
                     else if(type === 'activity') day.activities.push({activity_id: val});
                     else if(type === 'ticket') day.tickets.push({ticket_id: val});
                     else if(type === 'meal') day.meals_list.push({meal_id: val});
+                    else if(type === 'spot') day.spots.push({tourist_spot_id: val, hours: 1, price_per_hour: 0});
                 }
             });
             itinerary.push(day);
