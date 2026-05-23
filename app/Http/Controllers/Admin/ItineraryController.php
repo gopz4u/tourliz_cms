@@ -241,6 +241,15 @@ class ItineraryController extends Controller
                 }, $day['places']);
             }
 
+            // Normalize spots: ensure it's an array of arrays
+            if (!isset($day['spots']) || !is_array($day['spots'])) {
+                $day['spots'] = [];
+            } else {
+                $day['spots'] = array_map(function ($spot) {
+                    return is_string($spot) ? ['name' => $spot, 'hours' => 2, 'price_per_hour' => 0] : $spot;
+                }, $day['spots']);
+            }
+
             return $day;
         }, $itinerary);
     }
@@ -259,6 +268,7 @@ class ItineraryController extends Controller
             'day' => $dayNumber,
             'title' => $request->input('title', 'Day ' . $dayNumber),
             'places' => [],
+            'spots' => [],
             'hotel' => null,
             'transport' => [],
             'activities' => [],

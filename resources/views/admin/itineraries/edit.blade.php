@@ -87,27 +87,29 @@
                 </div>
                 @endif
 
-                @php
-                    $allPlaces = collect();
-                    if(isset($touristSpots)) {
-                        foreach($touristSpots as $spot) $allPlaces->push(['name' => $spot->name]);
-                    }
-                    if(isset($coreServices)) {
-                        foreach($coreServices as $service) $allPlaces->push(['name' => $service->name]);
-                    }
-                    // Sort alphabetically
-                    $allPlaces = $allPlaces->sortBy('name', SORT_NATURAL | SORT_FLAG_CASE)->unique('name');
-                @endphp
-
-                @if($allPlaces->count())
+                @if(isset($touristSpots) && $touristSpots->count())
                 <hr class="my-3 text-muted">
                 <h6 class="fw-bold mb-2" style="color:var(--info);">
-                    <i class="bi bi-geo-alt me-1"></i>Core Services & Tourist Spots
+                    <i class="bi bi-geo-alt me-1"></i>Tourist Spots
+                </h6>
+                <div class="d-flex flex-wrap gap-1 mb-3" style="max-height: 200px; overflow-y: auto; align-content: flex-start;">
+                    @foreach($touristSpots as $spot)
+                        <span class="vendor-chip places" data-type="spot" data-id="{{ $spot->id }}" data-name="{{ $spot->name }}" onclick="assignVendorToActiveDay(this)" style="background:var(--info-bg-subtle, #e0f8f8); color:#0c7e7e; border-color:#b4e5e5;">
+                            <i class="bi bi-pin-map"></i> {{ $spot->name }}
+                        </span>
+                    @endforeach
+                </div>
+                @endif
+
+                @if(isset($coreServices) && $coreServices->count())
+                <hr class="my-3 text-muted">
+                <h6 class="fw-bold mb-2" style="color:#6366f1;">
+                    <i class="bi bi-gear-fill me-1"></i>Core Services
                 </h6>
                 <div class="d-flex flex-wrap gap-1" style="max-height: 200px; overflow-y: auto; align-content: flex-start;">
-                    @foreach($allPlaces as $spot)
-                        <span class="vendor-chip places" data-type="places" data-name="{{ $spot['name'] }}" onclick="assignVendorToActiveDay(this)" style="background:var(--info-bg-subtle, #e0f8f8); color:#0c7e7e; border-color:#b4e5e5;">
-                            <i class="bi bi-pin-map"></i> {{ $spot['name'] }}
+                    @foreach($coreServices as $service)
+                        <span class="vendor-chip places" data-type="core_service" data-id="{{ $service->id }}" data-category="{{ strtolower($service->category) }}" data-price="{{ $service->price }}" data-name="{{ $service->name }}" onclick="assignVendorToActiveDay(this)" style="background:#e8eaff; color:#5a52e5; border-color:#c4c0ff;">
+                            <i class="bi bi-gear"></i> {{ $service->name }} <small class="opacity-75">({{ $service->category }})</small>
                         </span>
                     @endforeach
                 </div>
@@ -324,6 +326,7 @@ function createDayCard(day, index) {
     const transportItems = Array.isArray(day.transport) ? day.transport : (day.transport ? [{ mode: resolveVendorName(day.transport) }] : []);
     const activities = Array.isArray(day.activities) ? day.activities : [];
     const places = Array.isArray(day.places) ? day.places : [];
+    const spots = Array.isArray(day.spots) ? day.spots : [];
     const meals = day.meals || {};
     const mealsIncluded = Array.isArray(meals)
         ? meals
@@ -371,6 +374,33 @@ function createDayCard(day, index) {
             <button class="btn btn-sm btn-link text-danger p-0" onclick="removePlace(${index}, ${pi})" title="Remove">
                 <i class="bi bi-x" style="font-size:0.75rem;"></i>
             </button>
+        </div>`;
+    });
+
+    // Build tourist spot entries HTML
+    let spotRows = '';
+    spots.forEach((spot, si) => {
+        const spotName = typeof spot === 'string' ? spot : (spot.name || '');
+        const hrs = spot.hours || 0;
+        const rate = spot.price_per_hour || 0;
+        spotRows += `
+        <div class="mb-2 p-2 bg-light rounded-3 border spot-entry" data-si="${si}">
+            <div class="d-flex align-items-center gap-2 mb-1">
+                <span class="badge bg-info-subtle text-info flex-grow-1 text-start" style="border-radius:6px; font-size:0.75rem; padding:4px 8px;"><i class="bi bi-geo-alt"></i> ${spotName}</span>
+                <button class="btn btn-sm btn-link text-danger p-0" onclick="removeSpot(${index}, ${si})" title="Remove">
+                    <i class="bi bi-x" style="font-size:0.75rem;"></i>
+                </button>
+            </div>
+            <div class="d-flex gap-2">
+                <div class="input-group input-group-sm">
+                    <span class="input-group-text bg-white border-0 text-muted px-1" style="font-size:0.7rem;">Hrs</span>
+                    <input type="number" class="form-control form-control-sm border-0 bg-transparent px-1 py-0" style="font-size:0.75rem;" value="${hrs}" onchange="updateSpotField(${index}, ${si}, 'hours', this.value)">
+                </div>
+                <div class="input-group input-group-sm">
+                    <span class="input-group-text bg-white border-0 text-muted px-1" style="font-size:0.7rem;">${currency}/hr</span>
+                    <input type="number" class="form-control form-control-sm border-0 bg-transparent px-1 py-0" style="font-size:0.75rem;" value="${rate}" onchange="updateSpotField(${index}, ${si}, 'price_per_hour', this.value)">
+                </div>
+            </div>
         </div>`;
     });
 
@@ -477,6 +507,29 @@ function createDayCard(day, index) {
                                 <input type="text" class="form-control border-info" placeholder="e.g. KLCC Park"
                                     onkeydown="if(event.key==='Enter'){addCustomPlace(${index}, this.value); this.value=''; toggleCustomInput(${index},'places');}">
                                 <button class="btn btn-info text-white" type="button" onclick="const i=this.previousElementSibling; addCustomPlace(${index}, i.value); i.value=''; toggleCustomInput(${index},'places');">
+                                    Add
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    {{-- Tourist Spots --}}
+                    <div class="col-md-6">
+                        <div class="section-header">
+                            <span><i class="bi bi-geo-alt me-1 text-info"></i>Tourist Spots</span>
+                            <button class="btn btn-link btn-sm p-0 text-muted" onclick="toggleCustomInput(${index}, 'spots')" title="Add custom tourist spot">
+                                <i class="bi bi-plus-circle" style="font-size:0.8rem;"></i>
+                            </button>
+                        </div>
+                        <div id="spot-list-${index}">
+                            ${spotRows || '<div class="text-muted small py-1 ps-1"><i class="bi bi-dash"></i> No spots assigned</div>'}
+                        </div>
+                        <div id="spots-custom-${index}" class="mt-1 custom-field">
+                            <div class="input-group input-group-sm">
+                                <span class="input-group-text bg-info-subtle border-info text-info"><i class="bi bi-geo-alt"></i></span>
+                                <input type="text" class="form-control border-info" placeholder="e.g. Genting Premium Outlet"
+                                    onkeydown="if(event.key==='Enter'){addCustomSpot(${index}, this.value); this.value=''; toggleCustomInput(${index},'spots');}">
+                                <button class="btn btn-info text-white" type="button" onclick="const i=this.previousElementSibling; addCustomSpot(${index}, i.value); i.value=''; toggleCustomInput(${index},'spots');">
                                     Add
                                 </button>
                             </div>
@@ -658,6 +711,51 @@ function refreshPlaceList(index) {
     }).join('');
 }
 
+// ── Tourist Spots ─────────────────────────────────────────────────
+window.addCustomSpot = function(index, name) {
+    if (!name.trim()) return;
+    if (!Array.isArray(itinerary[index].spots)) itinerary[index].spots = [];
+    itinerary[index].spots.push({ name: name.trim(), hours: 2, price_per_hour: 0 });
+    refreshSpotList(index);
+};
+window.removeSpot = function(index, si) {
+    (itinerary[index].spots || []).splice(si, 1);
+    refreshSpotList(index);
+};
+window.updateSpotField = function(index, si, field, val) {
+    if (itinerary[index].spots && itinerary[index].spots[si]) {
+        itinerary[index].spots[si][field] = parseFloat(val) || 0;
+    }
+};
+function refreshSpotList(index) {
+    const list = document.getElementById(`spot-list-${index}`);
+    if (!list) return;
+    const items = itinerary[index].spots || [];
+    if (!items.length) { list.innerHTML = '<div class="text-muted small py-1 ps-1"><i class="bi bi-dash"></i> No spots assigned</div>'; return; }
+    list.innerHTML = items.map((spot, si) => {
+        const name = typeof spot === 'string' ? spot : (spot.name || '');
+        const hrs = spot.hours || 0;
+        const rate = spot.price_per_hour || 0;
+        return `
+        <div class="mb-2 p-2 bg-light rounded-3 border">
+            <div class="d-flex align-items-center gap-2 mb-1">
+                <span class="badge bg-info-subtle text-info flex-grow-1 text-start" style="border-radius:6px; font-size:0.75rem; padding:4px 8px;"><i class="bi bi-geo-alt"></i> ${name}</span>
+                <button class="btn btn-sm btn-link text-danger p-0" onclick="removeSpot(${index}, ${si})"><i class="bi bi-x"></i></button>
+            </div>
+            <div class="d-flex gap-2">
+                <div class="input-group input-group-sm">
+                    <span class="input-group-text bg-white border-0 text-muted px-1" style="font-size:0.7rem;">Hrs</span>
+                    <input type="number" class="form-control form-control-sm border-0 bg-transparent px-1 py-0" style="font-size:0.75rem;" value="${hrs}" onchange="updateSpotField(${index}, ${si}, 'hours', this.value)">
+                </div>
+                <div class="input-group input-group-sm">
+                    <span class="input-group-text bg-white border-0 text-muted px-1" style="font-size:0.7rem;">${currency}/hr</span>
+                    <input type="number" class="form-control form-control-sm border-0 bg-transparent px-1 py-0" style="font-size:0.75rem;" value="${rate}" onchange="updateSpotField(${index}, ${si}, 'price_per_hour', this.value)">
+                </div>
+            </div>
+        </div>`;
+    }).join('');
+}
+
 // ── Meals ──────────────────────────────────────────────────────────────
 window.toggleMeal = function(index, key, checked) {
     if (!itinerary[index].meals || Array.isArray(itinerary[index].meals)) {
@@ -675,22 +773,48 @@ window.assignVendorToActiveDay = function(chipEl) {
     }
     const type = chipEl.dataset.type;
     const name = chipEl.dataset.name;
-    const total = parseFloat(chipEl.dataset.total || 0);
+    const total = parseFloat(chipEl.dataset.total || chipEl.dataset.price || 0);
+    const id = chipEl.dataset.id || null;
     const index = activeDayIndex;
 
     if (type === 'hotel') {
-        itinerary[index].hotel = { name, type: '', price_per_night: total, currency };
+        itinerary[index].hotel = { name, type: '', price_per_night: total, currency, supplier_id: chipEl.dataset.supplierId || null, supplier_name: chipEl.dataset.supplierName || null };
         document.querySelector(`#hotel-display-${index} .hotel-name-text`).textContent = name;
         document.getElementById(`hotel-display-${index}`).style.display = '';
         document.getElementById(`hotel-empty-${index}`).style.display = 'none';
     } else if (type === 'transport') {
         if (!Array.isArray(itinerary[index].transport)) itinerary[index].transport = [];
-        itinerary[index].transport.push({ type: 'Component', mode: name, from: '', to: '', price: total, currency });
+        itinerary[index].transport.push({ type: 'Component', mode: name, from: '', to: '', price: total, currency, supplier_id: chipEl.dataset.supplierId || null, supplier_name: chipEl.dataset.supplierName || null });
         refreshTransportList(index);
     } else if (type === 'places') {
         if (!Array.isArray(itinerary[index].places)) itinerary[index].places = [];
         itinerary[index].places.push(name);
         refreshPlaceList(index);
+    } else if (type === 'spot') {
+        if (!Array.isArray(itinerary[index].spots)) itinerary[index].spots = [];
+        itinerary[index].spots.push({ id: id, name: name, hours: 2, price_per_hour: 0 });
+        refreshSpotList(index);
+    } else if (type === 'core_service') {
+        const category = chipEl.dataset.category || '';
+        if (category.includes('hotel') || category.includes('accommodation')) {
+            itinerary[index].hotel = { name: name, type: 'Core Service', price_per_night: total, currency, service_id: id };
+            document.querySelector(`#hotel-display-${index} .hotel-name-text`).textContent = name + ' (Core Service)';
+            document.getElementById(`hotel-display-${index}`).style.display = '';
+            document.getElementById(`hotel-empty-${index}`).style.display = 'none';
+        } else if (category.includes('transport') || category.includes('pickup') || category.includes('drop')) {
+            if (!Array.isArray(itinerary[index].transport)) itinerary[index].transport = [];
+            itinerary[index].transport.push({ type: 'Core Service', mode: name, from: '', to: '', price: total, currency, service_id: id });
+            refreshTransportList(index);
+        } else if (category.includes('ticket')) {
+            if (!Array.isArray(itinerary[index].places)) itinerary[index].places = [];
+            itinerary[index].places.push({ name: name, entry_ticket: { required: true, price: total, currency }, service_id: id });
+            refreshPlaceList(index);
+        } else {
+            // Default to activity
+            if (!Array.isArray(itinerary[index].activities)) itinerary[index].activities = [];
+            itinerary[index].activities.push({ name: name, entry_ticket: { price: total, currency }, service_id: id });
+            refreshActivityList(index);
+        }
     } else {
         if (!Array.isArray(itinerary[index].activities)) itinerary[index].activities = [];
         itinerary[index].activities.push(name);
@@ -724,6 +848,7 @@ window.addDay = function() {
         hotel: { name: '', type: '', price_per_night: 0, currency },
         transport: [],
         activities: [],
+        spots: [],
         meals: { breakfast: 'Not included', lunch: 'Not included', dinner: 'Not included' },
         notes: '',
         places: [],

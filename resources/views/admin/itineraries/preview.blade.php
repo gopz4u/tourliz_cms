@@ -136,6 +136,52 @@
                                 </div>
                             @endif
 
+                            <!-- Tourist Spots -->
+                            @if(!empty($day['spots']))
+                                <div class="bg-base-200/50 rounded-2xl p-6 border border-base-200/60 relative overflow-hidden group/spots hover:bg-base-200/80 transition-colors mt-6">
+                                    <div class="absolute top-0 left-0 w-1.5 h-full bg-gradient-to-b from-info to-blue-400"></div>
+                                    <h4 class="text-sm font-black uppercase tracking-widest text-info mb-5 flex items-center gap-3 m-0">
+                                        <div class="p-1.5 rounded-lg bg-info/10 text-info">
+                                            <i class="bi bi-geo-alt-fill text-lg"></i>
+                                        </div>
+                                        Tourist Spots
+                                    </h4>
+                                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                                        @foreach($day['spots'] as $spot)
+                                            <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center bg-base-100 p-4 rounded-xl shadow-sm border border-base-200/50 hover:border-info/40 transition-all hover:-translate-y-0.5 gap-3">
+                                                <div class="flex items-center gap-4">
+                                                    @if(!empty($spot['image']))
+                                                        <img src="{{ getImageUrl($spot['image']) }}" alt="{{ $spot['name'] }}" class="w-12 h-12 rounded-lg object-cover shrink-0">
+                                                    @else
+                                                        <div class="w-10 h-10 rounded-full bg-info/10 flex items-center justify-center text-info shrink-0 shadow-inner">
+                                                            <i class="bi bi-pin-map-fill text-lg"></i>
+                                                        </div>
+                                                    @endif
+                                                    <div>
+                                                        <span class="font-bold text-neutral text-lg">{{ $spot['name'] }}</span>
+                                                        @if(!empty($spot['description']))
+                                                            <div class="text-xs text-base-content/60 mt-0.5 truncate max-w-[200px]" title="{{ $spot['description'] }}">
+                                                                {{ $spot['description'] }}
+                                                            </div>
+                                                        @endif
+                                                        @if(!empty($spot['hours']))
+                                                            <div class="text-xs font-medium text-base-content/50 mt-0.5 flex items-center gap-1">
+                                                                <i class="bi bi-clock"></i> Spending {{ $spot['hours'] }} hours
+                                                            </div>
+                                                        @endif
+                                                    </div>
+                                                </div>
+                                                @if(isset($spot['price_per_hour']) && $spot['price_per_hour'] > 0 && isset($spot['hours']) && $spot['hours'] > 0)
+                                                    <div class="badge badge-info badge-outline badge-lg font-mono font-bold shadow-sm self-start sm:self-auto py-3">
+                                                        {{ $package->currency ?? 'MYR' }} {{ number_format($spot['hours'] * $spot['price_per_hour'], 2) }}
+                                                    </div>
+                                                @endif
+                                            </div>
+                                        @endforeach
+                                    </div>
+                                </div>
+                            @endif
+
                             <div class="grid grid-cols-1 xl:grid-cols-2 gap-8">
                                 <!-- Activities -->
                                 <div class="bg-base-100 rounded-2xl border border-base-200/80 p-6 shadow-sm hover:shadow-md transition-shadow">
@@ -459,6 +505,11 @@ function shareItineraryWhatsapp() {
         @if(!empty($day['places']))
             @php $pl = array_map(fn($p) => $p['name'] ?? '', $day['places']); @endphp
             text += "   \uD83D\uDCCD *Places:* {{ str_replace('\"', '\\\"', implode(', ', $pl)) }}\n";
+        @endif
+        
+        @if(!empty($day['spots']))
+            @php $sp = array_map(fn($s) => $s['name'] ?? '', $day['spots']); @endphp
+            text += "   \uD83D\uDCCD *Spots:* {{ str_replace('\"', '\\\"', implode(', ', $sp)) }}\n";
         @endif
         
         @if(!empty($day['activities']))

@@ -5,6 +5,7 @@ namespace App\Helpers;
 use App\Models\Destination;
 use App\Models\Attraction;
 use App\Models\Service;
+use App\Models\TouristSpot;
 
 class ItineraryHelper
 {
@@ -52,6 +53,11 @@ class ItineraryHelper
             // Validate hotel structure
             if (isset($day['hotel']) && !is_array($day['hotel'])) {
                 $errors[] = "Day {$dayNum}: 'hotel' must be an array";
+            }
+
+            // Validate spots structure
+            if (isset($day['spots']) && !is_array($day['spots'])) {
+                $errors[] = "Day {$dayNum}: 'spots' must be an array";
             }
         }
 
@@ -308,15 +314,56 @@ class ItineraryHelper
         }
 
         foreach ($itinerary as &$day) {
+            // Enrich hotel with service data if service_id is set
+            if (isset($day['hotel']) && is_array($day['hotel']) && isset($day['hotel']['service_id'])) {
+                $service = Service::find($day['hotel']['service_id']);
+                if ($service) {
+                    $day['hotel']['name'] = $service->name;
+                    $day['hotel']['type'] = 'Core Service';
+                    $day['hotel']['price_per_night'] = $service->price;
+                    $day['hotel']['currency'] = $service->currency ?? 'MYR';
+                    $day['hotel']['image'] = $service->image ?? null;
+                    $day['hotel']['description'] = $service->short_description ?? $service->description ?? null;
+                }
+            }
+
+            // Enrich transport with service data if service_id is set
+            if (isset($day['transport']) && is_array($day['transport'])) {
+                foreach ($day['transport'] as &$trans) {
+                    if (is_array($trans) && isset($trans['service_id'])) {
+                        $service = Service::find($trans['service_id']);
+                        if ($service) {
+                            $trans['mode'] = $service->name;
+                            $trans['price'] = $service->price;
+                            $trans['currency'] = $service->currency ?? 'MYR';
+                            $trans['image'] = $service->image ?? null;
+                            $trans['description'] = $service->short_description ?? $service->description ?? null;
+                        }
+                    }
+                }
+            }
+
             // Enrich places with database data
             if (isset($day['places']) && is_array($day['places'])) {
                 foreach ($day['places'] as &$place) {
-                    if (isset($place['destination_id'])) {
-                        $destinationModel = Destination::find($place['destination_id']);
-                        if ($destinationModel) {
-                            $place['place_name'] = $destinationModel->name;
-                            $place['place_slug'] = $destinationModel->slug;
-                            $place['place_image'] = $destinationModel->image ?? null;
+                    if (is_array($place)) {
+                        if (isset($place['destination_id'])) {
+                            $destinationModel = Destination::find($place['destination_id']);
+                            if ($destinationModel) {
+                                $place['place_name'] = $destinationModel->name;
+                                $place['place_slug'] = $destinationModel->slug;
+                                $place['place_image'] = $destinationModel->image ?? null;
+                            }
+                        }
+                        if (isset($place['service_id'])) {
+                            $service = Service::find($place['service_id']);
+                            if ($service) {
+                                $place['name'] = $service->name;
+                                $place['price'] = $service->price;
+                                $place['currency'] = $service->currency ?? 'MYR';
+                                $place['image'] = $service->image ?? null;
+                                $place['description'] = $service->short_description ?? $service->description ?? null;
+                            }
                         }
                     }
                 }
@@ -325,13 +372,42 @@ class ItineraryHelper
             // Enrich activities with attraction data
             if (isset($day['activities']) && is_array($day['activities'])) {
                 foreach ($day['activities'] as &$activity) {
-                    if (isset($activity['attraction_id'])) {
-                        $attraction = Attraction::find($activity['attraction_id']);
-                        if ($attraction) {
-                            $activity['attraction_name'] = $attraction->name;
-                            $activity['attraction_slug'] = $attraction->slug;
-                            $activity['attraction_image'] = $attraction->image ?? null;
-                            $activity['attraction_description'] = $attraction->short_description ?? null;
+                    if (is_array($activity)) {
+                        if (isset($activity['attraction_id'])) {
+                            $attraction = Attraction::find($activity['attraction_id']);
+                            if ($attraction) {
+                                $activity['attraction_name'] = $attraction->name;
+                                $activity['attraction_slug'] = $attraction->slug;
+                                $activity['attraction_image'] = $attraction->image ?? null;
+                                $activity['attraction_description'] = $attraction->short_description ?? null;
+                            }
+                        }
+                        if (isset($activity['service_id'])) {
+                            $service = Service::find($activity['service_id']);
+                            if ($service) {
+                                $activity['name'] = $service->name;
+                                $activity['price'] = $service->price;
+                                $activity['currency'] = $service->currency ?? 'MYR';
+                                $activity['image'] = $service->image ?? null;
+                                $activity['description'] = $service->short_description ?? $service->description ?? null;
+                            }
+                        }
+                    }
+                }
+            }
+
+            // Enrich spots (Tourist Spots) with database data
+            if (isset($day['spots']) && is_array($day['spots'])) {
+                foreach ($day['spots'] as &$spot) {
+                    if (is_array($spot)) {
+                        $spotId = $spot['tourist_spot_id'] ?? $spot['id'] ?? null;
+                        if ($spotId) {
+                            $spotModel = TouristSpot::find($spotId);
+                            if ($spotModel) {
+                                $spot['name'] = $spotModel->name;
+                                $spot['image'] = $spotModel->image_url ?? null;
+                                $spot['description'] = $spotModel->description ?? null;
+                            }
                         }
                     }
                 }

@@ -512,6 +512,24 @@
                                                     </div>
                                                 @endif
 
+                                                <!-- Tourist Spots -->
+                                                @if(isset($day['spots']) && count($day['spots']) > 0)
+                                                    <div class="mb-3">
+                                                        <h6 class="fw-bold small text-uppercase text-danger mb-2">Tourist Spots:</h6>
+                                                        <div class="d-flex flex-wrap gap-2">
+                                                            @foreach($day['spots'] as $spot)
+                                                                <span class="badge bg-light text-dark border py-2 px-3 rounded-pill" title="{{ $spot['description'] ?? '' }}">
+                                                                    <i class="bi bi-geo-alt-fill text-info me-1"></i>
+                                                                    <strong>{{ $spot['name'] ?? 'Spot' }}</strong>
+                                                                    @if(!empty($spot['hours']))
+                                                                        <span class="text-muted small">({{ $spot['hours'] }}h)</span>
+                                                                    @endif
+                                                                </span>
+                                                            @endforeach
+                                                        </div>
+                                                    </div>
+                                                @endif
+
                                                 <!-- Activities -->
                                                 @if(isset($day['activities']) && count($day['activities']) > 0)
                                                     <div class="mb-3">

@@ -201,6 +201,28 @@
                         </ul>
                     @endif
 
+                    <!-- Tourist Spots -->
+                    @if(!empty($day['spots']))
+                        <div class="section-title">Tourist Spots</div>
+                        <ul>
+                            @foreach($day['spots'] as $spot)
+                                <li>
+                                    <strong>{{ $spot['name'] }}</strong>
+                                    @if(!empty($spot['description']))
+                                        <br><small style="color: #7f8c8d;">{{ $spot['description'] }}</small>
+                                    @endif
+                                    @if(isset($spot['hours']) && $spot['hours'] > 0)
+                                        <span style="color: #7f8c8d; font-size: 0.9em;">(Spending {{ $spot['hours'] }} hours)</span>
+                                    @endif
+                                    @if(isset($spot['price_per_hour']) && $spot['price_per_hour'] > 0 && isset($spot['hours']) && $spot['hours'] > 0)
+                                        <span class="price-tag">{{ $package->currency ?? 'MYR' }}
+                                            {{ number_format($spot['hours'] * $spot['price_per_hour'], 2) }}</span>
+                                    @endif
+                                </li>
+                            @endforeach
+                        </ul>
+                    @endif
+
                     <!-- Activities -->
                     @if(!empty($day['activities']))
                         <div class="section-title">Activities</div>
