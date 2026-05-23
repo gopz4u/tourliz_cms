@@ -516,6 +516,17 @@
                 <textarea class="form-control premium-input day-desc-in" rows="3" placeholder="Describe the day's journey..."></textarea>
             </div>
             
+            <div class="mb-4">
+                <label class="premium-label d-block mb-2">
+                    <i class="bi bi-geo-alt-fill text-danger me-2"></i> Tourist Spots / Sightseeing Places
+                </label>
+                <select class="form-select select2-spots-multi" multiple data-placeholder="Select multiple tourist spots for Day {N}..." style="width: 100%;">
+                    @foreach($touristSpots as $spot)
+                        <option value="{{ $spot->id }}">{{ $spot->name }}</option>
+                    @endforeach
+                </select>
+            </div>
+            
             <div class="bg-light p-4 rounded-4 border">
                 <div class="d-flex justify-content-between align-items-center mb-3">
                     <label class="premium-label mb-0"><i class="bi bi-box-seam me-2 text-primary"></i> Inventory Components</label>
@@ -560,7 +571,6 @@
                 <option value="activity">Activity</option>
                 <option value="ticket">Entry Ticket</option>
                 <option value="meal">Meal</option>
-                <option value="spot">Tourist Spot</option>
             </select>
         </div>
         <div class="col-md-3">
@@ -666,7 +676,8 @@
     function addDay() {
         let n = $('.itinerary-day-card').length + 1;
         let tpl = $('#day-tpl').html().replace(/{N}/g, n);
-        $('#itinerary-timeline').append(tpl);
+        let card = $(tpl).appendTo('#itinerary-timeline');
+        card.find('.select2-spots-multi').select2({ theme: 'bootstrap-5' });
         updateDuration();
     }
 
@@ -833,6 +844,13 @@
         $('.itinerary-day-card').each(function() {
             let day = { day_number: $(this).attr('data-day'), title: $(this).find('.day-title-in').val(), description: $(this).find('.day-desc-in').val(), meals: [], hotels: [], transports: [], activities: [], tickets: [], meals_list: [], spots: [] };
             $(this).find('.meal-cb:checked').each(function() { day.meals.push($(this).val()); });
+            
+            // Collect multi-select tourist spots
+            let spotsVal = $(this).find('.select2-spots-multi').val() || [];
+            spotsVal.forEach(val => {
+                day.spots.push({tourist_spot_id: val, hours: 1, price_per_hour: 0});
+            });
+
             $(this).find('.service-row').each(function() {
                 let type = $(this).find('.service-type').val();
                 let val = $(this).find('.select2-service').val();
@@ -842,7 +860,6 @@
                     else if(type === 'activity') day.activities.push({activity_id: val});
                     else if(type === 'ticket') day.tickets.push({ticket_id: val});
                     else if(type === 'meal') day.meals_list.push({meal_id: val});
-                    else if(type === 'spot') day.spots.push({tourist_spot_id: val, hours: 1, price_per_hour: 0});
                 }
             });
             itinerary.push(day);
