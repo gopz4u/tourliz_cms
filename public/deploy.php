@@ -46,31 +46,15 @@ if (!$projectRoot) {
 echo "<strong>Project Root Found:</strong> $projectRoot<br><br>";
 chdir($projectRoot);
 
-// Diagnostic checks for .env
-echo "<h3>--- Environment (.env) Diagnostic ---</h3>";
-$envPaths = [
-    $projectRoot . '/.env',
-    dirname($projectRoot) . '/.env'
-];
-
-foreach ($envPaths as $path) {
-    if (file_exists($path)) {
-        echo "File: $path<br>";
-        echo "- Exists: YES<br>";
-        echo "- Permissions: " . substr(sprintf('%o', fileperms($path)), -4) . "<br>";
-        echo "- Readable by PHP: " . (is_readable($path) ? "YES" : "NO") . "<br>";
-        // Check size
-        echo "- Size: " . filesize($path) . " bytes<br>";
-    } else {
-        echo "File: $path<br>- Exists: NO<br>";
-    }
-    echo "<br>";
-}
-echo "--------------------------------------<br><br>";
-
 echo "<strong>1. Running Git Pull...</strong><br>";
 $gitOutput = shell_exec('git pull origin main 2>&1');
 echo "<pre>$gitOutput</pre>";
+
+echo "<strong>1b. Checking Git Status and Log...</strong><br>";
+$gitStatus = shell_exec('git status 2>&1');
+echo "<strong>Git Status:</strong><pre>$gitStatus</pre>";
+$gitLog = shell_exec('git log -n 5 --oneline 2>&1');
+echo "<strong>Recent Commits on Server:</strong><pre>$gitLog</pre>";
 
 echo "<strong>2. Clearing Configuration Cache...</strong><br>";
 $configClear = shell_exec('php artisan config:clear 2>&1');
