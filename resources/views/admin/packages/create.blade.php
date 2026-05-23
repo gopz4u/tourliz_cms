@@ -698,6 +698,11 @@
         let validVendorIds = [...new Set(inventory[type].map(i => i.supplier_id))];
         
         vendorSelect.empty().append('<option value="">Choose Vendor</option>');
+        
+        if (type === 'spot') {
+            vendorSelect.append('<option value="none">No Vendor / Public Spot</option>');
+        }
+
         allVendors.forEach(v => {
             if(validVendorIds.includes(v.id)) {
                 vendorSelect.append(`<option value="${v.id}">${v.name}</option>`);
@@ -714,8 +719,14 @@
         let vendorId = $(el).val();
         let serviceSelect = row.find('.select2-service');
         serviceSelect.empty().append('<option value="">Choose Service</option>');
-        if(vendorId && type) {
-            let items = inventory[type].filter(i => i.supplier_id == vendorId);
+        if(type) {
+            let items = [];
+            if (type === 'spot' && (!vendorId || vendorId === 'none')) {
+                // If tourist spot and no specific vendor, show all spots
+                items = inventory[type];
+            } else if (vendorId) {
+                items = inventory[type].filter(i => i.supplier_id == vendorId);
+            }
             items.forEach(i => { serviceSelect.append(`<option value="${i.id}" data-price="${i.price}">${i.name}</option>`); });
         }
         serviceSelect.trigger('change');
