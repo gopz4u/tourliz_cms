@@ -80,6 +80,7 @@ class BookingController extends Controller
             'contact_method' => 'nullable|in:email,whatsapp,phone,query',
             'whatsapp_number' => 'nullable|string|max:50',
             'room_id' => 'nullable|exists:hotel_rooms,id',
+            'transport_type' => 'nullable|string|in:sedan,suv,van',
         ]);
 
         $package = Package::with([
@@ -93,6 +94,19 @@ class BookingController extends Controller
         $pricingResult = $service->calculatePrice($package, $validated['adults'], $validated['room_id'] ?? null);
         
         $basePrice = $pricingResult['total_selling'];
+
+        // Transport Surcharge
+        $transportType = $request->get('transport_type', 'sedan');
+        $transportSurcharge = 0;
+        if ($transportType === 'suv') {
+            $transportSurcharge = 150;
+        } elseif ($transportType === 'van') {
+            $transportSurcharge = 300;
+        }
+        $basePrice += $transportSurcharge;
+
+        // Prepend transport info to notes
+        $validated['notes'] = "Selected Transport: " . strtoupper($transportType) . " (Surcharge: " . ($package->currency ?? 'USD') . " " . $transportSurcharge . ")\n" . ($validated['notes'] ?? '');
         $addonsAmount = 0;
         $servicesAmount = 0;
 
@@ -370,6 +384,7 @@ class BookingController extends Controller
             'children' => 'nullable|integer|min:0',
             'room_config' => 'nullable|string|in:single,double,triple,quad',
             'room_id' => 'nullable|exists:hotel_rooms,id',
+            'transport_type' => 'nullable|string|in:sedan,suv,van',
         ]);
 
         $package = Package::where('slug', $slug)->orWhere('id', $slug)->firstOrFail();
@@ -379,18 +394,26 @@ class BookingController extends Controller
         $service = new \App\Services\PackagePricingService();
         $result = $service->calculatePrice($package, $paxCount, $request->room_id);
 
-        // Optional: Manual Room Type Override logic
-        // If the user selects 'triple' but there are 4 people, 
-        // the service usually handles it, but we can refine here if needed.
+        // Transport Surcharge
+        $transportType = $request->get('transport_type', 'sedan');
+        $transportSurcharge = 0;
+        if ($transportType === 'suv') {
+            $transportSurcharge = 150;
+        } elseif ($transportType === 'van') {
+            $transportSurcharge = 300;
+        }
+
+        $totalSelling = $result['total_selling'] + $transportSurcharge;
+        $perPax = $totalSelling / $paxCount;
 
         $currency = $package->currency ?? 'MYR';
         
         return response()->json([
             'success' => true,
-            'per_pax' => \App\Helpers\CurrencyHelper::format($result['per_pax'], $currency),
-            'total' => \App\Helpers\CurrencyHelper::format($result['total_selling'], $currency),
-            'raw_per_pax' => $result['per_pax'],
-            'raw_total' => $result['total_selling']
+            'per_pax' => \App\Helpers\CurrencyHelper::format($perPax, $currency),
+            'total' => \App\Helpers\CurrencyHelper::format($totalSelling, $currency),
+            'raw_per_pax' => round($perPax, 2),
+            'raw_total' => round($totalSelling, 2)
         ]);
     }
 }

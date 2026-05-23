@@ -320,6 +320,44 @@
             transform: translateX(5px);
             box-shadow: 0 5px 15px rgba(0,0,0,0.05) !important;
         }
+        /* Dynamic OTA Customizer Styles */
+        .transport-card {
+            border: 1.5px solid #e2e8f0;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            background: #fff;
+        }
+        .transport-card:hover {
+            border-color: #dc3545;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 15px rgba(220, 53, 69, 0.08);
+        }
+        .btn-check:checked + .transport-card {
+            background-color: #fffafb;
+            border-color: #dc3545;
+            box-shadow: 0 0 0 3px rgba(220, 53, 69, 0.15);
+        }
+        .btn-check:checked + .transport-card .transport-icon {
+            color: #dc3545 !important;
+        }
+        .btn-check:checked + .transport-card .transport-name {
+            color: #dc3545 !important;
+        }
+        .form-select-custom {
+            border: 1.5px solid #e2e8f0;
+            border-radius: 10px;
+            padding: 10px 14px;
+            font-size: 14px;
+            transition: all 0.2s ease;
+            background-color: #f8fafc;
+        }
+        .form-select-custom:focus {
+            border-color: #dc3545;
+            background-color: #fff;
+            box-shadow: 0 0 0 3px rgba(220, 53, 69, 0.15);
+        }
     </style>
 </head>
 
@@ -557,12 +595,12 @@
 
             <!-- Right Column - Booking Card -->
             <div class="col-lg-4">
-                <div class="booking-card">
+                <div class="booking-card shadow-sm border rounded-4 p-4">
                     <div class="mb-4">
                         <div class="row g-2 mb-3">
                             <div class="col-6">
-                                <label class="form-label small fw-bold">Adults</label>
-                                <select id="booking_adults" class="form-select form-select-sm" onchange="updateBookingPricing()">
+                                <label class="form-label small fw-bold text-muted">Adults</label>
+                                <select id="booking_adults" class="form-select form-select-custom form-select-sm" onchange="updateBookingPricing()">
                                     @php
                                         $minPax = $package->min_pax ?? 1;
                                         $maxPax = $package->max_pax ?? 20;
@@ -575,8 +613,8 @@
                                 </select>
                             </div>
                             <div class="col-6">
-                                <label class="form-label small fw-bold">Kids (2-12)</label>
-                                <select id="booking_children" class="form-select form-select-sm" onchange="updateBookingPricing()">
+                                <label class="form-label small fw-bold text-muted">Kids (2-12)</label>
+                                <select id="booking_children" class="form-select form-select-custom form-select-sm" onchange="updateBookingPricing()">
                                     @for($i=0; $i<=10; $i++)
                                         <option value="{{ $i }}">{{ $i }} {{ $i == 1 ? 'Kid' : 'Kids' }}</option>
                                     @endfor
@@ -589,91 +627,146 @@
                         @endphp
 
                         @if($associatedHotels && $associatedHotels->isNotEmpty())
-                            <label class="form-label small fw-bold mb-2">Select Room Type</label>
                             <div class="mb-3">
-                                <select id="booking_room_id" class="form-select form-select-sm" onchange="updateBookingPricing()">
+                                <label class="form-label small fw-bold mb-1 text-muted">
+                                    <i class="bi bi-building text-danger me-1"></i>Select Hotel & Stay
+                                </label>
+                                <select id="booking_hotel_id" class="form-select form-select-custom form-select-sm mb-2" onchange="filterRoomsByHotel()">
                                     @foreach($associatedHotels as $hotel)
-                                        <optgroup label="{{ $hotel->name }}">
-                                            @foreach($hotel->rooms as $room)
-                                                <option value="{{ $room->id }}">{{ $room->room_type }} ({{ $room->capacity }} Pax)</option>
-                                            @endforeach
-                                        </optgroup>
+                                        <option value="{{ $hotel->id }}">{{ $hotel->name }}</option>
                                     @endforeach
+                                </select>
+                                
+                                <label class="form-label small fw-bold mb-1 text-muted">
+                                    <i class="bi bi-door-open text-danger me-1"></i>Select Room Type
+                                </label>
+                                <select id="booking_room_id" class="form-select form-select-custom form-select-sm" onchange="updateBookingPricing()">
+                                    <!-- Populated dynamically by JS -->
                                 </select>
                             </div>
                         @else
-                            <label class="form-label small fw-bold mb-2">Room Configuration</label>
+                            <label class="form-label small fw-bold mb-2 text-muted">Room Configuration</label>
                             <div class="room-options mb-3">
                                 <div class="form-check small mb-1">
                                     <input class="form-check-input room-config" type="radio" name="room_config" id="config_double" value="double" checked onchange="updateBookingPricing()">
-                                    <label class="form-check-label" for="config_double">Double/Twin Sharing</label>
+                                    <label class="form-check-label text-dark fw-medium" for="config_double">Double/Twin Sharing</label>
                                 </div>
                                 <div class="form-check small mb-1" id="triple_option_container">
                                     <input class="form-check-input room-config" type="radio" name="room_config" id="config_triple" value="triple" onchange="updateBookingPricing()">
-                                    <label class="form-check-label" for="config_triple">Triple Sharing (Extra Bed)</label>
+                                    <label class="form-check-label text-dark fw-medium" for="config_triple">Triple Sharing (Extra Bed)</label>
                                 </div>
                                 <div class="form-check small mb-1" id="quad_option_container">
                                     <input class="form-check-input room-config" type="radio" name="room_config" id="config_quad" value="quad" onchange="updateBookingPricing()">
-                                    <label class="form-check-label" for="config_quad">Quad/Family Sharing</label>
+                                    <label class="form-check-label text-dark fw-medium" for="config_quad">Quad/Family Sharing</label>
                                 </div>
                                 <div class="form-check small">
                                     <input class="form-check-input room-config" type="radio" name="room_config" id="config_single" value="single" onchange="updateBookingPricing()">
-                                    <label class="form-check-label" for="config_single">Single Occupancy</label>
+                                    <label class="form-check-label text-dark fw-medium" for="config_single">Single Occupancy</label>
                                 </div>
                             </div>
                         @endif
+
+                        <!-- Transport Selection -->
+                        <div class="mb-3">
+                            <label class="form-label small fw-bold mb-2 text-muted">
+                                <i class="bi bi-car-front-fill text-danger me-1"></i>Select Transport (Private Transfer)
+                            </label>
+                            <div class="transport-options">
+                                <!-- Sedan Option -->
+                                <div class="position-relative mb-2">
+                                    <input type="radio" class="btn-check" name="transport_type" id="transport_sedan" value="sedan" checked autocomplete="off" onchange="userSelectedTransportOption('sedan')">
+                                    <label class="transport-card p-3 w-100 d-flex align-items-center justify-content-between" for="transport_sedan">
+                                        <div class="d-flex align-items-center">
+                                            <i class="bi bi-car-front fs-4 me-3 text-secondary transport-icon"></i>
+                                            <div>
+                                                <div class="fw-bold text-dark transport-name">Sedan Vehicle</div>
+                                                <div class="text-muted extra-small">1-4 Pax Capacity • Recommended</div>
+                                            </div>
+                                        </div>
+                                        <span class="badge bg-success-subtle text-success py-2 px-3 rounded-pill fw-bold">Included</span>
+                                    </label>
+                                </div>
+                                
+                                <!-- SUV Option -->
+                                <div class="position-relative mb-2">
+                                    <input type="radio" class="btn-check" name="transport_type" id="transport_suv" value="suv" autocomplete="off" onchange="userSelectedTransportOption('suv')">
+                                    <label class="transport-card p-3 w-100 d-flex align-items-center justify-content-between" for="transport_suv">
+                                        <div class="d-flex align-items-center">
+                                            <i class="bi bi-truck-flatbed fs-4 me-3 text-secondary transport-icon"></i>
+                                            <div>
+                                                <div class="fw-bold text-dark transport-name">SUV (MPV) Vehicle</div>
+                                                <div class="text-muted extra-small">4-6 Pax Capacity • Comfort</div>
+                                            </div>
+                                        </div>
+                                        <span class="badge bg-danger-subtle text-danger py-2 px-3 rounded-pill fw-bold">+{{ $package->currency ?? 'MYR' }} 150</span>
+                                    </label>
+                                </div>
+                                
+                                <!-- Van Option -->
+                                <div class="position-relative">
+                                    <input type="radio" class="btn-check" name="transport_type" id="transport_van" value="van" autocomplete="off" onchange="userSelectedTransportOption('van')">
+                                    <label class="transport-card p-3 w-100 d-flex align-items-center justify-content-between" for="transport_van">
+                                        <div class="d-flex align-items-center">
+                                            <i class="bi bi-bus-front-fill fs-4 me-3 text-secondary transport-icon"></i>
+                                            <div>
+                                                <div class="fw-bold text-dark transport-name">10-Seater Van</div>
+                                                <div class="text-muted extra-small">6-8 Pax Capacity • Group</div>
+                                            </div>
+                                        </div>
+                                        <span class="badge bg-danger-subtle text-danger py-2 px-3 rounded-pill fw-bold">+{{ $package->currency ?? 'MYR' }} 300</span>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
                     </div>
 
-                    <div class="pricing-summary bg-light p-3 rounded-3 mb-3">
+                    <div class="pricing-summary bg-light p-3 rounded-3 mb-3 border-0">
                         <div class="d-flex justify-content-between align-items-center mb-1">
-                            <span class="text-muted small">Per Person:</span>
-                            <span class="h4 mb-0 text-danger fw-bold" id="display_per_pax">
+                            <span class="text-muted small fw-medium">Per Person:</span>
+                            <span class="h3 mb-0 text-danger fw-bold" id="display_per_pax">
                                 {{ \App\Helpers\CurrencyHelper::format($package->price, $package->currency ?? 'MYR') }}
                             </span>
                         </div>
                         <div class="d-flex justify-content-between align-items-center border-top pt-2">
-                            <span class="fw-bold small">Total Price:</span>
-                            <span class="h5 mb-0 text-dark" id="display_total">
+                            <span class="fw-bold text-muted small">Total Price:</span>
+                            <span class="h5 mb-0 text-dark fw-bold" id="display_total">
                                 {{ \App\Helpers\CurrencyHelper::format($package->price * 2, $package->currency ?? 'MYR') }}
                             </span>
                         </div>
                     </div>
 
                     @auth
-                        <a href="{{ route('book.package.show', $package->id) }}" class="btn btn-book text-white">
-                            <i class="bi bi-book"></i> BOOK THIS NOW
+                        <a href="{{ route('book.package.show', $package->id) }}" class="btn btn-book text-white py-3 rounded-3 mb-2 shadow-sm">
+                            <i class="bi bi-book-fill me-2"></i>BOOK THIS NOW
                         </a>
                     @else
                         <a href="{{ route('login') }}?redirect={{ urlencode(route('book.package.show', $package->id)) }}"
-                            class="btn btn-book text-white">
-                            <i class="bi bi-book"></i> BOOK THIS NOW
+                            class="btn btn-book text-white py-3 rounded-3 mb-2 shadow-sm">
+                            <i class="bi bi-book-fill me-2"></i>BOOK THIS NOW
                         </a>
                     @endauth
 
                     <a href="https://wa.me/?text={{ urlencode('I am interested in booking: ' . $package->name) }}"
-                        target="_blank" class="btn btn-whatsapp text-white">
-                        <i class="bi bi-whatsapp"></i> Book via WhatsApp
+                        target="_blank" class="btn btn-whatsapp text-white py-3 rounded-3 mb-2 shadow-sm">
+                        <i class="bi bi-whatsapp me-2"></i>Book via WhatsApp
                     </a>
 
-                    <button class="btn btn-quote" onclick="getQuote()">
+                    <button class="btn btn-quote py-3 rounded-3 mb-3" onclick="getQuote()">
                         Get a Quote
                     </button>
 
-                    <p class="text-muted small mt-3">More options available with Free Cancellation</p>
+                    <p class="text-muted small text-center mb-4"><i class="bi bi-shield-check text-success me-1"></i>Free Cancellation Options Available</p>
 
-                    <div class="mt-4">
-                        <h4 class="section-title" style="font-size: 18px;">No ratings yet</h4>
-                        <div class="location-info">
-                            <i class="bi bi-geo-alt"></i> {{ $package->destination->name ?? 'Location not specified' }}
-                        </div>
-                        <p class="location-info mt-2">1 km drive to nearest attraction</p>
-                        <a href="#" class="text-decoration-none">See on Map</a>
+                    <div class="mt-2 border-top pt-3">
+                        <h5 class="section-title" style="font-size: 16px;"><i class="bi bi-geo-alt text-danger me-1"></i>{{ $package->destination->name ?? 'Location not specified' }}</h5>
+                        <p class="location-info mt-1 mb-2 text-muted small"><i class="bi bi-info-circle me-1"></i>1 km drive to nearest key attraction</p>
+                        <a href="#" class="text-decoration-none small fw-bold">See Interactive Map</a>
                     </div>
 
                     @guest
-                        <div class="login-prompt">
-                            <p class="mb-2">Login to unlock deals & manage your bookings!</p>
-                            <a href="{{ route('login') }}" class="btn btn-book text-white">
+                        <div class="login-prompt mt-4 border rounded-3 p-3 bg-light">
+                            <p class="mb-2 text-muted small fw-medium">Login to unlock secret deals & manage your trips!</p>
+                            <a href="{{ route('login') }}" class="btn btn-danger btn-sm text-white w-100 py-2 rounded-2">
                                 LOGIN NOW
                             </a>
                         </div>
@@ -793,6 +886,43 @@
             modal.show();
         }
 
+        const hotelRooms = {
+            @if($associatedHotels && $associatedHotels->isNotEmpty())
+                @foreach($associatedHotels as $hotel)
+                    "{{ $hotel->id }}": [
+                        @foreach($hotel->rooms as $room)
+                            {
+                                id: "{{ $room->id }}",
+                                type: "{{ $room->room_type }}",
+                                capacity: {{ $room->capacity }},
+                                price: {{ $room->base_price }}
+                            },
+                        @endforeach
+                    ],
+                @endforeach
+            @endif
+        };
+
+        function filterRoomsByHotel() {
+            const hotelId = $('#booking_hotel_id').val();
+            const rooms = hotelRooms[hotelId] || [];
+            const $roomSelect = $('#booking_room_id');
+            $roomSelect.empty();
+            
+            rooms.forEach(room => {
+                $roomSelect.append(`<option value="${room.id}">${room.type} (${room.capacity} Pax)</option>`);
+            });
+            
+            updateBookingPricing();
+        }
+
+        let userManuallySelectedTransport = false;
+
+        function userSelectedTransportOption(option) {
+            userManuallySelectedTransport = true;
+            updateBookingPricing();
+        }
+
         function updateBookingPricing() {
             const adults = parseInt($('#booking_adults').val()) || 1;
             const children = parseInt($('#booking_children').val()) || 0;
@@ -830,6 +960,44 @@
                 }
             }
 
+            // Auto-recommend vehicle based on guest capacity
+            const totalGuests = adults + children;
+            if (!userManuallySelectedTransport) {
+                if (totalGuests <= 4) {
+                    $('#transport_sedan').prop('checked', true);
+                } else if (totalGuests <= 6) {
+                    $('#transport_suv').prop('checked', true);
+                } else {
+                    $('#transport_van').prop('checked', true);
+                }
+            }
+
+            const transportType = $('input[name="transport_type"]:checked').val() || 'sedan';
+
+            // Build the query string for checkout redirect
+            let queryParams = `?adults=${adults}&children=${children}`;
+            if (roomId) queryParams += `&room_id=${roomId}`;
+            queryParams += `&transport_type=${transportType}`;
+
+            // Update the BOOK THIS NOW buttons
+            $('.btn-book').each(function() {
+                let baseHref = $(this).data('base-href') || $(this).attr('href').split('?')[0];
+                $(this).data('base-href', baseHref); // store it
+                
+                // If it's a login redirect, wrap it correctly
+                if (baseHref.includes('login')) {
+                    let dest = '{{ route("book.package.show", $package->id) }}' + queryParams;
+                    $(this).attr('href', '{{ route("login") }}?redirect=' + encodeURIComponent(dest));
+                } else {
+                    $(this).attr('href', baseHref + queryParams);
+                }
+            });
+
+            // Update WhatsApp link with dynamic details
+            const selectedRoomText = $('#booking_room_id option:selected').text().trim() || ($('#booking_room_id').length ? 'Selected Room' : roomConfig.toUpperCase() + ' Sharing');
+            const whatsappText = `I am interested in booking: {{ $package->name }} for ${adults} Adults, ${children} Kids.\nStay Room: ${selectedRoomText}.\nTransport: ${transportType.toUpperCase()} vehicle.`;
+            $('.btn-whatsapp').attr('href', `https://wa.me/?text=${encodeURIComponent(whatsappText)}`);
+
             // AJAX call to calculate price
             $.ajax({
                 url: '{{ route("packages.calculate-price", $package->slug) }}',
@@ -839,6 +1007,7 @@
                     children: children,
                     room_config: roomConfig,
                     room_id: roomId,
+                    transport_type: transportType,
                     _token: '{{ csrf_token() }}'
                 },
                 success: function(response) {

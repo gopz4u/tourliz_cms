@@ -49,9 +49,132 @@
         </div>
     @endif
 
+    @php
+        $selectedRoomId = request()->query('room_id');
+        $adultsCount = request()->query('adults', 2);
+        $pricingService = new \App\Services\PackagePricingService();
+        $pricingResult = $pricingService->calculatePrice($package, $adultsCount, $selectedRoomId);
+        
+        $transportType = request()->query('transport_type', 'sedan');
+        $transportSurcharge = 0;
+        if ($transportType === 'suv') {
+            $transportSurcharge = 150;
+        } elseif ($transportType === 'van') {
+            $transportSurcharge = 300;
+        }
+        
+        $initialBasePrice = $pricingResult['total_selling'] + $transportSurcharge;
+    @endphp
+
     <form method="POST" action="{{ route('book.package.submit') }}" id="bookingForm">
         @csrf
         <input type="hidden" name="package_id" value="{{ $package->id }}">
+        @if(request()->query('room_id'))
+            <input type="hidden" name="room_id" value="{{ request()->query('room_id') }}">
+        @endif
+        @if(request()->query('transport_type'))
+            <input type="hidden" name="transport_type" value="{{ request()->query('transport_type') }}">
+        @endif
+
+        <!-- Selected Customization Summary (Trip.com / MakeMyTrip style) -->
+        <div class="card mb-3 border-danger-subtle bg-light shadow-sm">
+            <div class="card-body">
+                <h5 class="fw-bold mb-3 text-dark d-flex align-items-center">
+                    <i class="bi bi-patch-check-fill text-danger me-2"></i> Your Selected Stay & Transport Package
+                </h5>
+                <div class="row g-3">
+                    <!-- Stay Room Details -->
+                    @php
+                        $selectedRoom = null;
+                        $selectedHotelName = null;
+                        if ($selectedRoomId && $package->associated_hotels) {
+                            foreach ($package->associated_hotels as $hotel) {
+                                foreach ($hotel->rooms as $room) {
+                                    if ($room->id == $selectedRoomId) {
+                                        $selectedRoom = $room;
+                                        $selectedHotelName = $hotel->name;
+                                        break 2;
+                                    }
+                                }
+                            }
+                        }
+                        
+                        $transportName = 'Private Sedan Vehicle';
+                        $transportDesc = '1-4 Passengers capacity included';
+                        if ($transportType === 'suv') {
+                            $transportName = 'Private SUV (MPV) Vehicle';
+                            $transportDesc = '4-6 Passengers capacity & luggage comfort';
+                        } elseif ($transportType === 'van') {
+                            $transportName = 'Private 10-Seater Van';
+                            $transportDesc = '6-8 Passengers capacity for groups';
+                        }
+                    @endphp
+
+                    @if($selectedRoom)
+                        <div class="col-md-6">
+                            <div class="p-3 bg-white border rounded-3 h-100">
+                                <div class="d-flex align-items-center mb-2">
+                                    <div class="bg-danger-subtle text-danger p-2 rounded-circle me-3">
+                                        <i class="bi bi-building fs-5"></i>
+                                    </div>
+                                    <div>
+                                        <span class="text-muted extra-small d-block text-uppercase fw-bold" style="font-size: 0.75rem;">Hotel & Room Choice</span>
+                                        <strong class="text-dark">{{ $selectedHotelName }}</strong>
+                                    </div>
+                                </div>
+                                <div class="ps-5">
+                                    <div class="small fw-semibold text-muted">{{ $selectedRoom->room_type }}</div>
+                                    <div class="extra-small text-muted"><i class="bi bi-people me-1"></i>Capacity: Up to {{ $selectedRoom->capacity }} Pax</div>
+                                </div>
+                            </div>
+                        </div>
+                    @else
+                        <div class="col-md-6">
+                            <div class="p-3 bg-white border rounded-3 h-100">
+                                <div class="d-flex align-items-center mb-2">
+                                    <div class="bg-danger-subtle text-danger p-2 rounded-circle me-3">
+                                        <i class="bi bi-house-check fs-5"></i>
+                                    </div>
+                                    <div>
+                                        <span class="text-muted extra-small d-block text-uppercase fw-bold" style="font-size: 0.75rem;">Stay Room Configuration</span>
+                                        <strong class="text-dark">Standard Sharing Stay</strong>
+                                    </div>
+                                </div>
+                                <div class="ps-5">
+                                    <div class="small fw-semibold text-muted">Double / Twin Sharing</div>
+                                    <div class="extra-small text-muted"><i class="bi bi-info-circle me-1"></i>Adjusted based on guest counts</div>
+                                </div>
+                            </div>
+                        </div>
+                    @endif
+
+                    <!-- Transport Vehicle Details -->
+                    <div class="col-md-6">
+                        <div class="p-3 bg-white border rounded-3 h-100">
+                            <div class="d-flex align-items-center mb-2">
+                                <div class="bg-danger-subtle text-danger p-2 rounded-circle me-3">
+                                    <i class="bi bi-car-front fs-5"></i>
+                                </div>
+                                <div>
+                                    <span class="text-muted extra-small d-block text-uppercase fw-bold" style="font-size: 0.75rem;">Private Transport Choice</span>
+                                    <strong class="text-dark">{{ $transportName }}</strong>
+                                </div>
+                            </div>
+                            <div class="ps-5">
+                                <div class="small fw-semibold text-muted">{{ $transportDesc }}</div>
+                                <div class="extra-small text-muted">
+                                    @if($transportSurcharge > 0)
+                                        <span class="text-danger fw-bold">+{{ $package->currency ?? 'MYR' }} {{ number_format($transportSurcharge, 2) }} Upgrade Surcharge</span>
+                                    @else
+                                        <span class="text-success fw-bold">Included in Base Price</span>
+                                    @endif
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
 
         <div class="card mb-3">
             <div class="card-body">
@@ -75,11 +198,11 @@
                     </div>
                     <div class="col-md-6">
                         <label class="form-label">Adults <span class="text-danger">*</span></label>
-                        <input type="number" name="adults" class="form-control" min="1" max="20" value="{{ old('adults', 1) }}" required>
+                        <input type="number" name="adults" class="form-control" min="1" max="20" value="{{ old('adults', request()->query('adults', 2)) }}" required>
                     </div>
                     <div class="col-md-6">
                         <label class="form-label">Children</label>
-                        <input type="number" name="children" class="form-control" min="0" max="20" value="{{ old('children', 0) }}">
+                        <input type="number" name="children" class="form-control" min="0" max="20" value="{{ old('children', request()->query('children', 0)) }}">
                     </div>
                 </div>
             </div>
@@ -274,7 +397,7 @@
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script>
     const currency = '{{ $package->currency ?? "USD" }}';
-    const basePrice = {{ $package->price ?? 0 }};
+    let basePrice = {{ $initialBasePrice }};
     let discountAmount = 0;
     
     // Calculate total price
@@ -425,6 +548,39 @@
             }
         });
     });
+
+    // Real-time guest count price recalculator
+    function fetchUpdatedBasePrice() {
+        const adults = document.querySelector('[name="adults"]').value;
+        const children = document.querySelector('[name="children"]').value;
+        const roomId = '{{ request()->query("room_id", "") }}';
+        const transportType = '{{ request()->query("transport_type", "sedan") }}';
+
+        fetch('{{ route("packages.calculate-price", $package->slug) }}', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+            },
+            body: JSON.stringify({
+                adults: adults,
+                children: children,
+                room_id: roomId ? roomId : null,
+                transport_type: transportType
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                basePrice = data.raw_total;
+                calculateTotal();
+            }
+        })
+        .catch(err => console.error('Failed to recalculate pricing', err));
+    }
+
+    document.querySelector('[name="adults"]').addEventListener('change', fetchUpdatedBasePrice);
+    document.querySelector('[name="children"]').addEventListener('change', fetchUpdatedBasePrice);
 </script>
 </body>
 </html>

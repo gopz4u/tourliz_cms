@@ -9,6 +9,44 @@ class Booking extends Model
 {
     use HasFactory;
 
+    protected static function boot()
+    {
+        parent::boot();
+
+        static::saving(function ($booking) {
+            // Synchronize name, email, phone with customer_* fields
+            if (empty($booking->customer_name) && !empty($booking->name)) {
+                $booking->customer_name = $booking->name;
+            }
+            if (empty($booking->customer_email) && !empty($booking->email)) {
+                $booking->customer_email = $booking->email;
+            }
+            if (empty($booking->customer_phone) && !empty($booking->phone)) {
+                $booking->customer_phone = $booking->phone;
+            }
+
+            if (empty($booking->name) && !empty($booking->customer_name)) {
+                $booking->name = $booking->customer_name;
+            }
+            if (empty($booking->email) && !empty($booking->customer_email)) {
+                $booking->email = $booking->customer_email;
+            }
+            if (empty($booking->phone) && !empty($booking->customer_phone)) {
+                $booking->phone = $booking->customer_phone;
+            }
+
+            // Fallback for number_of_people
+            if ($booking->number_of_people === null || $booking->number_of_people === '') {
+                $booking->number_of_people = ($booking->adults ?? 1) + ($booking->children ?? 0);
+            }
+
+            // Fallback for package_price
+            if ($booking->package_price === null || $booking->package_price === '') {
+                $booking->package_price = $booking->price ?? $booking->base_price ?? 0;
+            }
+        });
+    }
+
     protected $fillable = [
         'package_id',
         'hotel_room_id',
