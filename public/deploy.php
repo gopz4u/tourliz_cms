@@ -4,11 +4,66 @@ set_time_limit(300);
 
 echo "<h2>Tourliz CMS Auto-Deployment Script</h2>";
 
-// Move to the parent directory (project root)
-$projectRoot = dirname(__DIR__);
-chdir($projectRoot);
+// Find the directory containing the '.git' folder or 'artisan' file
+function findProjectRoot($startDir) {
+    $current = realpath($startDir);
+    // Check up to 4 levels up
+    for ($i = 0; $i < 4; $i++) {
+        if (file_exists($current . '/artisan') && (file_exists($current . '/.git') || file_exists($current . '/composer.json'))) {
+            return $current;
+        }
+        $parent = dirname($current);
+        if ($parent === $current) break;
+        $current = $parent;
+    }
+    
+    // Check subdirectories of the parent of startDir (one level up from public_html)
+    $parentOfStart = dirname($startDir);
+    if (file_exists($parentOfStart)) {
+        $files = scandir($parentOfStart);
+        foreach ($files as $file) {
+            if ($file === '.' || $file === '..') continue;
+            $path = $parentOfStart . '/' . $file;
+            if (is_dir($path)) {
+                if (file_exists($path . '/artisan')) {
+                    return realpath($path);
+                }
+            }
+        }
+    }
+    
+    // Check subdirectories of startDir itself (public_html/tourliz_cms, etc.)
+    $files = scandir($startDir);
+    foreach ($files as $file) {
+        if ($file === '.' || $file === '..') continue;
+        $path = $startDir . '/' . $file;
+        if (is_dir($path)) {
+            if (file_exists($path . '/artisan')) {
+                return realpath($path);
+            }
+        }
+    }
+    
+    return null;
+}
 
-echo "Working directory: " . getcwd() . "<br><br>";
+$startDir = dirname(__FILE__); // directory of deploy.php (usually public_html)
+$projectRoot = findProjectRoot($startDir);
+
+if (!$projectRoot) {
+    echo "<p style='color: red;'><strong>Error:</strong> Could not find project root containing '.git' or 'artisan'.</p>";
+    echo "Current directory: " . $startDir . "<br>";
+    echo "Directories list in " . dirname($startDir) . ":<pre>";
+    print_r(scandir(dirname($startDir)));
+    echo "</pre>";
+    echo "Directories list in " . $startDir . ":<pre>";
+    print_r(scandir($startDir));
+    echo "</pre>";
+    exit;
+}
+
+echo "<strong>Project Root Found:</strong> $projectRoot<br><br>";
+chdir($projectRoot);
 
 echo "<strong>1. Running Git Pull...</strong><br>";
 $gitOutput = shell_exec('git pull origin main 2>&1');
