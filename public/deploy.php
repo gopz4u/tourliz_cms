@@ -32,38 +32,41 @@ function findProjectRoot($startDir) {
         }
     }
     
-    // Check subdirectories of startDir itself (public_html/tourliz_cms, etc.)
-    $files = scandir($startDir);
-    foreach ($files as $file) {
-        if ($file === '.' || $file === '..') continue;
-        $path = $startDir . '/' . $file;
-        if (is_dir($path)) {
-            if (file_exists($path . '/artisan')) {
-                return realpath($path);
-            }
-        }
-    }
-    
     return null;
 }
 
-$startDir = dirname(__FILE__); // directory of deploy.php (usually public_html)
+$startDir = dirname(__FILE__);
 $projectRoot = findProjectRoot($startDir);
 
 if (!$projectRoot) {
     echo "<p style='color: red;'><strong>Error:</strong> Could not find project root containing '.git' or 'artisan'.</p>";
-    echo "Current directory: " . $startDir . "<br>";
-    echo "Directories list in " . dirname($startDir) . ":<pre>";
-    print_r(scandir(dirname($startDir)));
-    echo "</pre>";
-    echo "Directories list in " . $startDir . ":<pre>";
-    print_r(scandir($startDir));
-    echo "</pre>";
     exit;
 }
 
 echo "<strong>Project Root Found:</strong> $projectRoot<br><br>";
 chdir($projectRoot);
+
+// Diagnostic checks for .env
+echo "<h3>--- Environment (.env) Diagnostic ---</h3>";
+$envPaths = [
+    $projectRoot . '/.env',
+    dirname($projectRoot) . '/.env'
+];
+
+foreach ($envPaths as $path) {
+    if (file_exists($path)) {
+        echo "File: $path<br>";
+        echo "- Exists: YES<br>";
+        echo "- Permissions: " . substr(sprintf('%o', fileperms($path)), -4) . "<br>";
+        echo "- Readable by PHP: " . (is_readable($path) ? "YES" : "NO") . "<br>";
+        // Check size
+        echo "- Size: " . filesize($path) . " bytes<br>";
+    } else {
+        echo "File: $path<br>- Exists: NO<br>";
+    }
+    echo "<br>";
+}
+echo "--------------------------------------<br><br>";
 
 echo "<strong>1. Running Git Pull...</strong><br>";
 $gitOutput = shell_exec('git pull origin main 2>&1');
@@ -89,5 +92,5 @@ echo "<strong>6. Running Migrations (if any)...</strong><br>";
 $migrationOutput = shell_exec('php artisan migrate --force 2>&1');
 echo "<pre>$migrationOutput</pre>";
 
-echo "<h3>Deployment completed successfully!</h3>";
+echo "<h3>Deployment completed!</h3>";
 echo "<p style='color: red;'><strong>Important:</strong> Delete this file (deploy.php) from your public_html folder immediately for security.</p>";
