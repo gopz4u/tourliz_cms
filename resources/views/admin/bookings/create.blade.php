@@ -69,14 +69,24 @@
                             <label class="form-label">Travel Date (Arrival) <span class="text-danger">*</span></label>
                             <input type="date" name="travel_date" class="form-control" required>
                         </div>
-                        <div class="row g-2">
+                        <div class="row g-2 mb-3">
                             <div class="col-6">
                                 <label class="form-label">Adults <span class="text-danger">*</span></label>
-                                <input type="number" name="adults" class="form-control" min="1" value="1" required>
+                                <input type="number" name="adults" id="booking_adults" class="form-control" min="1" value="1" required>
                             </div>
                             <div class="col-6">
                                 <label class="form-label">Kids (Total)</label>
-                                <input type="number" name="children" class="form-control" min="0" value="0">
+                                <input type="number" name="children" id="booking_children" class="form-control" min="0" value="0" readonly>
+                            </div>
+                        </div>
+                        <div class="row g-2">
+                            <div class="col-6">
+                                <label class="form-label">Kids (Age 2-6)</label>
+                                <input type="number" name="kids_2_6" id="booking_kids_2_6" class="form-control" min="0" value="0">
+                            </div>
+                            <div class="col-6">
+                                <label class="form-label">Kids (Age 6-11)</label>
+                                <input type="number" name="kids_6_10" id="booking_kids_6_10" class="form-control" min="0" value="0">
                             </div>
                         </div>
                     </div>
@@ -127,3 +137,19 @@
         </div>
     </form>
 @endsection
+
+@push('scripts')
+<script>
+    $(document).ready(function() {
+        function updateKidsTotal() {
+            var kids26 = parseInt($('#booking_kids_2_6').val()) || 0;
+            var kids610 = parseInt($('#booking_kids_6_10').val()) || 0;
+            $('#booking_children').val(kids26 + kids610);
+        }
+
+        $('#booking_kids_2_6, #booking_kids_6_10').on('input change', function() {
+            updateKidsTotal();
+        });
+    });
+</script>
+@endpush
