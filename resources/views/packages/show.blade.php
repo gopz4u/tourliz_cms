@@ -564,6 +564,13 @@
                                                         if(($day['meals']['breakfast'] ?? '') == 'Included' || ($day['meals']['breakfast'] ?? '') != '') $m[] = 'Breakfast';
                                                         if(($day['meals']['lunch'] ?? '') == 'Included' || ($day['meals']['lunch'] ?? '') != '') $m[] = 'Lunch';
                                                         if(($day['meals']['dinner'] ?? '') == 'Included' || ($day['meals']['dinner'] ?? '') != '') $m[] = 'Dinner';
+                                                        if(isset($day['meals_list']) && is_array($day['meals_list'])) {
+                                                            foreach($day['meals_list'] as $mealItem) {
+                                                                if(!empty($mealItem['name'])) {
+                                                                    $m[] = $mealItem['name'];
+                                                                }
+                                                            }
+                                                        }
                                                     @endphp
                                                     @if(count($m) > 0)
                                                         <div class="col-md-6">

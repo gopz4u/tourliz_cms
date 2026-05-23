@@ -412,6 +412,24 @@ class ItineraryHelper
                     }
                 }
             }
+
+            // Enrich meals_list (Meals) with database data
+            if (isset($day['meals_list']) && is_array($day['meals_list'])) {
+                foreach ($day['meals_list'] as &$mealItem) {
+                    if (is_array($mealItem)) {
+                        $mealId = $mealItem['meal_id'] ?? $mealItem['id'] ?? null;
+                        if ($mealId) {
+                            $mealModel = \App\Models\Meal::find($mealId);
+                            if ($mealModel) {
+                                $mealItem['name'] = $mealModel->name;
+                                $mealItem['price'] = $mealModel->price;
+                                $mealItem['type'] = $mealModel->type;
+                                $mealItem['description'] = $mealModel->description;
+                            }
+                        }
+                    }
+                }
+            }
         }
 
         return $itinerary;

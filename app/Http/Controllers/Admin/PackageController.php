@@ -469,7 +469,7 @@ class PackageController extends Controller
      */
     public function edit($id)
     {
-        $package = Package::withTrashed()->with(['days.hotels', 'days.transports', 'days.activities', 'days.attractions'])->findOrFail($id);
+        $package = Package::withTrashed()->with(['days.hotels', 'days.transports', 'days.activities', 'days.attractions', 'days.meals_list.meal'])->findOrFail($id);
         $countries = \App\Models\Country::where('status', true)->orderBy('name')->get();
         $destinations = \App\Models\Destination::orderBy('name')->get();
         $hotels = \App\Models\Hotel::with(['roomTypes', 'supplier'])->orderBy('name')->get();
