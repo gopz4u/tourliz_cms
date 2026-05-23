@@ -795,6 +795,8 @@
             row.find('.service-type').val(data.type).trigger('change');
             row.find('.select2-vendor').val(data.supplier_id).trigger('change');
             setTimeout(() => { row.find('.select2-service').val(data.id).trigger('change'); }, 100);
+        } else {
+            row.find('.service-type').trigger('change');
         }
     }
 

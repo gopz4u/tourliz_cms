@@ -694,6 +694,8 @@
             setTimeout(() => {
                 row.find('.select2-service').val(data.id).trigger('change');
             }, 100);
+        } else {
+            row.find('.service-type').trigger('change');
         }
     }
 
