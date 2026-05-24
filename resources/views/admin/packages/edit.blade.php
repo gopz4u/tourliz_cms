@@ -880,7 +880,9 @@
                 let s = $(this).find('.select2-service option:selected');
                 if(s.val()) {
                     let p = parseFloat(s.data('price')) || 0;
-                    total += p;
+                    if (type !== 'hotel' && type !== 'transport') {
+                        total += p;
+                    }
                     let typeLabel = type.charAt(0).toUpperCase() + type.slice(1);
                     if(type === 'ticket') typeLabel = 'Entry Ticket';
                     html += `<div class="d-flex justify-content-between mb-2"><span>Day ${dNum}: ${typeLabel} - ${s.text()}</span><span class="fw-bold text-dark">₹${p.toLocaleString()}</span></div>`;
