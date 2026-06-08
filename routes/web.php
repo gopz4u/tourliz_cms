@@ -202,6 +202,9 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:admin'])->grou
 
         // Package Offers Management
         Route::resource('package-offers', PackageOfferController::class);
+
+        // Bookings Deletion (Super Admin Only)
+        Route::delete('bookings/{booking}', [AdminBookingController::class, 'destroy'])->name('bookings.destroy');
     });
 
     // Bookings Management

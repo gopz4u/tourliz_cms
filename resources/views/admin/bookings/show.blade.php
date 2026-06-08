@@ -15,7 +15,16 @@
                 </ol>
             </nav>
         </div>
-        <div class="d-flex gap-2">
+        <div class="d-flex gap-2 align-items-center">
+            @if(auth()->user()->isSuperAdmin())
+                <form action="{{ route('admin.bookings.destroy', $booking) }}" method="POST" onsubmit="return confirm('Are you sure you want to delete this booking?')">
+                    @csrf
+                    @method('DELETE')
+                    <button type="submit" class="btn btn-danger">
+                        <i class="bi bi-trash me-2"></i>Delete Booking
+                    </button>
+                </form>
+            @endif
             <a href="{{ route('admin.bookings.index') }}" class="btn btn-outline-secondary">
                 <i class="bi bi-arrow-left"></i> Back to List
             </a>

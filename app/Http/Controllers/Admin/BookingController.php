@@ -205,5 +205,39 @@ class BookingController extends Controller
 
         return redirect()->back()->with('success', 'Booking updated successfully.');
     }
+
+    public function destroy(Booking $booking)
+    {
+        if (!auth()->user()->isSuperAdmin()) {
+            if (request()->ajax() || request()->wantsJson()) {
+                return response()->json(['message' => 'Unauthorized access.'], 403);
+            }
+            abort(403, 'Unauthorized access.');
+        }
+
+        try {
+            $booking->delete();
+
+            if (request()->ajax() || request()->wantsJson()) {
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Booking deleted successfully.'
+                ]);
+            }
+
+            return redirect()->route('admin.bookings.index')->with('success', 'Booking deleted successfully.');
+        } catch (\Exception $e) {
+            \Log::error('Failed to delete booking: ' . $e->getMessage());
+            
+            if (request()->ajax() || request()->wantsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Failed to delete booking: ' . $e->getMessage()
+                ], 500);
+            }
+
+            return redirect()->back()->with('error', 'Failed to delete booking: ' . $e->getMessage());
+        }
+    }
 }
 

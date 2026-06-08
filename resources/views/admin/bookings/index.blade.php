@@ -238,11 +238,20 @@
                                             class="badge {{ $followupBadge }}">{{ ucfirst(str_replace('_', ' ', $followupStatus)) }}</span>
                                     </div>
                                 </div>
-                                <div class="col-md-1 text-end">
+                                <div class="col-md-1 text-end d-flex gap-1 justify-content-end align-items-center">
                                     <button type="button" class="btn btn-primary btn-sm" data-bs-toggle="modal"
                                         data-bs-target="#bookingModal{{ $booking->id }}" title="View Details">
-                                        <i class="bi bi-eye"></i> Details
+                                        <i class="bi bi-eye"></i>
                                     </button>
+                                    @if(auth()->user()->isSuperAdmin())
+                                        <form action="{{ route('admin.bookings.destroy', $booking) }}" method="POST" onsubmit="return confirm('Are you sure you want to delete this booking?')" class="d-inline mb-0">
+                                            @csrf
+                                            @method('DELETE')
+                                            <button type="submit" class="btn btn-danger btn-sm" title="Delete Booking">
+                                                <i class="bi bi-trash"></i>
+                                            </button>
+                                        </form>
+                                    @endif
                                 </div>
                             </div>
                         </div>
@@ -524,6 +533,15 @@
                                         </div>
                                     </div>
                                     <div class="modal-footer">
+                                        @if(auth()->user()->isSuperAdmin())
+                                            <form action="{{ route('admin.bookings.destroy', $booking) }}" method="POST" onsubmit="return confirm('Are you sure you want to delete this booking?')" class="me-auto mb-0">
+                                                @csrf
+                                                @method('DELETE')
+                                                <button type="submit" class="btn btn-danger">
+                                                    <i class="bi bi-trash me-2"></i>Delete Booking
+                                                </button>
+                                            </form>
+                                        @endif
                                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
                                     </div>
                                 </div>
