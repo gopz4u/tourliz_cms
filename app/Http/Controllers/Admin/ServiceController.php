@@ -115,8 +115,15 @@ class ServiceController extends Controller
 
         $validated['currency'] = $validated['currency'] ?? 'MYR';
 
-        if (!isset($validated['slug'])) {
-            $validated['slug'] = Str::slug($validated['name']);
+        if (!isset($validated['slug']) || empty($validated['slug'])) {
+            $slug = Str::slug($validated['name']);
+            $originalSlug = $slug;
+            $count = 1;
+            while (Service::withTrashed()->where('slug', $slug)->exists()) {
+                $slug = $originalSlug . '-' . $count;
+                $count++;
+            }
+            $validated['slug'] = $slug;
         }
 
         // Handle boolean fields - convert to boolean (accepts 0, 1, true, false, "0", "1", etc.)

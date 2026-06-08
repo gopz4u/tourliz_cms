@@ -86,8 +86,15 @@ class AttractionController extends Controller
             'meta_keywords' => 'nullable|string',
         ]);
 
-        if (!isset($validated['slug'])) {
-            $validated['slug'] = Str::slug($validated['name']);
+        if (!isset($validated['slug']) || empty($validated['slug'])) {
+            $slug = Str::slug($validated['name']);
+            $originalSlug = $slug;
+            $count = 1;
+            while (Attraction::withTrashed()->where('slug', $slug)->exists()) {
+                $slug = $originalSlug . '-' . $count;
+                $count++;
+            }
+            $validated['slug'] = $slug;
         }
 
         // Handle boolean fields
@@ -155,8 +162,15 @@ class AttractionController extends Controller
                 'meta_keywords' => 'nullable|string',
             ]);
 
-            if (!isset($validated['slug'])) {
-                $validated['slug'] = Str::slug($validated['name']);
+            if (!isset($validated['slug']) || empty($validated['slug'])) {
+                $slug = Str::slug($validated['name']);
+                $originalSlug = $slug;
+                $count = 1;
+                while (Attraction::withTrashed()->where('slug', $slug)->where('id', '!=', $attraction->id)->exists()) {
+                    $slug = $originalSlug . '-' . $count;
+                    $count++;
+                }
+                $validated['slug'] = $slug;
             }
 
             // Handle boolean fields

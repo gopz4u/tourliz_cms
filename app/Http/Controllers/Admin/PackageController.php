@@ -166,8 +166,15 @@ class PackageController extends Controller
             'availability' => 'nullable|array',
         ]);
 
-        if (!isset($validated['slug'])) {
-            $validated['slug'] = Str::slug($validated['name']);
+        if (!isset($validated['slug']) || empty($validated['slug'])) {
+            $slug = Str::slug($validated['name']);
+            $originalSlug = $slug;
+            $count = 1;
+            while (Package::withTrashed()->where('slug', $slug)->exists()) {
+                $slug = $originalSlug . '-' . $count;
+                $count++;
+            }
+            $validated['slug'] = $slug;
         }
 
         // Handle File Uploads

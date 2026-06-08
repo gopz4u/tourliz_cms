@@ -160,7 +160,14 @@ class DestinationController extends Controller
         $validated['gallery'] = $validated['gallery'] ?? [];
 
         if (!isset($validated['slug']) || empty($validated['slug'])) {
-            $validated['slug'] = Str::slug($validated['name']);
+            $slug = Str::slug($validated['name']);
+            $originalSlug = $slug;
+            $count = 1;
+            while (Destination::withTrashed()->where('slug', $slug)->exists()) {
+                $slug = $originalSlug . '-' . $count;
+                $count++;
+            }
+            $validated['slug'] = $slug;
         }
 
         $place = Destination::create($validated);
