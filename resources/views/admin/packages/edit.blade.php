@@ -745,6 +745,19 @@
     }
 
     function step(dir) {
+        if (dir > 0) {
+            let errors = validateStep(activeStep);
+            if (errors.length > 0) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Please complete the required fields',
+                    html: `<div class="text-start small">${errors.join('<br>')}</div>`,
+                    confirmButtonColor: '#1e293b'
+                });
+                return;
+            }
+        }
+
         let target = activeStep + dir;
         if(target < 1 || target > 4) return;
 
@@ -765,6 +778,36 @@
         if(activeStep === 3) calculateRates();
         
         window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function validateStep(stepId) {
+        let stepEl = document.getElementById(`step-${stepId}`);
+        if (!stepEl) return [];
+        
+        let inputs = stepEl.querySelectorAll('input, select, textarea');
+        let errors = [];
+        
+        const fieldLabels = {
+            'name': 'Package Title',
+            'country_id': 'Country',
+            'destination_id': 'Primary Destination',
+            'price': 'Final Selling Rate'
+        };
+        
+        inputs.forEach(input => {
+            if (input.hasAttribute('required') || input.required) {
+                if (!input.value || input.value.trim() === '') {
+                    let fieldName = fieldLabels[input.name] || input.placeholder || input.name || 'Required Field';
+                    errors.push(`<b>${fieldName}</b> is required.`);
+                }
+            }
+            if (input.value && !input.checkValidity()) {
+                let fieldName = fieldLabels[input.name] || input.placeholder || input.name || 'Field';
+                errors.push(`<b>${fieldName}</b>: ${input.validationMessage}`);
+            }
+        });
+        
+        return errors;
     }
 
     function addDay(data = null) {
@@ -944,6 +987,20 @@
     }
 
     function submitPackage() {
+        let allErrors = [];
+        for (let i = 1; i <= 4; i++) {
+            allErrors = allErrors.concat(validateStep(i));
+        }
+        if (allErrors.length > 0) {
+            Swal.fire({
+                icon: 'error',
+                title: 'Please complete the required fields',
+                html: `<div class="text-start small">${allErrors.join('<br>')}</div>`,
+                confirmButtonColor: '#1e293b'
+            });
+            return;
+        }
+
         const formData = new FormData(document.getElementById('package-wizard-form'));
         let itinerary = [];
         $('.itinerary-day-card').each(function() {
