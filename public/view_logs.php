@@ -5,7 +5,7 @@ if (!file_exists($logFile)) {
     exit;
 }
 
-$lines = 100;
+$lines = 500;
 $data = file($logFile);
 $lineCount = count($data);
 $start = max(0, $lineCount - $lines);
