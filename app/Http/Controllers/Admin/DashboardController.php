@@ -25,17 +25,24 @@ class DashboardController extends Controller
         ];
 
         // --- Advanced Sales Analytics ---
-        $bookingRevenue = \App\Models\Booking::sum('total_amount');
+        $bookingRevenue = \App\Models\Booking::sum(\DB::raw('COALESCE(total_amount, price, 0)'));
         $b2bRevenue = CustomItinerary::sum('total_price');
         $b2cRevenue = B2CItinerary::sum('total_price');
         $totalRevenue = $bookingRevenue + $b2bRevenue + $b2cRevenue;
 
-        $bookingReceived = \App\Models\Booking::where('payment_status', 'paid')->sum('total_amount'); // Simplified
+        $bookingReceived = \App\Models\Booking::where('payment_status', 'paid')->sum(\DB::raw('COALESCE(total_amount, price, 0)')); // Simplified
         $b2bReceived = CustomItinerary::sum('total_amount_received');
         $b2cReceived = B2CItinerary::sum('total_amount_received');
         $totalReceived = $bookingReceived + $b2bReceived + $b2cReceived;
 
-        $totalExpenses = \App\Models\ItineraryExpense::sum('amount');
+        // Only sum expenses of active (non-soft-deleted) B2B/B2C itineraries
+        $b2bExpenses = \App\Models\ItineraryExpense::where('itinerary_type', 'b2b')
+            ->whereIn('itinerary_id', CustomItinerary::pluck('id'))
+            ->sum('amount');
+        $b2cExpenses = \App\Models\ItineraryExpense::where('itinerary_type', 'b2c')
+            ->whereIn('itinerary_id', B2CItinerary::pluck('id'))
+            ->sum('amount');
+        $totalExpenses = $b2bExpenses + $b2cExpenses;
         $netProfit = $totalRevenue - $totalExpenses;
 
         $salesStats = [
@@ -126,11 +133,26 @@ class DashboardController extends Controller
                 ->whereYear('created_at', $month->year)
                 ->sum('total_price');
 
-            $mExp = \App\Models\ItineraryExpense::whereMonth('expense_date', $month->month)
+            $mBooking = \App\Models\Booking::whereMonth('created_at', $month->month)
+                ->whereYear('created_at', $month->year)
+                ->sum(\DB::raw('COALESCE(total_amount, price, 0)'));
+
+            // Only sum expenses of active (non-soft-deleted) B2B/B2C itineraries
+            $mExpB2B = \App\Models\ItineraryExpense::where('itinerary_type', 'b2b')
+                ->whereMonth('expense_date', $month->month)
                 ->whereYear('expense_date', $month->year)
+                ->whereIn('itinerary_id', CustomItinerary::pluck('id'))
                 ->sum('amount');
 
-            $totalRev = $mB2B + $mB2C;
+            $mExpB2C = \App\Models\ItineraryExpense::where('itinerary_type', 'b2c')
+                ->whereMonth('expense_date', $month->month)
+                ->whereYear('expense_date', $month->year)
+                ->whereIn('itinerary_id', B2CItinerary::pluck('id'))
+                ->sum('amount');
+
+            $mExp = $mExpB2B + $mExpB2C;
+
+            $totalRev = $mB2B + $mB2C + $mBooking;
             $revenue[] = (float) $totalRev;
             $profit[] = (float) ($totalRev - $mExp);
         }
