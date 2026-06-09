@@ -5,59 +5,66 @@ $kernel = $app->make(Illuminate\Contracts\Console\Kernel::class);
 $kernel->bootstrap();
 
 use App\Models\Booking;
-use App\Models\Review;
+use App\Models\Package;
 use Illuminate\Support\Facades\DB;
 
 header('Content-Type: text/plain');
 
-echo "Debugging Booking Deletion:\n\n";
+echo "Debugging Booking Deletion (No Transactions):\n\n";
 
 try {
     // 1. Check database connection
     DB::connection()->getPdo();
     echo "Database connection successful.\n";
     
-    // 2. Count bookings
-    $count = Booking::count();
-    echo "Total Bookings: $count\n";
+    // 2. Find a package
+    $package = Package::first();
+    if (!$package) {
+        echo "No packages found in the database. Cannot create dummy booking.\n";
+    } else {
+        echo "Found Package ID: {$package->id}\n";
+        
+        // 3. Create a dummy booking
+        echo "Creating dummy booking...\n";
+        $dummy = Booking::create([
+            'package_id' => $package->id,
+            'name' => 'Delete Test Dummy',
+            'email' => 'dummy@example.com',
+            'phone' => '1234567890',
+            'travel_date' => date('Y-m-d'),
+            'adults' => 1,
+            'status' => 'pending',
+            'followup_status' => 'leads',
+            'total_amount' => 100.00,
+        ]);
+        echo "Dummy booking created with ID: {$dummy->id}\n";
+        
+        // 4. Try deleting the dummy booking
+        echo "Attempting to delete dummy booking...\n";
+        $dummy->delete();
+        echo "SUCCESS: Dummy booking deleted successfully!\n\n";
+    }
     
-    // 3. Find a test booking or the last booking
+    // 5. Try deleting the last booking (real test)
     $booking = Booking::orderBy('id', 'desc')->first();
     if (!$booking) {
-        echo "No bookings found in the database.\n";
-        exit;
+        echo "No bookings found in database.\n";
+    } else {
+        echo "Last Booking in Database ID: {$booking->id}\n";
+        echo "Name: {$booking->name}\n";
+        echo "Attempting to delete last booking (real deletion attempt)...\n";
+        
+        // We will do this and catch any error
+        try {
+            $booking->delete();
+            echo "SUCCESS: Last booking deleted successfully!\n";
+        } catch (\Throwable $ex) {
+            echo "ERROR deleting last booking: " . $ex->getMessage() . "\n";
+            echo $ex->getTraceAsString() . "\n";
+        }
     }
     
-    echo "Last Booking ID: {$booking->id}\n";
-    echo "Name: {$booking->name}\n";
-    echo "Email: {$booking->email}\n";
-    echo "Created At: {$booking->created_at}\n\n";
-    
-    // 4. Check related records in other tables
-    echo "Checking related records:\n";
-    try {
-        $reviewsCount = Review::where('booking_id', $booking->id)->count();
-        echo "- Related reviews: $reviewsCount\n";
-    } catch (\Throwable $ex) {
-        echo "- Could not check reviews: " . $ex->getMessage() . "\n";
-    }
-    
-    // Check foreign keys or constraints dynamically if possible, or try in a transaction
-    echo "\nSimulating deletion in a transaction...\n";
-    echo "STEP 1: Before beginTransaction\n";
-    DB::beginTransaction();
-    echo "STEP 2: After beginTransaction\n";
-    try {
-        echo "STEP 3: Before delete()\n";
-        $booking->delete();
-        echo "STEP 4: After delete()\n";
-    } catch (\Throwable $ex) {
-        echo "STEP 5: Catch block: " . $ex->getMessage() . "\n";
-        echo $ex->getTraceAsString() . "\n";
-    }
-    echo "STEP 6: Before rollBack\n";
-    DB::rollBack();
-    echo "STEP 7: After rollBack\n";
+    echo "\nAll steps completed!\n";
     
 } catch (\Throwable $e) {
     echo "Critical Error: " . $e->getMessage() . "\n";
