@@ -1,4 +1,13 @@
 <?php
+$outputFile = __DIR__ . '/debug_output.txt';
+file_put_contents($outputFile, "Start of script\n");
+
+function logMsg($msg) {
+    global $outputFile;
+    file_put_contents($outputFile, $msg . "\n", FILE_APPEND);
+    echo $msg . "\n";
+}
+
 require __DIR__ . '/../vendor/autoload.php';
 $app = require_once __DIR__ . '/../bootstrap/app.php';
 $kernel = $app->make(Illuminate\Contracts\Console\Kernel::class);
@@ -7,37 +16,30 @@ $kernel->bootstrap();
 use App\Models\Booking;
 use Illuminate\Support\Facades\DB;
 
-header('Content-Type: text/plain');
-
-echo "Debugging New Last Booking:\n\n";
+logMsg("Boots Laravel successfully.");
 
 try {
-    // 1. Get last booking using raw query first
     $rawBooking = DB::selectOne("SELECT * FROM bookings ORDER BY id DESC LIMIT 1");
     if (!$rawBooking) {
-        echo "No bookings found in database.\n";
+        logMsg("No bookings found in database.");
         exit;
     }
     
-    echo "Raw Booking Data:\n";
-    print_r($rawBooking);
-    echo "\n";
+    logMsg("Raw Booking ID: " . $rawBooking->id);
     
-    // 2. Load using Eloquent
-    echo "Loading with Eloquent...\n";
+    logMsg("Loading with Eloquent...");
     $booking = Booking::find($rawBooking->id);
     if (!$booking) {
-        echo "Failed to load booking with Eloquent.\n";
+        logMsg("Failed to load booking with Eloquent.");
         exit;
     }
-    echo "Loaded Eloquent model successfully for ID: " . $booking->id . "\n";
+    logMsg("Loaded Eloquent model successfully.");
     
-    // 3. Try to delete the Eloquent model
-    echo "Attempting Eloquent delete...\n";
+    logMsg("Attempting delete...");
     $booking->delete();
-    echo "SUCCESS: Eloquent delete completed for ID: " . $rawBooking->id . "\n";
+    logMsg("SUCCESS: Booking deleted!");
 
 } catch (\Throwable $e) {
-    echo "Error caught: " . $e->getMessage() . "\n";
-    echo $e->getTraceAsString() . "\n";
+    logMsg("Error: " . $e->getMessage());
+    logMsg($e->getTraceAsString());
 }
