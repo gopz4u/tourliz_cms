@@ -35,8 +35,12 @@ try {
     
     // 4. Check related records in other tables
     echo "Checking related records:\n";
-    $reviewsCount = Review::where('booking_id', $booking->id)->count();
-    echo "- Related reviews: $reviewsCount\n";
+    try {
+        $reviewsCount = Review::where('booking_id', $booking->id)->count();
+        echo "- Related reviews: $reviewsCount\n";
+    } catch (\Throwable $ex) {
+        echo "- Could not check reviews: " . $ex->getMessage() . "\n";
+    }
     
     // Check foreign keys or constraints dynamically if possible, or try in a transaction
     echo "\nSimulating deletion in a transaction...\n";
