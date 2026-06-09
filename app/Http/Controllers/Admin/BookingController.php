@@ -118,7 +118,11 @@ class BookingController extends Controller
         });
 
         $query->when($request->filled('status'), function ($q) use ($request) {
-            $q->where('status', $request->status);
+            if ($request->status === 'deleted') {
+                $q->onlyTrashed();
+            } else {
+                $q->where('status', $request->status);
+            }
         });
 
         $query->when($request->filled('payment_status'), function ($q) use ($request) {
@@ -141,8 +145,9 @@ class BookingController extends Controller
         $newCount = Booking::where('status', 'pending')->count();
         $totalCount = Booking::count();
         $recentCount = Booking::where('created_at', '>=', now()->subDays(2))->count();
+        $deletedCount = Booking::onlyTrashed()->count();
 
-        return view('admin.bookings.index', compact('bookings', 'newCount', 'totalCount', 'recentCount'));
+        return view('admin.bookings.index', compact('bookings', 'newCount', 'totalCount', 'recentCount', 'deletedCount'));
     }
 
 
@@ -241,6 +246,74 @@ class BookingController extends Controller
             }
 
             return redirect()->back()->with('error', 'Failed to delete booking: ' . $e->getMessage());
+        }
+    }
+
+    public function restore($id)
+    {
+        if (!auth()->user()->isSuperAdmin()) {
+            abort(403, 'Unauthorized access.');
+        }
+
+        try {
+            $booking = Booking::onlyTrashed()->findOrFail($id);
+            $booking->restore();
+
+            \Log::info("Booking ID: " . $id . " successfully restored.");
+
+            if (request()->ajax() || request()->wantsJson()) {
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Booking restored successfully.'
+                ]);
+            }
+
+            return redirect()->route('admin.bookings.index')->with('success', 'Booking restored successfully.');
+        } catch (\Throwable $e) {
+            \Log::error('Failed to restore booking ID ' . $id . ': ' . $e->getMessage());
+            
+            if (request()->ajax() || request()->wantsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Failed to restore booking: ' . $e->getMessage()
+                ], 500);
+            }
+
+            return redirect()->back()->with('error', 'Failed to restore booking: ' . $e->getMessage());
+        }
+    }
+
+    public function forceDelete($id)
+    {
+        if (!auth()->user()->isSuperAdmin()) {
+            abort(403, 'Unauthorized access.');
+        }
+
+        try {
+            $booking = Booking::withTrashed()->findOrFail($id);
+            $booking->forceDelete();
+
+            \Log::info("Booking ID: " . $id . " permanently deleted.");
+
+            if (request()->ajax() || request()->wantsJson()) {
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Booking permanently deleted.'
+                ]);
+            }
+
+            return redirect()->route('admin.bookings.index')->with('success', 'Booking permanently deleted.');
+        } catch (\Throwable $e) {
+            \Log::error('Failed to force delete booking ID ' . $id . ': ' . $e->getMessage());
+            
+            if (request()->ajax() || request()->wantsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Failed to force delete booking: ' . $e->getMessage()
+                ], 500);
+            }
+
+            return redirect()->back()->with('error', 'Failed to force delete booking: ' . $e->getMessage());
         }
     }
 }

@@ -205,14 +205,16 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:admin'])->grou
 
         // Bookings Deletion (Super Admin Only)
         Route::delete('bookings/{booking}', [AdminBookingController::class, 'destroy'])->name('bookings.destroy');
+        Route::post('bookings/{id}/restore', [AdminBookingController::class, 'restore'])->name('bookings.restore');
+        Route::delete('bookings/{id}/force-delete', [AdminBookingController::class, 'forceDelete'])->name('bookings.forceDelete');
     });
 
     // Bookings Management
     Route::get('bookings/create', [AdminBookingController::class, 'create'])->name('bookings.create');
     Route::post('bookings', [AdminBookingController::class, 'store'])->name('bookings.store');
-    Route::get('bookings/{booking}', [AdminBookingController::class, 'show'])->name('bookings.show');
+    Route::get('bookings/{booking}', [AdminBookingController::class, 'show'])->name('bookings.show')->withTrashed();
     Route::get('bookings', [AdminBookingController::class, 'index'])->name('bookings.index');
-    Route::post('bookings/{booking}/status', [AdminBookingController::class, 'updateStatus'])->name('bookings.updateStatus');
+    Route::post('bookings/{booking}/status', [AdminBookingController::class, 'updateStatus'])->name('bookings.updateStatus')->withTrashed();
 
     Route::get('b2b-itineraries/{id}/whatsapp', [\App\Http\Controllers\Admin\B2BItineraryController::class, 'whatsapp'])->name('b2b-itineraries.whatsapp');
 

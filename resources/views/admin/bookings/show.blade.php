@@ -17,19 +17,44 @@
         </div>
         <div class="d-flex gap-2 align-items-center">
             @if(auth()->user()->isSuperAdmin())
-                <form action="{{ route('admin.bookings.destroy', $booking) }}" method="POST" onsubmit="return confirm('Are you sure you want to delete this booking?')">
-                    @csrf
-                    @method('DELETE')
-                    <button type="submit" class="btn btn-danger">
-                        <i class="bi bi-trash me-2"></i>Delete Booking
-                    </button>
-                </form>
+                @if($booking->trashed())
+                    <form action="{{ route('admin.bookings.restore', $booking->id) }}" method="POST" class="d-inline">
+                        @csrf
+                        <button type="submit" class="btn btn-success">
+                            <i class="bi bi-bootstrap-reboot me-2"></i>Restore Booking
+                        </button>
+                    </form>
+                    <form action="{{ route('admin.bookings.forceDelete', $booking->id) }}" method="POST" onsubmit="return confirm('Are you sure you want to permanently delete this booking? This action cannot be undone.')" class="d-inline">
+                        @csrf
+                        @method('DELETE')
+                        <button type="submit" class="btn btn-danger">
+                            <i class="bi bi-x-octagon me-2"></i>Permanently Delete
+                        </button>
+                    </form>
+                @else
+                    <form action="{{ route('admin.bookings.destroy', $booking) }}" method="POST" onsubmit="return confirm('Are you sure you want to delete this booking?')">
+                        @csrf
+                        @method('DELETE')
+                        <button type="submit" class="btn btn-danger">
+                            <i class="bi bi-trash me-2"></i>Delete Booking
+                        </button>
+                    </form>
+                @endif
             @endif
             <a href="{{ route('admin.bookings.index') }}" class="btn btn-outline-secondary">
                 <i class="bi bi-arrow-left"></i> Back to List
             </a>
         </div>
     </div>
+
+    @if($booking->trashed())
+        <div class="alert alert-warning border-warning bg-warning-subtle text-dark d-flex align-items-center mb-4 shadow-sm" role="alert">
+            <i class="bi bi-exclamation-triangle-fill fs-4 me-3 text-warning"></i>
+            <div>
+                <strong>Notice:</strong> This booking is currently soft-deleted. You can view its historical data here, restore it, or permanently delete it.
+            </div>
+        </div>
+    @endif
 
     <div class="row g-4">
         <!-- Main Customer & Package Info -->
@@ -236,6 +261,7 @@
                             </div>
                         @endif
                     </div>
+                    @if(!$booking->trashed())
                     <form action="{{ route('admin.bookings.updateStatus', $booking) }}" method="POST">
                         @csrf
                         <div class="mb-3">
@@ -247,6 +273,11 @@
                             </div>
                         </div>
                     </form>
+                    @else
+                        <div class="text-center py-2 text-muted">
+                            <small><i class="bi bi-lock me-1"></i>Follow-ups locked for deleted bookings</small>
+                        </div>
+                    @endif
                 </div>
             </div>
 
@@ -255,6 +286,12 @@
                     <h6 class="card-title mb-0 fw-bold"><i class="bi bi-gear-fill me-2 text-primary"></i>Status Management</h6>
                 </div>
                 <div class="card-body">
+                     @if($booking->trashed())
+                        <div class="text-center py-2 text-muted">
+                            <i class="bi bi-lock fs-4 d-block mb-1"></i>
+                            <small>Restore booking to manage status</small>
+                        </div>
+                    @else
                     <form action="{{ route('admin.bookings.updateStatus', $booking) }}" method="POST">
                         @csrf
                         <div class="mb-3">
@@ -278,6 +315,7 @@
                             </select>
                         </div>
                     </form>
+                    @endif
                 </div>
             </div>
 

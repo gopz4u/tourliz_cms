@@ -35,6 +35,9 @@
             <span class="badge bg-primary me-2">New: {{ $newCount ?? 0 }}</span>
             <span class="badge bg-info me-2">Recent (2d): {{ $recentCount ?? 0 }}</span>
             <span class="badge bg-success me-2">Total: {{ $totalCount ?? 0 }}</span>
+            @if($deletedCount ?? 0)
+                <span class="badge bg-danger me-2">Deleted: {{ $deletedCount }}</span>
+            @endif
             <a href="{{ route('admin.bookings.create') }}" class="btn btn-primary btn-sm">
                 <i class="bi bi-plus-lg"></i> Create Booking
             </a>
@@ -92,6 +95,7 @@
                         <option value="pending" {{ request('status') === 'pending' ? 'selected' : '' }}>Pending</option>
                         <option value="confirmed" {{ request('status') === 'confirmed' ? 'selected' : '' }}>Confirmed</option>
                         <option value="cancelled" {{ request('status') === 'cancelled' ? 'selected' : '' }}>Cancelled</option>
+                        <option value="deleted" {{ request('status') === 'deleted' ? 'selected' : '' }}>Deleted</option>
                     </select>
                 </div>
                 <div class="col-md-2">
@@ -148,11 +152,14 @@
                                 'custom' => 'bg-dark',
                             ][$bookingType] ?? 'bg-secondary';
 
+                            $isTrashed = $booking->trashed();
+                            $statusText = $isTrashed ? 'deleted' : $booking->status;
                             $bookingStatusBadge = [
                                 'pending' => 'bg-warning text-dark',
                                 'confirmed' => 'bg-success',
                                 'cancelled' => 'bg-danger',
-                            ][$booking->status] ?? 'bg-secondary';
+                                'deleted' => 'bg-dark text-white',
+                            ][$statusText] ?? 'bg-secondary';
 
                             $followupStatus = $booking->followup_status ?? 'leads';
                             $followupBadge = [
@@ -216,7 +223,7 @@
                                 </div>
                                 <div class="col-md-1">
                                     <div class="small text-muted mb-1">Status</div>
-                                    <span class="badge {{ $bookingStatusBadge }} d-block mb-1">{{ ucfirst($booking->status) }}</span>
+                                    <span class="badge {{ $bookingStatusBadge }} d-block mb-1">{{ ucfirst($statusText) }}</span>
                                     <small class="text-muted d-block" style="font-size: 0.75rem;">{{ ucfirst($bookingType) }}</small>
                                 </div>
                                 <div class="col-md-2">
@@ -243,15 +250,31 @@
                                         data-bs-target="#bookingModal{{ $booking->id }}" title="View Details">
                                         <i class="bi bi-eye"></i>
                                     </button>
-                                    @if(auth()->user()->isSuperAdmin())
-                                        <form action="{{ route('admin.bookings.destroy', $booking) }}" method="POST" onsubmit="return confirm('Are you sure you want to delete this booking?')" class="d-inline mb-0">
-                                            @csrf
-                                            @method('DELETE')
-                                            <button type="submit" class="btn btn-danger btn-sm" title="Delete Booking">
-                                                <i class="bi bi-trash"></i>
-                                            </button>
-                                        </form>
-                                    @endif
+                                     @if(auth()->user()->isSuperAdmin())
+                                         @if($isTrashed)
+                                             <form action="{{ route('admin.bookings.restore', $booking->id) }}" method="POST" class="d-inline mb-0">
+                                                 @csrf
+                                                 <button type="submit" class="btn btn-success btn-sm" title="Restore Booking">
+                                                     <i class="bi bi-bootstrap-reboot"></i>
+                                                 </button>
+                                             </form>
+                                             <form action="{{ route('admin.bookings.forceDelete', $booking->id) }}" method="POST" onsubmit="return confirm('Are you sure you want to permanently delete this booking? This action cannot be undone.')" class="d-inline mb-0">
+                                                 @csrf
+                                                 @method('DELETE')
+                                                 <button type="submit" class="btn btn-danger btn-sm" title="Permanently Delete Booking">
+                                                     <i class="bi bi-x-octagon"></i>
+                                                 </button>
+                                             </form>
+                                         @else
+                                             <form action="{{ route('admin.bookings.destroy', $booking) }}" method="POST" onsubmit="return confirm('Are you sure you want to delete this booking?')" class="d-inline mb-0">
+                                                 @csrf
+                                                 @method('DELETE')
+                                                 <button type="submit" class="btn btn-danger btn-sm" title="Delete Booking">
+                                                     <i class="bi bi-trash"></i>
+                                                 </button>
+                                             </form>
+                                         @endif
+                                     @endif
                                 </div>
                             </div>
                         </div>
@@ -476,6 +499,7 @@
                                                                     'confirmed' => 'bg-success text-white',
                                                                     'pending' => 'bg-warning text-dark',
                                                                     'cancelled' => 'bg-danger text-white',
+                                                                    'deleted' => 'bg-dark text-white',
                                                                 ][$booking->status] ?? 'bg-light';
                                                             @endphp
                                                             <select name="status" class="form-select mb-3 {{ $statusClass }}"
@@ -533,17 +557,33 @@
                                         </div>
                                     </div>
                                     <div class="modal-footer">
-                                        @if(auth()->user()->isSuperAdmin())
-                                            <form action="{{ route('admin.bookings.destroy', $booking) }}" method="POST" onsubmit="return confirm('Are you sure you want to delete this booking?')" class="me-auto mb-0">
-                                                @csrf
-                                                @method('DELETE')
-                                                <button type="submit" class="btn btn-danger">
-                                                    <i class="bi bi-trash me-2"></i>Delete Booking
-                                                </button>
-                                            </form>
-                                        @endif
-                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                                    </div>
+                                         @if(auth()->user()->isSuperAdmin())
+                                             @if($isTrashed)
+                                                 <form action="{{ route('admin.bookings.restore', $booking->id) }}" method="POST" class="me-2 mb-0">
+                                                     @csrf
+                                                     <button type="submit" class="btn btn-success">
+                                                         <i class="bi bi-bootstrap-reboot me-2"></i>Restore Booking
+                                                     </button>
+                                                 </form>
+                                                 <form action="{{ route('admin.bookings.forceDelete', $booking->id) }}" method="POST" onsubmit="return confirm('Are you sure you want to permanently delete this booking? This action cannot be undone.')" class="me-auto mb-0">
+                                                     @csrf
+                                                     @method('DELETE')
+                                                     <button type="submit" class="btn btn-danger">
+                                                         <i class="bi bi-x-octagon me-2"></i>Permanently Delete
+                                                     </button>
+                                                 </form>
+                                             @else
+                                                 <form action="{{ route('admin.bookings.destroy', $booking) }}" method="POST" onsubmit="return confirm('Are you sure you want to delete this booking?')" class="me-auto mb-0">
+                                                     @csrf
+                                                     @method('DELETE')
+                                                     <button type="submit" class="btn btn-danger">
+                                                         <i class="bi bi-trash me-2"></i>Delete Booking
+                                                     </button>
+                                                 </form>
+                                             @endif
+                                         @endif
+                                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                                     </div>
                                 </div>
                             </div>
                         </div>
