@@ -8,17 +8,38 @@ $kernel->bootstrap();
 use App\Models\Booking;
 use App\Models\CustomItinerary;
 use App\Models\B2CItinerary;
+use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\DB;
 
 header('Content-Type: text/plain');
 
-echo "Active Bookings count: " . Booking::count() . "\n";
-echo "Active Bookings Sum: " . Booking::sum('total_amount') . "\n";
+echo "Bookings table has deleted_at: " . (Schema::hasColumn('bookings', 'deleted_at') ? 'Yes' : 'No') . "\n";
+echo "CustomItineraries table has deleted_at: " . (Schema::hasColumn('custom_itineraries', 'deleted_at') ? 'Yes' : 'No') . "\n";
+echo "B2CItineraries table has deleted_at: " . (Schema::hasColumn('b2c_itineraries', 'deleted_at') ? 'Yes' : 'No') . "\n";
 
-echo "Trashed Bookings count: " . Booking::onlyTrashed()->count() . "\n";
-echo "Trashed Bookings Sum: " . Booking::onlyTrashed()->sum('total_amount') . "\n";
+echo "\n--- CustomItinerary Stats ---\n";
+echo "Active: " . CustomItinerary::count() . " | Sum: " . CustomItinerary::sum('total_price') . "\n";
+if (Schema::hasColumn('custom_itineraries', 'deleted_at')) {
+    echo "Trashed: " . CustomItinerary::onlyTrashed()->count() . " | Sum: " . CustomItinerary::onlyTrashed()->sum('total_price') . "\n";
+}
 
-echo "All Bookings count: " . Booking::withTrashed()->count() . "\n";
-echo "All Bookings Sum: " . Booking::withTrashed()->sum('total_amount') . "\n";
+echo "\n--- B2CItinerary Stats ---\n";
+echo "Active: " . B2CItinerary::count() . " | Sum: " . B2CItinerary::sum('total_price') . "\n";
+if (Schema::hasColumn('b2c_itineraries', 'deleted_at')) {
+    echo "Trashed: " . B2CItinerary::onlyTrashed()->count() . " | Sum: " . B2CItinerary::onlyTrashed()->sum('total_price') . "\n";
+}
 
-echo "B2B sum: " . CustomItinerary::sum('total_price') . "\n";
-echo "B2C sum: " . B2CItinerary::sum('total_price') . "\n";
+echo "\n--- Booking Stats ---\n";
+echo "Active: " . Booking::count() . " | Sum: " . Booking::sum('total_amount') . "\n";
+echo "Trashed: " . Booking::onlyTrashed()->count() . " | Sum: " . Booking::onlyTrashed()->sum('total_amount') . "\n";
+
+// Let's get the list of active bookings to see their details
+echo "\n--- Active Bookings List ---\n";
+foreach (Booking::all() as $b) {
+    echo "ID: {$b->id} | Quote ID: {$b->quote_id} | Total Amount: {$b->total_amount} | Status: {$b->status} | Deleted At: {$b->deleted_at}\n";
+}
+
+echo "\n--- Trashed Bookings List ---\n";
+foreach (Booking::onlyTrashed()->get() as $b) {
+    echo "ID: {$b->id} | Quote ID: {$b->quote_id} | Total Amount: {$b->total_amount} | Status: {$b->status} | Deleted At: {$b->deleted_at}\n";
+}
