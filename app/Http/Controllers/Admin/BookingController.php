@@ -208,7 +208,10 @@ class BookingController extends Controller
 
     public function destroy(Booking $booking)
     {
+        \Log::info("BookingController@destroy called for booking ID: " . ($booking ? $booking->id : 'null'));
+
         if (!auth()->user()->isSuperAdmin()) {
+            \Log::warning("Unauthorized booking deletion attempt by user ID: " . auth()->id());
             if (request()->ajax() || request()->wantsJson()) {
                 return response()->json(['message' => 'Unauthorized access.'], 403);
             }
@@ -217,6 +220,7 @@ class BookingController extends Controller
 
         try {
             $booking->delete();
+            \Log::info("Booking ID: " . $booking->id . " successfully deleted.");
 
             if (request()->ajax() || request()->wantsJson()) {
                 return response()->json([
@@ -226,8 +230,8 @@ class BookingController extends Controller
             }
 
             return redirect()->route('admin.bookings.index')->with('success', 'Booking deleted successfully.');
-        } catch (\Exception $e) {
-            \Log::error('Failed to delete booking: ' . $e->getMessage());
+        } catch (\Throwable $e) {
+            \Log::error('Failed to delete booking ID ' . $booking->id . ': ' . $e->getMessage() . "\n" . $e->getTraceAsString());
             
             if (request()->ajax() || request()->wantsJson()) {
                 return response()->json([
