@@ -44,16 +44,20 @@ try {
     
     // Check foreign keys or constraints dynamically if possible, or try in a transaction
     echo "\nSimulating deletion in a transaction...\n";
+    echo "STEP 1: Before beginTransaction\n";
     DB::beginTransaction();
+    echo "STEP 2: After beginTransaction\n";
     try {
+        echo "STEP 3: Before delete()\n";
         $booking->delete();
-        echo "SUCCESS: Booking can be deleted successfully inside transaction (no DB constraint blocking).\n";
+        echo "STEP 4: After delete()\n";
     } catch (\Throwable $ex) {
-        echo "ERROR during deletion: " . $ex->getMessage() . "\n";
+        echo "STEP 5: Catch block: " . $ex->getMessage() . "\n";
         echo $ex->getTraceAsString() . "\n";
     }
+    echo "STEP 6: Before rollBack\n";
     DB::rollBack();
-    echo "Transaction rolled back. No changes saved.\n";
+    echo "STEP 7: After rollBack\n";
     
 } catch (\Throwable $e) {
     echo "Critical Error: " . $e->getMessage() . "\n";
