@@ -8,13 +8,12 @@ use Illuminate\Support\Facades\DB;
 
 header('Content-Type: text/plain');
 
-echo "Describing bookings table:\n\n";
+echo "Bookings table columns:\n";
 
 try {
     $columns = DB::select("DESCRIBE bookings");
-    foreach ($columns as $column) {
-        print_r($column);
-    }
+    $fields = array_map(function($c) { return $c->Field; }, $columns);
+    echo implode(', ', $fields) . "\n";
 } catch (\Throwable $e) {
     echo "Error: " . $e->getMessage() . "\n";
 }
