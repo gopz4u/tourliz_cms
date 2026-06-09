@@ -10,15 +10,23 @@ use App\Models\CustomItinerary;
 use App\Models\B2CItinerary;
 
 echo "--- Active B2B CustomItineraries ---\n";
-$b2b = CustomItinerary::all();
-foreach ($b2b as $x) {
-    echo "ID: {$x->id} | Title: {$x->title} | Status: {$x->status} | Followup: {$x->followup_status} | Price: {$x->total_price}\n";
+foreach (CustomItinerary::all() as $x) {
+    echo "ID: {$x->id} | Title: {$x->title} | Status: {$x->status} | Price: {$x->total_price} | Deleted At: " . ($x->deleted_at ?? 'NULL') . "\n";
+}
+
+echo "\n--- Trashed B2B CustomItineraries ---\n";
+foreach (CustomItinerary::onlyTrashed()->get() as $x) {
+    echo "ID: {$x->id} | Title: {$x->title} | Status: {$x->status} | Price: {$x->total_price} | Deleted At: " . ($x->deleted_at ?? 'NULL') . "\n";
 }
 
 echo "\n--- Active B2C B2CItineraries ---\n";
-$b2c = B2CItinerary::all();
-foreach ($b2c as $x) {
-    echo "ID: {$x->id} | Title: {$x->title} | Status: {$x->status} | Followup: {$x->followup_status} | Price: {$x->total_price}\n";
+foreach (B2CItinerary::all() as $x) {
+    echo "ID: {$x->id} | Title: {$x->title} | Status: {$x->status} | Price: {$x->total_price} | Deleted At: " . ($x->deleted_at ?? 'NULL') . "\n";
+}
+
+echo "\n--- Trashed B2C B2CItineraries ---\n";
+foreach (B2CItinerary::onlyTrashed()->get() as $x) {
+    echo "ID: {$x->id} | Title: {$x->title} | Status: {$x->status} | Price: {$x->total_price} | Deleted At: " . ($x->deleted_at ?? 'NULL') . "\n";
 }
 ?>
 </pre>
