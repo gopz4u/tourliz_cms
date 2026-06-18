@@ -37,7 +37,7 @@ class GroupPackageController extends Controller
                     $query->where('destination_id', $request->destination_id);
                 }
 
-                $groupPackages = $query->orderBy('created_at', 'desc')->paginate(15);
+                $groupPackages = $query->orderBy('created_at', 'desc')->paginate(100);
 
                 return response()->json($groupPackages);
             } catch (\Exception $e) {
@@ -514,5 +514,41 @@ class GroupPackageController extends Controller
                 'destinations'=> $day['destinations'] ?? [],
             ];
         }, $itinerary));
+    }
+
+    /**
+     * Duplicate the specified resource.
+     */
+    public function duplicate($id): \Illuminate\Http\JsonResponse
+    {
+        try {
+            $original = GroupPackage::findOrFail($id);
+            $new = $original->replicate();
+            
+            // Append " (Copy)" to the name
+            $new->name = $original->name . ' (Copy)';
+            
+            // Generate a unique slug
+            $slug = Str::slug($new->name);
+            $count = GroupPackage::where('slug', 'like', $slug . '%')->count();
+            $new->slug = $count ? $slug . '-' . ($count + 1) : $slug;
+            
+            // Set status to inactive (false) by default for safety
+            $new->status = false;
+            $new->featured = false;
+            
+            $new->save();
+
+            return response()->json([
+                'message' => 'Group package duplicated successfully',
+                'package' => $new
+            ]);
+        } catch (\Exception $e) {
+            \Log::error('Error duplicating group package: ' . $e->getMessage());
+            return response()->json([
+                'error' => 'Error duplicating group package',
+                'message' => $e->getMessage()
+            ], 500);
+        }
     }
 }

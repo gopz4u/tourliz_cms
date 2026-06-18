@@ -163,6 +163,7 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:admin'])->grou
         // Group Packages Management
         Route::resource('group-packages', GroupPackageController::class);
         Route::get('/group-packages/by-destination/{destinationId}', [GroupPackageController::class, 'getByPlace'])->name('group-packages.by-destination');
+        Route::post('/group-packages/{id}/duplicate', [GroupPackageController::class, 'duplicate'])->name('group-packages.duplicate');
 
         // Currency Exchange Rates Management
         Route::get('currency-converter', [CurrencyExchangeRateController::class, 'converter'])->name('currency-converter');
