@@ -486,6 +486,9 @@
                         <span class="small fw-bold text-muted">LIVE QUOTE:</span>
                         <span class="fw-black text-primary fs-5" id="foot-price">₹0</span>
                     </div>
+                    <button type="button" class="btn btn-success rounded-pill px-5 py-3 fw-bold" id="btn-save-immediate" onclick="submitPackage()">
+                        Save Package <i class="bi bi-check-circle ms-2"></i>
+                    </button>
                     <button type="button" class="btn btn-dark rounded-pill px-5 py-3 fw-bold" id="btn-next" onclick="step(1)">
                         Next Step <i class="bi bi-chevron-right ms-2"></i>
                     </button>
@@ -681,6 +684,7 @@
         activeStep = target;
         $('#btn-prev').toggle(activeStep > 1);
         $('#btn-next').toggle(activeStep < 4);
+        $('#btn-save-immediate').toggle(activeStep < 4);
         $('#btn-publish').toggle(activeStep === 4);
         if(activeStep === 3) calculateRates();
         window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -886,6 +890,7 @@
     }
 
     function submitPackage() {
+        calculateRates(); // Ensure rates and hidden fields are populated
         let allErrors = [];
         for (let i = 1; i <= 4; i++) {
             allErrors = allErrors.concat(validateStep(i));
