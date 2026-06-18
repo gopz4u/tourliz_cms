@@ -140,7 +140,7 @@
                 <div class="stat-icon bg-danger-light text-danger">
                     <i class="bi bi-graph-up-arrow"></i>
                 </div>
-                <h3 class="fw-black mb-0" id="stat-revenue">₹0</h3>
+                <h3 class="fw-black mb-0" id="stat-revenue">RM 0</h3>
                 <p class="text-muted small mb-0">Total Potential Revenue</p>
             </div>
         </div>
@@ -209,7 +209,7 @@
                 <div class="d-flex justify-content-between align-items-center">
                     <div>
                         <p class="text-muted x-small mb-0">Starting at</p>
-                        <h5 class="fw-black text-primary mb-0">₹{PRICE}</h5>
+                        <h5 class="fw-black text-primary mb-0">RM {PRICE}</h5>
                     </div>
                     <div class="text-end">
                         <div class="small text-warning mb-1">
@@ -311,7 +311,7 @@
                 $('#stat-total').text(packages.length);
                 $('#stat-active').text(activeCount);
                 $('#stat-featured').text(featuredCount);
-                $('#stat-revenue').text('₹' + totalRev.toLocaleString());
+                $('#stat-revenue').text('RM ' + totalRev.toLocaleString());
             })
             .fail(function(err) {
                 console.error('AJAX Error:', err);

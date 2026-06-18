@@ -386,7 +386,7 @@
                                 </div>
                                 <div class="d-flex justify-content-between align-items-center pt-4 border-top">
                                     <span class="fw-bold text-muted">Total Component Value</span>
-                                    <span class="fs-2 fw-black text-dark" id="net-total">₹0</span>
+                                    <span class="fs-2 fw-black text-dark" id="net-total">RM 0</span>
                                 </div>
                             </div>
 
@@ -483,7 +483,7 @@
                 <div class="ms-auto d-flex align-items-center gap-4">
                     <div class="price-tag d-none d-lg-flex">
                         <span class="small fw-bold text-muted">LIVE QUOTE:</span>
-                        <span class="fw-black text-primary fs-5" id="foot-price">₹0</span>
+                        <span class="fw-black text-primary fs-5" id="foot-price">RM 0</span>
                     </div>
                     <button type="button" class="btn btn-success rounded-pill px-5 py-3 fw-bold" id="btn-save-immediate" onclick="submitPackage()">
                         Save Package <i class="bi bi-check-circle ms-2"></i>
@@ -834,12 +834,12 @@
                     }
                     let typeLabel = type.charAt(0).toUpperCase() + type.slice(1);
                     if(type === 'ticket') typeLabel = 'Entry Ticket';
-                    html += `<div class="d-flex justify-content-between mb-2"><span>Day ${dNum}: ${typeLabel} - ${s.text()}</span><span class="fw-bold text-dark">₹${p.toLocaleString()}</span></div>`;
+                    html += `<div class="d-flex justify-content-between mb-2"><span>Day ${dNum}: ${typeLabel} - ${s.text()}</span><span class="fw-bold text-dark">RM ${p.toLocaleString()}</span></div>`;
                 }
             });
         });
         $('#cost-breakdown').html(html || '<p class="text-muted italic">No components added yet</p>');
-        $('#net-total').text(`₹${total.toLocaleString()}`);
+        $('#net-total').text(`RM ${total.toLocaleString()}`);
         
         let mPercent = parseFloat($('#markup-in').val()) || 0;
         let gstPercent = parseFloat($('#gst-in').val()) || 0;
@@ -855,7 +855,7 @@
         let final = subtotalWithMarkup + totalTax;
         
         $('#selling-in').val(Math.round(final));
-        $('#foot-price').text(`₹${Math.round(final).toLocaleString()}`);
+        $('#foot-price').text(`RM ${Math.round(final).toLocaleString()}`);
         
         // Add hidden fields for submission if not already there or update them
         if($('#net-price-hidden').length === 0) {
