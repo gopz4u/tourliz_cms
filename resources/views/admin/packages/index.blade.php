@@ -286,12 +286,16 @@
                     if(pkg.featured) featuredCount++;
                     totalRev += parseFloat(pkg.price) || 0;
 
+                    let destNames = pkg.destinations && pkg.destinations.length > 0 
+                        ? pkg.destinations.map(d => d.name).join(', ') 
+                        : (pkg.destination ? pkg.destination.name : 'Various');
+
                     let html = template
                         .replace(/{ID}/g, pkg.id)
                         .replace(/{NAME}/g, pkg.name)
                         .replace(/{IMAGE}/g, pkg.image ? '/' + pkg.image : 'https://placehold.co/600x400?text=' + encodeURIComponent(pkg.name))
                         .replace(/{COUNTRY}/g, pkg.country ? pkg.country.name : 'Intl')
-                        .replace(/{DESTINATION}/g, pkg.destination ? pkg.destination.name : 'Various')
+                        .replace(/{DESTINATION}/g, destNames)
                         .replace(/{PRICE}/g, pkg.price ? parseFloat(pkg.price).toLocaleString() : '0')
                         .replace(/{DURATION}/g, pkg.duration || 'Flexible')
                         .replace(/{CATEGORY}/g, pkg.package_category || 'Standard')

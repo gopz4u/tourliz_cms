@@ -98,7 +98,8 @@ class Package extends Model
         'average_rating',
         'reviews_count',
         'is_active',
-        'is_featured'
+        'is_featured',
+        'destinations'
     ];
 
     public function getRouteKeyName()
@@ -216,6 +217,15 @@ class Package extends Model
     public function getAverageRatingAttribute()
     {
         return round($this->reviews()->avg('rating') ?: 5, 1);
+    }
+
+    public function getDestinationsAttribute()
+    {
+        $ids = $this->destination_ids ?: [];
+        if (empty($ids)) {
+            return collect();
+        }
+        return Destination::whereIn('id', $ids)->withTrashed()->get();
     }
 
     public function hotel()

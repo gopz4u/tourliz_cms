@@ -254,9 +254,8 @@
                                     </select>
                                 </div>
                                 <div class="col-md-6">
-                                    <label class="premium-label">Primary Destination</label>
-                                    <select name="destination_id" id="destination_id" class="form-select select2" required>
-                                        <option value="">Select Primary City</option>
+                                    <label class="premium-label">Primary Destinations</label>
+                                    <select name="destination_ids[]" id="destination_ids" class="form-select select2" multiple required data-placeholder="Select Primary Cities">
                                         @foreach($destinations as $dest)
                                             <option value="{{ $dest->id }}" data-country="{{ $dest->country_id }}">{{ $dest->name }}</option>
                                         @endforeach
@@ -635,7 +634,7 @@
         // Country to Destination Cascading
         $('#country_id').on('change', function() {
             let countryId = $(this).val();
-            let destSelect = $('#destination_id');
+            let destSelect = $('#destination_ids');
             
             // Clear current selection
             destSelect.val(null).trigger('change');
@@ -700,13 +699,17 @@
         const fieldLabels = {
             'name': 'Package Title',
             'country_id': 'Country',
-            'destination_id': 'Primary Destination',
+            'destination_ids[]': 'Primary Destinations',
             'price': 'Final Selling Rate'
         };
         
         inputs.forEach(input => {
             if (input.hasAttribute('required') || input.required) {
-                if (!input.value || input.value.trim() === '') {
+                let isEmpty = !input.value || input.value.trim() === '';
+                if (input.tagName === 'SELECT' && input.multiple) {
+                    isEmpty = $(input).val() === null || $(input).val().length === 0;
+                }
+                if (isEmpty) {
                     let fieldName = fieldLabels[input.name] || input.placeholder || input.name || 'Required Field';
                     errors.push(`<b>${fieldName}</b> is required.`);
                 }

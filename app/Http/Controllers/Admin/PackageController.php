@@ -110,6 +110,7 @@ class PackageController extends Controller
             'destination_id' => 'nullable|exists:destinations,id',
             'hotel_id' => 'nullable|exists:hotels,id',
             'destination_ids' => 'nullable|array',
+            'destination_ids.*' => 'exists:destinations,id',
             'supplier_ids' => 'nullable|array',
             'categories' => 'nullable|array',
             'package_category' => 'nullable|string|in:Honeymoon,Budget,Standard,Premium,Platinum',
@@ -184,7 +185,7 @@ class PackageController extends Controller
         // Map form fields to database columns
         $packageData = [
             'country_id' => $validated['country_id'] ?? null,
-            'destination_id' => $validated['destination_id'] ?? null,
+            'destination_id' => isset($validated['destination_ids']) && count($validated['destination_ids']) > 0 ? $validated['destination_ids'][0] : null,
             'destination_ids' => $validated['destination_ids'] ?? [],
             'supplier_ids' => $validated['supplier_ids'] ?? [],
             'supplier_id' => isset($validated['supplier_ids']) && count($validated['supplier_ids']) > 0 ? $validated['supplier_ids'][0] : null,
@@ -519,6 +520,8 @@ class PackageController extends Controller
             'name' => 'required|string|max:255',
             'country_id' => 'required|exists:countries,id',
             'destination_id' => 'nullable|exists:destinations,id',
+            'destination_ids' => 'nullable|array',
+            'destination_ids.*' => 'exists:destinations,id',
             'package_category' => 'nullable|string',
             'price' => 'required|numeric',
             'net_price' => 'nullable|numeric',
@@ -549,7 +552,8 @@ class PackageController extends Controller
         $packageData = [
             'name' => $validated['name'],
             'country_id' => $validated['country_id'] ?? $package->country_id,
-            'destination_id' => $validated['destination_id'] ?? $package->destination_id,
+            'destination_id' => isset($request->destination_ids) && count($request->destination_ids) > 0 ? $request->destination_ids[0] : null,
+            'destination_ids' => $request->destination_ids ?? [],
             'package_category' => $validated['package_category'],
             'price' => $validated['price'],
             'net_price' => $request->net_price ?? $package->net_price,
