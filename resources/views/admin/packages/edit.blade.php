@@ -339,13 +339,20 @@
                                     <p class="small text-muted mb-0">Add up to 10 photos</p>
                                     <input type="file" id="gallery-img" name="gallery[]" class="d-none" multiple accept="image/*" onchange="previewGallery(this)">
                                 </label>
-                                <div id="gallery-previews" class="d-flex flex-wrap mt-2">
+                                <div id="existing-gallery-previews" class="d-flex flex-wrap mt-2">
                                     @if($package->gallery && is_array($package->gallery))
                                         @foreach($package->gallery as $img)
-                                            <img src="{{ asset($img) }}" style="width:80px;height:80px;object-fit:cover;margin:5px;border-radius:12px;border:2px solid white;shadow:0 4px 10px rgba(0,0,0,0.1)">
+                                            <div class="position-relative gallery-item-container m-1" style="width:80px; height:80px;">
+                                                <input type="hidden" name="retained_gallery[]" value="{{ $img }}">
+                                                <img src="{{ asset($img) }}" style="width:100%;height:100%;object-fit:cover;border-radius:12px;border:2px solid white;box-shadow:0 4px 10px rgba(0,0,0,0.1)">
+                                                <button type="button" class="btn btn-danger btn-sm rounded-circle position-absolute d-flex align-items-center justify-content-center" style="top:-5px; right:-5px; width:20px; height:20px; padding:0; font-size:10px; z-index:10;" onclick="$(this).closest('.gallery-item-container').remove();">
+                                                    <i class="bi bi-x"></i>
+                                                </button>
+                                            </div>
                                         @endforeach
                                     @endif
                                 </div>
+                                <div id="new-gallery-previews" class="d-flex flex-wrap mt-2"></div>
                             </div>
 
                             <div class="bg-light p-4 rounded-4 border">
@@ -983,11 +990,11 @@
     }
 
     function previewGallery(input) {
-        $('#gallery-previews').empty();
+        $('#new-gallery-previews').empty();
         if (input.files) {
             Array.from(input.files).forEach(f => {
                 let reader = new FileReader();
-                reader.onload = e => { $('#gallery-previews').append(`<img src="${e.target.result}" style="width:80px;height:80px;object-fit:cover;margin:5px;border-radius:12px;border:2px solid white;shadow:0 4px 10px rgba(0,0,0,0.1)">`); };
+                reader.onload = e => { $('#new-gallery-previews').append(`<img src="${e.target.result}" style="width:80px;height:80px;object-fit:cover;margin:5px;border-radius:12px;border:2px solid white;box-shadow:0 4px 10px rgba(0,0,0,0.1)">`); };
                 reader.readAsDataURL(f);
             });
         }

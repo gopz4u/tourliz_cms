@@ -540,12 +540,9 @@ class PackageController extends Controller
 
         // Handle File Uploads
         $heroPath = $this->handleFileUpload($request, 'image') ?: $package->image;
-        $galleryPaths = $this->handleMultipleFileUpload($request, 'gallery');
-        if (empty($galleryPaths)) {
-            $galleryPaths = $package->gallery;
-        } else {
-            $galleryPaths = array_merge($package->gallery ?? [], $galleryPaths);
-        }
+        $retainedGallery = $request->retained_gallery ?? [];
+        $newGalleryPaths = $this->handleMultipleFileUpload($request, 'gallery');
+        $galleryPaths = array_merge($retainedGallery, $newGalleryPaths);
 
         $itineraryData = json_decode($request->itinerary_data, true) ?? [];
 
