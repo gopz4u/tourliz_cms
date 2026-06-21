@@ -31,20 +31,15 @@ class UploadController extends Controller
                 $file = $request->file('image');
                 $originalName = $file->getClientOriginalName();
                 $filename = time() . '_' . Str::random(10) . '.' . $file->getClientOriginalExtension();
-                $path = $file->storeAs('public/images', $filename);
-                
-                // Return the path relative to storage/app/public
-                $relativePath = 'images/' . $filename;
-                
-                // Use helper function to get URL with fallback
-                $url = getImageUrl($relativePath);
+                $path = $file->storeAs('images', $filename, 's3');
+                $url = Storage::disk('s3')->url($path);
                 
                 return response()->json([
                     'success' => true,
                     'message' => 'Image uploaded successfully',
                     'data' => [
                         'url' => $url,
-                        'path' => $relativePath,
+                        'path' => $url,
                         'filename' => $filename,
                         'original_name' => $originalName,
                         'size' => $file->getSize(),
@@ -98,17 +93,12 @@ class UploadController extends Controller
                 foreach ($request->file('images') as $file) {
                     $originalName = $file->getClientOriginalName();
                     $filename = time() . '_' . Str::random(10) . '.' . $file->getClientOriginalExtension();
-                    $path = $file->storeAs('public/images', $filename);
-                    
-                    // Return the path relative to storage/app/public
-                    $relativePath = 'images/' . $filename;
-                    
-                    // Use helper function to get URL with fallback
-                    $url = getImageUrl($relativePath);
+                    $path = $file->storeAs('images', $filename, 's3');
+                    $url = Storage::disk('s3')->url($path);
                     
                     $uploadedImages[] = [
                         'url' => $url,
-                        'path' => $relativePath,
+                        'path' => $url,
                         'filename' => $filename,
                         'original_name' => $originalName,
                         'size' => $file->getSize(),

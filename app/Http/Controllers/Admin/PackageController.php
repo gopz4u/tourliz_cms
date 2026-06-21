@@ -7,6 +7,7 @@ use App\Models\Package;
 use App\Models\Destination;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 
@@ -254,8 +255,8 @@ class PackageController extends Controller
         if ($request->hasFile($key)) {
             $file = $request->file($key);
             $filename = time() . '_' . $file->getClientOriginalName();
-            $file->move(public_path('uploads/packages'), $filename);
-            return 'uploads/packages/' . $filename;
+            $path = $file->storeAs('packages', $filename, 's3');
+            return Storage::disk('s3')->url($path);
         }
         return null;
     }
@@ -266,8 +267,8 @@ class PackageController extends Controller
         if ($request->hasFile($key)) {
             foreach ($request->file($key) as $file) {
                 $filename = time() . '_' . $file->getClientOriginalName();
-                $file->move(public_path('uploads/packages/gallery'), $filename);
-                $urls[] = 'uploads/packages/gallery/' . $filename;
+                $path = $file->storeAs('packages/gallery', $filename, 's3');
+                $urls[] = Storage::disk('s3')->url($path);
             }
         }
         return $urls;

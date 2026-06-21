@@ -30,18 +30,13 @@ class UploadController extends Controller
             if ($request->hasFile('image')) {
                 $file = $request->file('image');
                 $filename = time() . '_' . Str::random(10) . '.' . $file->getClientOriginalExtension();
-                $path = $file->storeAs('public/images', $filename);
-                
-                // Return the path relative to storage/app/public
-                $relativePath = 'images/' . $filename;
-                
-                // Use helper function to get URL with fallback
-                $url = getImageUrl($relativePath);
+                $path = $file->storeAs('images', $filename, 's3');
+                $url = Storage::disk('s3')->url($path);
                 
                 return response()->json([
                     'success' => true,
                     'url' => $url,
-                    'path' => $relativePath
+                    'path' => $url
                 ]);
             }
 
@@ -88,16 +83,11 @@ class UploadController extends Controller
                 
                 foreach ($request->file('images') as $file) {
                     $filename = time() . '_' . Str::random(10) . '.' . $file->getClientOriginalExtension();
-                    $path = $file->storeAs('public/images', $filename);
-                    
-                    // Return the path relative to storage/app/public
-                    $relativePath = 'images/' . $filename;
-                    
-                    // Use helper function to get URL with fallback
-                    $url = getImageUrl($relativePath);
+                    $path = $file->storeAs('images', $filename, 's3');
+                    $url = Storage::disk('s3')->url($path);
                     
                     $uploadedImages[] = [
-                        'path' => $relativePath,
+                        'path' => $url,
                         'url' => $url,
                         'filename' => $filename
                     ];
