@@ -51,6 +51,13 @@ Route::get('/git-pull', function () {
 
 Route::get('/composer-install', function () {
     try {
+        $composerHome = base_path('storage/app/composer_home');
+        if (!is_dir($composerHome)) {
+            mkdir($composerHome, 0755, true);
+        }
+        putenv('COMPOSER_HOME=' . $composerHome);
+        putenv('HOME=' . $composerHome);
+        
         $output = shell_exec('composer install --no-dev --optimize-autoloader 2>&1');
         return '<pre>' . $output . '</pre>';
     } catch (\Exception $e) {
