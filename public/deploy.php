@@ -68,6 +68,10 @@ echo "<strong>1. Running Git Pull...</strong><br>";
 $gitOutput = shell_exec('git pull origin main 2>&1');
 echo "<pre>$gitOutput</pre>";
 
+echo "<strong>1a. Running Composer Install...</strong><br>";
+$composerOutput = shell_exec('composer install --no-dev --optimize-autoloader 2>&1');
+echo "<pre>$composerOutput</pre>";
+
 echo "<strong>1b. Checking Git Status and Log...</strong><br>";
 $gitStatus = shell_exec('git status 2>&1');
 echo "<strong>Git Status:</strong><pre>$gitStatus</pre>";
