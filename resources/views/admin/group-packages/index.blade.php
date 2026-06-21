@@ -367,7 +367,7 @@
                     let html = template
                         .replace(/{ID}/g, pkg.id)
                         .replace(/{NAME}/g, pkg.name)
-                        .replace(/{IMAGE}/g, pkg.image ? '/' + pkg.image : 'https://placehold.co/600x400?text=' + encodeURIComponent(pkg.name))
+                        .replace(/{IMAGE}/g, pkg.image ? (pkg.image.startsWith('http') || pkg.image.startsWith('//') ? pkg.image : '/' + pkg.image) : 'https://placehold.co/600x400?text=' + encodeURIComponent(pkg.name))
                         .replace(/{COUNTRY}/g, countryName)
                         .replace(/{DESTINATION}/g, destName)
                         .replace(/{PRICE}/g, pkg.price ? parseFloat(pkg.price).toLocaleString() : '0')
