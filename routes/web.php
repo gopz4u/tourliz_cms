@@ -49,6 +49,26 @@ Route::get('/git-pull', function () {
     }
 });
 
+Route::get('/composer-install', function () {
+    try {
+        $output = shell_exec('composer install --no-dev --optimize-autoloader 2>&1');
+        return '<pre>' . $output . '</pre>';
+    } catch (\Exception $e) {
+        return 'Error: ' . $e->getMessage();
+    }
+});
+
+Route::get('/clear-cache', function () {
+    try {
+        \Artisan::call('config:clear');
+        \Artisan::call('cache:clear');
+        \Artisan::call('view:clear');
+        return '<pre>Cache cleared successfully!</pre>';
+    } catch (\Exception $e) {
+        return 'Error: ' . $e->getMessage();
+    }
+});
+
 Route::get('/migrate-status', function () {
     try {
         \Artisan::call('migrate:status');
