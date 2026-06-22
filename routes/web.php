@@ -69,8 +69,19 @@ Route::get('/composer-install', function () {
 
 Route::get('/debug-packages', function () {
     try {
-        $packages = \DB::table('packages')->select('id', 'name', 'image', 'gallery')->get();
-        return response()->json($packages);
+        $packages = \DB::table('packages')->select('id', 'name', 'image', 'gallery')->orderBy('id', 'desc')->get();
+        $html = '<table border="1" style="border-collapse:collapse; width:100%; font-family:sans-serif;">';
+        $html .= '<tr style="background:#eee;"><th>ID</th><th>Name</th><th>Image Path/URL</th><th>Gallery</th></tr>';
+        foreach ($packages as $pkg) {
+            $html .= "<tr>";
+            $html .= "<td>{$pkg->id}</td>";
+            $html .= "<td>" . e($pkg->name) . "</td>";
+            $html .= "<td>" . ($pkg->image ? e($pkg->image) : '<em>NULL</em>') . "</td>";
+            $html .= "<td>" . e($pkg->gallery) . "</td>";
+            $html .= "</tr>";
+        }
+        $html .= '</table>';
+        return $html;
     } catch (\Exception $e) {
         return 'Error: ' . $e->getMessage();
     }
