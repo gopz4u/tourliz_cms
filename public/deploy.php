@@ -64,8 +64,8 @@ if (file_exists('.git')) {
 }
 echo "----------------------------------------------<br><br>";
 
-echo "<strong>1. Running Git Pull...</strong><br>";
-$gitOutput = shell_exec('git pull origin main 2>&1');
+echo "<strong>1. Running Git Fetch & Checkout...</strong><br>";
+$gitOutput = shell_exec('git fetch origin main && git checkout -f main && git reset --hard origin/main 2>&1');
 echo "<pre>$gitOutput</pre>";
 
 echo "<strong>1a. Running Composer Install...</strong><br>";
