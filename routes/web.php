@@ -67,6 +67,15 @@ Route::get('/composer-install', function () {
     }
 });
 
+Route::get('/debug-packages', function () {
+    try {
+        $packages = \DB::table('packages')->select('id', 'name', 'image', 'gallery')->get();
+        return response()->json($packages);
+    } catch (\Exception $e) {
+        return 'Error: ' . $e->getMessage();
+    }
+});
+
 Route::get('/clear-cache', function () {
     try {
         \Artisan::call('config:clear');
