@@ -13,6 +13,21 @@ if (!function_exists('getImageUrl')) {
             return null;
         }
         
+        // Rewrite incorrect absolute URLs to use R2 CDN
+        if (is_string($path)) {
+            $path = str_replace([
+                'https://webcms.tourliz.com/packages/',
+                'http://webcms.tourliz.com/packages/',
+                'https://webcms.tourliz.com/images/',
+                'http://webcms.tourliz.com/images/'
+            ], [
+                'https://img.tourliz.com/packages/',
+                'https://img.tourliz.com/packages/',
+                'https://img.tourliz.com/images/',
+                'https://img.tourliz.com/images/'
+            ], $path);
+        }
+        
         // If already a full URL, return as is
         if (filter_var($path, FILTER_VALIDATE_URL)) {
             return $path;

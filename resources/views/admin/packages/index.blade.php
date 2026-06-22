@@ -290,10 +290,19 @@
                         ? pkg.destinations.map(d => d.name).join(', ') 
                         : (pkg.destination ? pkg.destination.name : 'Various');
 
+                    let imgUrl = pkg.image;
+                    if (imgUrl) {
+                        imgUrl = imgUrl.replace(/https?:\/\/webcms\.tourliz\.com\/packages\//g, 'https://img.tourliz.com/packages/');
+                        imgUrl = imgUrl.replace(/https?:\/\/webcms\.tourliz\.com\/images\//g, 'https://img.tourliz.com/images/');
+                        imgUrl = imgUrl.startsWith('http') || imgUrl.startsWith('//') ? imgUrl : (imgUrl.startsWith('packages/') || imgUrl.startsWith('images/') ? 'https://img.tourliz.com/' + imgUrl : '/' + imgUrl);
+                    } else {
+                        imgUrl = 'https://placehold.co/600x400?text=' + encodeURIComponent(pkg.name);
+                    }
+
                     let html = template
                         .replace(/{ID}/g, pkg.id)
                         .replace(/{NAME}/g, pkg.name)
-                        .replace(/{IMAGE}/g, pkg.image ? (pkg.image.startsWith('http') || pkg.image.startsWith('//') ? pkg.image : (pkg.image.startsWith('packages/') || pkg.image.startsWith('images/') ? 'https://img.tourliz.com/' + pkg.image : '/' + pkg.image)) : 'https://placehold.co/600x400?text=' + encodeURIComponent(pkg.name))
+                        .replace(/{IMAGE}/g, imgUrl)
                         .replace(/{COUNTRY}/g, pkg.country ? pkg.country.name : 'Intl')
                         .replace(/{DESTINATION}/g, destNames)
                         .replace(/{PRICE}/g, pkg.price ? parseFloat(pkg.price).toLocaleString() : '0')
