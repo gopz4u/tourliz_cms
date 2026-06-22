@@ -157,6 +157,15 @@ Route::get('/storage-debug', function () {
         ];
     }
 
+    // Mask key and secret for security
+    $s3Config = config('filesystems.disks.s3');
+    if (isset($s3Config['key'])) {
+        $s3Config['key'] = substr($s3Config['key'], 0, 4) . '...';
+    }
+    if (isset($s3Config['secret'])) {
+        $s3Config['secret'] = substr($s3Config['secret'], 0, 4) . '...';
+    }
+
     return response()->json([
         'test_file' => $testFile,
         'paths' => $results,
@@ -164,6 +173,8 @@ Route::get('/storage-debug', function () {
         'public_storage' => public_path('storage'),
         'is_symlink' => is_link(public_path('storage')),
         'symlink_target' => is_link(public_path('storage')) ? readlink(public_path('storage')) : null,
+        's3_test_url' => Storage::disk('s3')->url('packages/1782110555_d5785c628c9b32eb39c25e1122fbc8a9.jpg'),
+        's3_config' => $s3Config,
     ]);
 })->name('storage.debug');
 
