@@ -328,7 +328,7 @@
                                     <input type="file" id="hero-img" name="image" class="d-none" accept="image/*" onchange="previewHero(this)">
                                 </label>
                                 <div id="hero-preview" class="mt-3 {{ $package->image ? '' : 'd-none' }}">
-                                    <img src="{{ $package->image ? asset($package->image) : '' }}" class="img-fluid rounded-4 shadow-sm border">
+                                    <img src="{{ $package->image ? getImageUrl($package->image) : '' }}" class="img-fluid rounded-4 shadow-sm border">
                                 </div>
                             </div>
 
@@ -344,7 +344,7 @@
                                         @foreach($package->gallery as $img)
                                             <div class="position-relative gallery-item-container m-1" style="width:80px; height:80px;">
                                                 <input type="hidden" name="retained_gallery[]" value="{{ $img }}">
-                                                <img src="{{ asset($img) }}" style="width:100%;height:100%;object-fit:cover;border-radius:12px;border:2px solid white;box-shadow:0 4px 10px rgba(0,0,0,0.1)">
+                                                <img src="{{ getImageUrl($img) }}" style="width:100%;height:100%;object-fit:cover;border-radius:12px;border:2px solid white;box-shadow:0 4px 10px rgba(0,0,0,0.1)">
                                                 <button type="button" class="btn btn-danger btn-sm rounded-circle position-absolute d-flex align-items-center justify-content-center" style="top:-5px; right:-5px; width:20px; height:20px; padding:0; font-size:10px; z-index:10;" onclick="$(this).closest('.gallery-item-container').remove();">
                                                     <i class="bi bi-x"></i>
                                                 </button>
