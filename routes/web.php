@@ -58,6 +58,8 @@ Route::get('/composer-install', function () {
         putenv('COMPOSER_HOME=' . $composerHome);
         putenv('HOME=' . $composerHome);
         
+        chdir(base_path());
+        
         $output = shell_exec('composer install --no-dev --optimize-autoloader 2>&1');
         return '<pre>' . $output . '</pre>';
     } catch (\Exception $e) {
