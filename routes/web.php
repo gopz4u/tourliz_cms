@@ -70,7 +70,10 @@ Route::get('/composer-install', function () {
 Route::get('/debug-packages', function () {
     try {
         $packages = \DB::table('packages')->select('id', 'name', 'image', 'gallery')->orderBy('id', 'desc')->get();
-        $html = '<table border="1" style="border-collapse:collapse; width:100%; font-family:sans-serif;">';
+        $groupPackages = \DB::table('group_packages')->select('id', 'name', 'image', 'gallery')->orderBy('id', 'desc')->get();
+        
+        $html = '<h2>Standard Packages</h2>';
+        $html .= '<table border="1" style="border-collapse:collapse; width:100%; font-family:sans-serif; margin-bottom:20px;">';
         $html .= '<tr style="background:#eee;"><th>ID</th><th>Name</th><th>Image Path/URL</th><th>Gallery</th></tr>';
         foreach ($packages as $pkg) {
             $html .= "<tr>";
@@ -81,6 +84,20 @@ Route::get('/debug-packages', function () {
             $html .= "</tr>";
         }
         $html .= '</table>';
+
+        $html .= '<h2>Group Packages</h2>';
+        $html .= '<table border="1" style="border-collapse:collapse; width:100%; font-family:sans-serif;">';
+        $html .= '<tr style="background:#eee;"><th>ID</th><th>Name</th><th>Image Path/URL</th><th>Gallery</th></tr>';
+        foreach ($groupPackages as $pkg) {
+            $html .= "<tr>";
+            $html .= "<td>{$pkg->id}</td>";
+            $html .= "<td>" . e($pkg->name) . "</td>";
+            $html .= "<td>" . ($pkg->image ? e($pkg->image) : '<em>NULL</em>') . "</td>";
+            $html .= "<td>" . e($pkg->gallery) . "</td>";
+            $html .= "</tr>";
+        }
+        $html .= '</table>';
+        
         return $html;
     } catch (\Exception $e) {
         return 'Error: ' . $e->getMessage();
