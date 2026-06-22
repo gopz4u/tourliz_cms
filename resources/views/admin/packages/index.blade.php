@@ -293,7 +293,7 @@
                     let html = template
                         .replace(/{ID}/g, pkg.id)
                         .replace(/{NAME}/g, pkg.name)
-                        .replace(/{IMAGE}/g, pkg.image ? (pkg.image.startsWith('http') || pkg.image.startsWith('//') ? pkg.image : '/' + pkg.image) : 'https://placehold.co/600x400?text=' + encodeURIComponent(pkg.name))
+                        .replace(/{IMAGE}/g, pkg.image ? (pkg.image.startsWith('http') || pkg.image.startsWith('//') ? pkg.image : (pkg.image.startsWith('packages/') || pkg.image.startsWith('images/') ? 'https://img.tourliz.com/' + pkg.image : '/' + pkg.image)) : 'https://placehold.co/600x400?text=' + encodeURIComponent(pkg.name))
                         .replace(/{COUNTRY}/g, pkg.country ? pkg.country.name : 'Intl')
                         .replace(/{DESTINATION}/g, destNames)
                         .replace(/{PRICE}/g, pkg.price ? parseFloat(pkg.price).toLocaleString() : '0')

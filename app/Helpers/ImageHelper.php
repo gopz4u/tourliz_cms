@@ -21,6 +21,11 @@ if (!function_exists('getImageUrl')) {
         // Remove leading slash if present
         $path = ltrim($path, '/');
         
+        // If it starts with packages/ or images/ and we have AWS_URL configured, return R2 URL
+        if (env('AWS_URL') && (strpos($path, 'packages/') === 0 || strpos($path, 'images/') === 0)) {
+            return rtrim(env('AWS_URL'), '/') . '/' . $path;
+        }
+        
         // Check if symlink exists and is valid
         $symlinkPath = public_path('storage');
         if (file_exists($symlinkPath) && is_link($symlinkPath)) {
