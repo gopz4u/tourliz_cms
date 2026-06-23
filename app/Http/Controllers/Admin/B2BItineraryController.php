@@ -123,10 +123,7 @@ class B2BItineraryController extends Controller
         $destinations = \App\Models\Destination::orderBy('city')->get();
         $admins = \App\Models\Admin::orderBy('name')->get();
 
-        // We need attractions too for the builder
-        $attractions = \App\Models\Attraction::orderBy('name')->get();
-
-        return view('admin.b2b.edit', compact('itinerary', 'countries', 'destinations', 'attractions', 'admins'));
+        return view('admin.b2b.edit', compact('itinerary', 'countries', 'destinations', 'admins'));
     }
 
     /**
@@ -199,13 +196,14 @@ class B2BItineraryController extends Controller
                     return floatval(str_replace(',', '', (string) $val));
                 };
 
-                // Helper to resolve supplier ID
-                $getSupplierId = function ($item, $modelClass, $nameField = 'name') {
-                    if (!empty($item['supplier_id']))
+                // Resolve supplier_id from item: use stored supplier_id, or look up via service_id
+                $resolveSupplierId = function ($item) {
+                    if (!empty($item['supplier_id'])) {
                         return $item['supplier_id'];
-                    if (!empty($item[$nameField])) {
-                        $record = $modelClass::where($nameField, $item[$nameField])->first();
-                        return $record ? $record->supplier_id : null;
+                    }
+                    if (!empty($item['service_id'])) {
+                        $service = \App\Models\Service::find($item['service_id']);
+                        return $service ? $service->supplier_id : null;
                     }
                     return null;
                 };
@@ -217,7 +215,7 @@ class B2BItineraryController extends Controller
                         // Hotels
                         if (!empty($day['hotels'])) {
                             foreach ($day['hotels'] as $item) {
-                                $vid = $getSupplierId($item, \App\Models\Hotel::class, 'name');
+                                $vid = $resolveSupplierId($item);
                                 if ($vid) {
                                     $cost = ($safeFloat($item['price_per_night'] ?? 0) + $safeFloat($item['add_on_price'] ?? 0)) * $safeFloat($item['quantity'] ?? 1);
                                     $vendorCosts[$vid] = ($vendorCosts[$vid] ?? 0) + $cost;
@@ -227,7 +225,7 @@ class B2BItineraryController extends Controller
                         // Transport
                         if (!empty($day['transport'])) {
                             foreach ($day['transport'] as $item) {
-                                $vid = $getSupplierId($item, \App\Models\Transport::class, 'name');
+                                $vid = $resolveSupplierId($item);
                                 if ($vid) {
                                     $cost = $safeFloat($item['price'] ?? 0);
                                     $vendorCosts[$vid] = ($vendorCosts[$vid] ?? 0) + $cost;
@@ -237,7 +235,7 @@ class B2BItineraryController extends Controller
                         // Activities
                         if (!empty($day['activities'])) {
                             foreach ($day['activities'] as $item) {
-                                $vid = $getSupplierId($item, \App\Models\Activity::class, 'name');
+                                $vid = $resolveSupplierId($item);
                                 if ($vid) {
                                     $et = $item['entry_ticket'] ?? [];
                                     $cost = ($safeFloat($et['adult_price'] ?? 0) * $safeFloat($et['adult_qty'] ?? 0)) +
@@ -250,7 +248,7 @@ class B2BItineraryController extends Controller
                         // Tickets/Places
                         if (!empty($day['places'])) {
                             foreach ($day['places'] as $item) {
-                                $vid = $getSupplierId($item, \App\Models\EntryTicket::class, 'attraction_name');
+                                $vid = $resolveSupplierId($item);
                                 if ($vid) {
                                     $et = $item['entry_ticket'] ?? [];
                                     $cost = ($safeFloat($et['adult_price'] ?? 0) * $safeFloat($et['adult_qty'] ?? 0)) +
@@ -263,8 +261,8 @@ class B2BItineraryController extends Controller
                         // Meals
                         if (!empty($day['meals'])) {
                             foreach ($day['meals'] as $item) {
-                                if (!empty($item['supplier_id'])) {
-                                    $vid = $item['supplier_id'];
+                                $vid = $resolveSupplierId($item);
+                                if ($vid) {
                                     $cost = $safeFloat($item['price'] ?? 0) * $safeFloat($item['quantity'] ?? 1);
                                     $vendorCosts[$vid] = ($vendorCosts[$vid] ?? 0) + $cost;
                                 }
@@ -273,7 +271,7 @@ class B2BItineraryController extends Controller
                         // Spots
                         if (!empty($day['spots'])) {
                             foreach ($day['spots'] as $item) {
-                                $vid = $getSupplierId($item, \App\Models\TouristSpot::class, 'name');
+                                $vid = $resolveSupplierId($item);
                                 if ($vid) {
                                     $cost = $safeFloat($item['price_per_hour'] ?? 0) * $safeFloat($item['hours'] ?? 0);
                                     $vendorCosts[$vid] = ($vendorCosts[$vid] ?? 0) + $cost;
@@ -355,9 +353,9 @@ class B2BItineraryController extends Controller
 
         $pdf = Pdf::loadView('admin.b2b.pdf', $data);
 
-        $filename = ($data['is_public'] ? 'Proposal' : 'Internal') . '_' . 
-                    \Illuminate\Support\Str::slug($customItinerary->client_name ?? 'Guest') . '_' . 
-                    now()->format('d_M_Y') . '.pdf';
+        $filename = ($data['is_public'] ? 'Proposal' : 'Internal') . '_' .
+            \Illuminate\Support\Str::slug($customItinerary->client_name ?? 'Guest') . '_' .
+            now()->format('d_M_Y') . '.pdf';
 
         return $pdf->download($filename);
     }

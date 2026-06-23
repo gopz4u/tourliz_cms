@@ -3,12 +3,6 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use App\Models\Hotel;
-use App\Models\Activity;
-use App\Models\Transport;
-use App\Models\EntryTicket;
-use App\Models\Meal;
-use App\Models\TouristSpot;
 use App\Models\Service;
 use Illuminate\Http\Request;
 
@@ -20,12 +14,12 @@ class InventoryApiController extends Controller
         $country = $request->query('country');
         $search = $request->query('search');
 
-        $query = Hotel::with('rooms')->where('is_active', true);
+        $query = Service::where('category', 'Hotels')->where('is_active', true);
 
         if ($destinationId) {
             $query->where('destination_id', $destinationId);
         } elseif ($country) {
-            $query->whereHas('destination', function($q) use ($country) {
+            $query->whereHas('destination', function ($q) use ($country) {
                 $q->where('country', $country);
             });
         }
@@ -34,25 +28,10 @@ class InventoryApiController extends Controller
             $query->where('name', 'like', "%{$search}%");
         }
 
-        $hotels = $query->get();
-
-        // Query Service model for hotels
-        $serviceQuery = Service::where('category', 'Hotels')->where('is_active', true);
-        if ($destinationId) {
-            $serviceQuery->where('destination_id', $destinationId);
-        } elseif ($country) {
-            $serviceQuery->whereHas('destination', function($q) use ($country) {
-                $q->where('country', $country);
-            });
-        }
-        if ($search) {
-            $serviceQuery->where('name', 'like', "%{$search}%");
-        }
-
-        $services = $serviceQuery->get()->map(function($service) {
+        $results = $query->get()->map(function ($service) {
             return [
                 'id' => $service->id,
-                'name' => $service->name . ' (Core Service)',
+                'name' => $service->name,
                 'star_rating' => $service->star_rating ?? 5,
                 'is_core_service' => true,
                 'accommodation_type' => $service->accommodation_type ?: 'Standard',
@@ -73,7 +52,7 @@ class InventoryApiController extends Controller
             ];
         });
 
-        return response()->json($hotels->concat($services)->values());
+        return response()->json($results->values());
     }
 
     public function activities(Request $request)
@@ -82,12 +61,12 @@ class InventoryApiController extends Controller
         $country = $request->query('country');
         $search = $request->query('search');
 
-        $query = Activity::where('is_active', true);
+        $query = Service::where('category', 'Activities')->where('is_active', true);
 
         if ($destinationId) {
             $query->where('destination_id', $destinationId);
         } elseif ($country) {
-            $query->whereHas('destination', function($q) use ($country) {
+            $query->whereHas('destination', function ($q) use ($country) {
                 $q->where('country', $country);
             });
         }
@@ -96,82 +75,54 @@ class InventoryApiController extends Controller
             $query->where('name', 'like', "%{$search}%");
         }
 
-        $activities = $query->get();
-
-        // Query Service model for activities
-        $serviceQuery = Service::where('category', 'Activities')->where('is_active', true);
-        if ($destinationId) {
-            $serviceQuery->where('destination_id', $destinationId);
-        } elseif ($country) {
-            $serviceQuery->whereHas('destination', function($q) use ($country) {
-                $q->where('country', $country);
-            });
-        }
-        if ($search) {
-            $serviceQuery->where('name', 'like', "%{$search}%");
-        }
-
-        $services = $serviceQuery->get()->map(function($service) {
+        $results = $query->get()->map(function ($service) {
             return [
                 'id' => $service->id,
-                'name' => $service->name . ' (Core Service)',
+                'name' => $service->name,
                 'base_price' => $service->price,
+                'adult_price' => $service->price,
                 'child_price' => $service->price_2_6 ?: ($service->price * 0.5),
+                'child_2_6_price' => $service->price_2_6 ?: ($service->price * 0.5),
+                'child_6_11_price' => $service->price_6_10 ?: ($service->price * 0.75),
                 'currency' => $service->currency ?? 'MYR',
                 'description' => $service->short_description ?? $service->description,
                 'supplier_id' => $service->supplier_id,
                 'is_core_service' => true,
-                'duration' => null
+                'duration' => null,
             ];
         });
 
-        return response()->json($activities->concat($services)->values());
+        return response()->json($results->values());
     }
 
     public function transports(Request $request)
     {
         $search = $request->query('search');
-        $destination = $request->query('destination'); // Note: Transport uses string destination
+        $destination = $request->query('destination');
 
-        $query = Transport::with('supplier')->where('is_active', true);
-
-        if ($destination) {
-            $query->where('destination', $destination);
-        }
-
-        if ($search) {
-            $query->where(function($q) use ($search) {
-                $q->where('name', 'like', "%{$search}%")
-                  ->orWhere('vehicle_type', 'like', "%{$search}%");
-            });
-        }
-
-        $transports = $query->get();
-
-        // Query Service model for transports
-        $serviceQuery = Service::with('supplier')
+        $query = Service::with('supplier')
             ->whereIn('category', ['Transport', 'Airport Pickup', 'Airport Drop'])
             ->where('is_active', true);
 
         if ($destination) {
-            $serviceQuery->whereHas('destination', function($q) use ($destination) {
+            $query->whereHas('destination', function ($q) use ($destination) {
                 $q->where('name', 'like', "%{$destination}%")
-                  ->orWhere('city', 'like', "%{$destination}%")
-                  ->orWhere('country', 'like', "%{$destination}%");
+                    ->orWhere('city', 'like', "%{$destination}%")
+                    ->orWhere('country', 'like', "%{$destination}%");
             });
         }
 
         if ($search) {
-            $serviceQuery->where(function($q) use ($search) {
+            $query->where(function ($q) use ($search) {
                 $q->where('name', 'like', "%{$search}%")
-                  ->orWhere('vehicle_type', 'like', "%{$search}%");
+                    ->orWhere('vehicle_type', 'like', "%{$search}%");
             });
         }
 
-        $services = $serviceQuery->get()->map(function($service) {
+        $results = $query->get()->map(function ($service) {
             return [
                 'id' => $service->id,
-                'name' => $service->name . ' (Core Service)',
+                'name' => $service->name,
                 'vehicle_type' => $service->vehicle_type ?: $service->name,
                 'base_price' => $service->price,
                 'price' => $service->price,
@@ -180,11 +131,11 @@ class InventoryApiController extends Controller
                 'supplier_id' => $service->supplier_id,
                 'supplier' => $service->supplier,
                 'is_core_service' => true,
-                'capacity' => $service->total_pax ?: 'N/A'
+                'capacity' => $service->total_pax ?: 'N/A',
             ];
         });
 
-        return response()->json($transports->concat($services)->values());
+        return response()->json($results->values());
     }
 
     public function tickets(Request $request)
@@ -193,49 +144,36 @@ class InventoryApiController extends Controller
         $country = $request->query('country');
         $search = $request->query('search');
 
-        $query = EntryTicket::where('is_active', true);
+        $query = Service::where('category', 'Entry Tickets')->where('is_active', true);
 
         if ($destinationId) {
             $query->where('destination_id', $destinationId);
         } elseif ($country) {
-            $query->whereHas('destination', function($q) use ($country) {
+            $query->whereHas('destination', function ($q) use ($country) {
                 $q->where('country', $country);
             });
         }
 
         if ($search) {
-            $query->where('attraction_name', 'like', "%{$search}%");
+            $query->where('name', 'like', "%{$search}%");
         }
 
-        $tickets = $query->get();
-
-        // Query Service model for tickets
-        $serviceQuery = Service::where('category', 'Entry Tickets')->where('is_active', true);
-        if ($destinationId) {
-            $serviceQuery->where('destination_id', $destinationId);
-        } elseif ($country) {
-            $serviceQuery->whereHas('destination', function($q) use ($country) {
-                $q->where('country', $country);
-            });
-        }
-        if ($search) {
-            $serviceQuery->where('name', 'like', "%{$search}%");
-        }
-
-        $services = $serviceQuery->get()->map(function($service) {
+        $results = $query->get()->map(function ($service) {
             return [
                 'id' => $service->id,
-                'attraction_name' => $service->name . ' (Core Service)',
+                'attraction_name' => $service->name,
                 'adult_price' => $service->price,
                 'child_price' => $service->price_2_6 ?: ($service->price * 0.5),
+                'child_2_6_price' => $service->price_2_6 ?: ($service->price * 0.5),
+                'child_6_11_price' => $service->price_6_10 ?: ($service->price * 0.75),
                 'currency' => $service->currency ?? 'MYR',
                 'description' => $service->short_description ?? $service->description,
                 'supplier_id' => $service->supplier_id,
-                'is_core_service' => true
+                'is_core_service' => true,
             ];
         });
 
-        return response()->json($tickets->concat($services)->values());
+        return response()->json($results->values());
     }
 
     public function meals(Request $request)
@@ -244,7 +182,7 @@ class InventoryApiController extends Controller
         $country = $request->query('country');
         $search = $request->query('search');
 
-        $query = Meal::where('is_active', true);
+        $query = Service::where('category', 'Meals')->where('is_active', true);
 
         if ($destinationId) {
             $query->where(function ($q) use ($destinationId) {
@@ -252,7 +190,7 @@ class InventoryApiController extends Controller
                     ->orWhereNull('destination_id');
             });
         } elseif ($country) {
-            $query->whereHas('destination', function($q) use ($country) {
+            $query->whereHas('destination', function ($q) use ($country) {
                 $q->where('country', $country);
             });
         }
@@ -261,38 +199,20 @@ class InventoryApiController extends Controller
             $query->where('name', 'like', "%{$search}%");
         }
 
-        $meals = $query->get();
-
-        // Query Service model for meals
-        $serviceQuery = Service::where('category', 'Meals')->where('is_active', true);
-        if ($destinationId) {
-            $serviceQuery->where(function ($q) use ($destinationId) {
-                $q->where('destination_id', $destinationId)
-                    ->orWhereNull('destination_id');
-            });
-        } elseif ($country) {
-            $serviceQuery->whereHas('destination', function($q) use ($country) {
-                $q->where('country', $country);
-            });
-        }
-        if ($search) {
-            $serviceQuery->where('name', 'like', "%{$search}%");
-        }
-
-        $services = $serviceQuery->get()->map(function($service) {
+        $results = $query->get()->map(function ($service) {
             return [
                 'id' => $service->id,
-                'name' => $service->name . ' (Core Service)',
+                'name' => $service->name,
                 'price' => $service->price,
                 'currency' => $service->currency ?? 'MYR',
                 'type' => $service->accommodation_type ?: $service->vehicle_type ?: 'Meal',
                 'description' => $service->short_description ?? $service->description,
                 'supplier_id' => $service->supplier_id,
-                'is_core_service' => true
+                'is_core_service' => true,
             ];
         });
 
-        return response()->json($meals->concat($services)->values());
+        return response()->json($results->values());
     }
 
     public function spots(Request $request)
@@ -301,12 +221,12 @@ class InventoryApiController extends Controller
         $country = $request->query('country');
         $search = $request->query('search');
 
-        $query = TouristSpot::where('is_active', true);
+        $query = Service::where('category', 'Other Services')->where('is_active', true);
 
         if ($destinationId) {
             $query->where('destination_id', $destinationId);
         } elseif ($country) {
-            $query->whereHas('destination', function($q) use ($country) {
+            $query->whereHas('destination', function ($q) use ($country) {
                 $q->where('country', $country);
             });
         }
@@ -315,39 +235,27 @@ class InventoryApiController extends Controller
             $query->where('name', 'like', "%{$search}%");
         }
 
-        $spots = $query->get();
-
-        // Query Service model for spots (Other Services category)
-        $serviceQuery = Service::where('category', 'Other Services')->where('is_active', true);
-        if ($destinationId) {
-            $serviceQuery->where('destination_id', $destinationId);
-        } elseif ($country) {
-            $serviceQuery->whereHas('destination', function($q) use ($country) {
-                $q->where('country', $country);
-            });
-        }
-        if ($search) {
-            $serviceQuery->where('name', 'like', "%{$search}%");
-        }
-
-        $services = $serviceQuery->get()->map(function($service) {
+        $results = $query->get()->map(function ($service) {
             return [
                 'id' => $service->id,
-                'name' => $service->name . ' (Core Service)',
+                'name' => $service->name,
                 'description' => $service->short_description ?? $service->description,
                 'is_core_service' => true,
-                'supplier_id' => $service->supplier_id
+                'supplier_id' => $service->supplier_id,
+                'price' => $service->price,
+                'base_price' => $service->price,
+                'currency' => $service->currency ?? 'MYR',
             ];
         });
 
-        return response()->json($spots->concat($services)->values());
+        return response()->json($results->values());
     }
 
     public function supplierAssets(Request $request, $id)
     {
         $supplier = \App\Models\Supplier::findOrFail($id);
         $rawType = trim(strtolower($supplier->type));
-        
+
         // Normalize type
         $type = $rawType;
         if (str_contains($rawType, 'hotel') || str_contains($rawType, 'accommodation')) {
@@ -363,7 +271,7 @@ class InventoryApiController extends Controller
         $data = [
             'supplier' => $supplier,
             'type' => $type,
-            'assets' => []
+            'assets' => [],
         ];
 
         // Fetch services for this supplier
@@ -371,10 +279,10 @@ class InventoryApiController extends Controller
 
         switch ($type) {
             case 'hotel':
-                $hotelServices = $services->filter(fn($s) => str_contains(strtolower($s->category), 'hotel'))->map(function($service) {
+                $data['assets'] = $services->filter(fn($s) => str_contains(strtolower($s->category), 'hotel'))->map(function ($service) {
                     return [
                         'id' => $service->id,
-                        'name' => $service->name . ' (Core Service)',
+                        'name' => $service->name,
                         'star_rating' => $service->star_rating ?? 5,
                         'is_core_service' => true,
                         'accommodation_type' => $service->accommodation_type ?: 'Standard',
@@ -393,14 +301,14 @@ class InventoryApiController extends Controller
                             ]
                         ]
                     ];
-                });
-                $data['assets'] = \App\Models\Hotel::with('rooms')->where('supplier_id', $id)->get()->concat($hotelServices)->values();
+                })->values();
                 break;
+
             case 'transport':
-                $transportServices = $services->filter(fn($s) => str_contains(strtolower($s->category), 'transport') || str_contains(strtolower($s->category), 'pickup') || str_contains(strtolower($s->category), 'drop'))->map(function($service) {
+                $data['assets'] = $services->filter(fn($s) => str_contains(strtolower($s->category), 'transport') || str_contains(strtolower($s->category), 'pickup') || str_contains(strtolower($s->category), 'drop'))->map(function ($service) {
                     return [
                         'id' => $service->id,
-                        'name' => $service->name . ' (Core Service)',
+                        'name' => $service->name,
                         'vehicle_type' => $service->vehicle_type ?: $service->name,
                         'base_price' => $service->price,
                         'price' => $service->price,
@@ -409,73 +317,67 @@ class InventoryApiController extends Controller
                         'supplier_id' => $service->supplier_id,
                         'supplier' => $service->supplier,
                         'is_core_service' => true,
-                        'capacity' => $service->total_pax ?: 'N/A'
+                        'capacity' => $service->total_pax ?: 'N/A',
                     ];
-                });
-                $data['assets'] = \App\Models\Transport::where('supplier_id', $id)->get()->concat($transportServices)->values();
+                })->values();
                 break;
+
             case 'activity':
-                $activityServices = $services->filter(fn($s) => str_contains(strtolower($s->category), 'activity') || str_contains(strtolower($s->category), 'service'))->map(function($service) {
+                $data['assets'] = $services->filter(fn($s) => str_contains(strtolower($s->category), 'activity') || str_contains(strtolower($s->category), 'service'))->map(function ($service) {
                     return [
                         'id' => $service->id,
-                        'name' => $service->name . ' (Core Service)',
+                        'name' => $service->name,
                         'base_price' => $service->price,
+                        'adult_price' => $service->price,
                         'child_price' => $service->price_2_6 ?: ($service->price * 0.5),
+                        'child_2_6_price' => $service->price_2_6 ?: ($service->price * 0.5),
+                        'child_6_11_price' => $service->price_6_10 ?: ($service->price * 0.75),
                         'currency' => $service->currency ?? 'MYR',
                         'description' => $service->short_description ?? $service->description,
                         'supplier_id' => $service->supplier_id,
                         'is_core_service' => true,
-                        'duration' => null
+                        'duration' => null,
                     ];
-                });
-                $data['assets'] = \App\Models\Activity::where('supplier_id', $id)->get()->concat($activityServices)->values();
-                
-                $ticketServices = $services->filter(fn($s) => str_contains(strtolower($s->category), 'ticket'))->map(function($service) {
+                })->values();
+
+                $data['extra_assets'] = $services->filter(fn($s) => str_contains(strtolower($s->category), 'ticket'))->map(function ($service) {
                     return [
                         'id' => $service->id,
-                        'attraction_name' => $service->name . ' (Core Service)',
+                        'attraction_name' => $service->name,
                         'adult_price' => $service->price,
                         'child_price' => $service->price_2_6 ?: ($service->price * 0.5),
+                        'child_2_6_price' => $service->price_2_6 ?: ($service->price * 0.5),
+                        'child_6_11_price' => $service->price_6_10 ?: ($service->price * 0.75),
                         'currency' => $service->currency ?? 'MYR',
                         'description' => $service->short_description ?? $service->description,
                         'supplier_id' => $service->supplier_id,
-                        'is_core_service' => true
+                        'is_core_service' => true,
                     ];
-                });
-                $data['extra_assets'] = \App\Models\EntryTicket::where('supplier_id', $id)->get()->concat($ticketServices)->values();
+                })->values();
                 break;
+
             case 'meal':
-                $mealServices = $services->filter(fn($s) => str_contains(strtolower($s->category), 'meal'))->map(function($service) {
+                $data['assets'] = $services->filter(fn($s) => str_contains(strtolower($s->category), 'meal'))->map(function ($service) {
                     return [
                         'id' => $service->id,
-                        'name' => $service->name . ' (Core Service)',
+                        'name' => $service->name,
                         'price' => $service->price,
                         'currency' => $service->currency ?? 'MYR',
                         'type' => $service->accommodation_type ?: $service->vehicle_type ?: 'Meal',
                         'description' => $service->short_description ?? $service->description,
                         'supplier_id' => $service->supplier_id,
-                        'is_core_service' => true
+                        'is_core_service' => true,
                     ];
-                });
-                $data['assets'] = \App\Models\Meal::where('supplier_id', $id)->get()->concat($mealServices)->values();
+                })->values();
                 break;
+
             default:
-                // Try to find anything linked to this supplier
-                $allAssets = collect();
-                $allAssets = $allAssets->merge(\App\Models\Hotel::with('rooms')->where('supplier_id', $id)->get());
-                $allAssets = $allAssets->merge(\App\Models\Transport::where('supplier_id', $id)->get());
-                $allAssets = $allAssets->merge(\App\Models\Activity::where('supplier_id', $id)->get());
-                if (class_exists(\App\Models\EntryTicket::class)) {
-                    $allAssets = $allAssets->merge(\App\Models\EntryTicket::where('supplier_id', $id)->get());
-                }
-                $allAssets = $allAssets->merge(\App\Models\Meal::where('supplier_id', $id)->get());
-                
-                $mappedServices = $services->map(function($service) {
+                $data['assets'] = $services->map(function ($service) {
                     $cat = strtolower($service->category);
                     if (str_contains($cat, 'hotel')) {
                         return [
                             'id' => $service->id,
-                            'name' => $service->name . ' (Core Service)',
+                            'name' => $service->name,
                             'star_rating' => $service->star_rating ?? 5,
                             'is_core_service' => true,
                             'rooms' => [
@@ -492,16 +394,14 @@ class InventoryApiController extends Controller
                     }
                     return [
                         'id' => $service->id,
-                        'name' => $service->name . ' (Core Service)',
+                        'name' => $service->name,
                         'is_core_service' => true,
                         'price' => $service->price,
                         'base_price' => $service->price,
                         'currency' => $service->currency ?? 'MYR',
-                        'description' => $service->short_description ?? $service->description
+                        'description' => $service->short_description ?? $service->description,
                     ];
-                });
-
-                $data['assets'] = $allAssets->concat($mappedServices)->values();
+                })->values();
         }
 
         return response()->json($data);

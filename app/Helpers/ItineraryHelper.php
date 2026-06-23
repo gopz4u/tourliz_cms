@@ -3,9 +3,7 @@
 namespace App\Helpers;
 
 use App\Models\Destination;
-use App\Models\Attraction;
 use App\Models\Service;
-use App\Models\TouristSpot;
 
 class ItineraryHelper
 {
@@ -395,19 +393,10 @@ class ItineraryHelper
                 }
             }
 
-            // Enrich activities with attraction data
+            // Enrich activities with service data
             if (isset($day['activities']) && is_array($day['activities'])) {
                 foreach ($day['activities'] as &$activity) {
                     if (is_array($activity)) {
-                        if (isset($activity['attraction_id'])) {
-                            $attraction = Attraction::find($activity['attraction_id']);
-                            if ($attraction) {
-                                $activity['attraction_name'] = $attraction->name;
-                                $activity['attraction_slug'] = $attraction->slug;
-                                $activity['attraction_image'] = $attraction->image ?? null;
-                                $activity['attraction_description'] = $attraction->short_description ?? null;
-                            }
-                        }
                         if (isset($activity['service_id'])) {
                             $service = Service::find($activity['service_id']);
                             if ($service) {
@@ -428,7 +417,7 @@ class ItineraryHelper
                 }
             }
 
-            // Enrich spots (Tourist Spots) with database data
+            // Enrich spots with service data
             if (isset($day['spots']) && is_array($day['spots'])) {
                 foreach ($day['spots'] as &$spot) {
                     if (is_array($spot)) {
@@ -439,35 +428,23 @@ class ItineraryHelper
                                 $spot['description'] = $service->short_description ?? $service->description ?? null;
                                 $spot['price_per_hour'] = $service->price;
                                 $spot['hours'] = $spot['hours'] ?? 2;
-                            }
-                        } else {
-                            $spotId = $spot['tourist_spot_id'] ?? $spot['id'] ?? null;
-                            if ($spotId) {
-                                $spotModel = TouristSpot::find($spotId);
-                                if ($spotModel) {
-                                    $spot['name'] = $spotModel->name;
-                                    $spot['image'] = $spotModel->image_url ?? null;
-                                    $spot['description'] = $spotModel->description ?? null;
-                                }
+                                $spot['image'] = $service->image ?? null;
                             }
                         }
                     }
                 }
             }
 
-            // Enrich meals_list (Meals) with database data
+            // Enrich meals_list with service data
             if (isset($day['meals_list']) && is_array($day['meals_list'])) {
                 foreach ($day['meals_list'] as &$mealItem) {
-                    if (is_array($mealItem)) {
-                        $mealId = $mealItem['meal_id'] ?? $mealItem['id'] ?? null;
-                        if ($mealId) {
-                            $mealModel = \App\Models\Meal::find($mealId);
-                            if ($mealModel) {
-                                $mealItem['name'] = $mealModel->name;
-                                $mealItem['price'] = $mealModel->price;
-                                $mealItem['type'] = $mealModel->type;
-                                $mealItem['description'] = $mealModel->description;
-                            }
+                    if (is_array($mealItem) && isset($mealItem['service_id'])) {
+                        $service = Service::find($mealItem['service_id']);
+                        if ($service) {
+                            $mealItem['name'] = $service->name;
+                            $mealItem['price'] = $service->price;
+                            $mealItem['type'] = $service->accommodation_type ?: $service->vehicle_type ?: 'Meal';
+                            $mealItem['description'] = $service->short_description ?? $service->description ?? null;
                         }
                     }
                 }
