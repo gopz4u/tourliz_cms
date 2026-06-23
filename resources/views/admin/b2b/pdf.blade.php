@@ -65,8 +65,6 @@
             font-weight: 800;
             color: #1a1a2e;
             margin-bottom: 4px;
-            text-transform: uppercase;
-            letter-spacing: 1px;
         }
 
         .proposal-subtitle {
@@ -76,11 +74,9 @@
         }
 
         .ref-badge {
-            display: inline-block;
             background: #e8f0fe;
             color: #1a73e8;
             padding: 3px 10px;
-            border-radius: 3px;
             font-size: 9pt;
             font-weight: 600;
         }
@@ -107,8 +103,6 @@
         .summary-label {
             color: #636e72;
             font-size: 8pt;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
             display: block;
             margin-bottom: 2px;
         }
@@ -121,10 +115,7 @@
         /* ── DAY BLOCK ── */
         .day-block {
             margin-bottom: 16px;
-            page-break-inside: avoid;
-            border: 1px solid #e8ecf1;
-            border-radius: 4px;
-            overflow: hidden;
+            border: 1px solid #d0d7de;
         }
 
         .day-head {
@@ -136,9 +127,8 @@
         }
 
         .day-head .day-num {
-            background: rgba(255, 255, 255, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.35);
             padding: 2px 9px;
-            border-radius: 3px;
             margin-right: 8px;
             font-size: 9pt;
         }
@@ -148,30 +138,21 @@
         }
 
         .day-section {
-            margin-bottom: 10px;
-            padding-left: 4px;
-            border-left: 3px solid #dfe6e9;
             padding: 6px 0 6px 12px;
             margin-bottom: 8px;
+            border-left: 3px solid #dfe6e9;
         }
 
         .day-section-label {
             font-size: 8pt;
             font-weight: 700;
             color: #636e72;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
             margin-bottom: 3px;
         }
 
         .day-section-content {
             font-size: 10pt;
             color: #2d3436;
-        }
-
-        .day-icon {
-            color: #1a73e8;
-            font-size: 9pt;
         }
 
         /* ── PRICING TABLE ── */
@@ -187,8 +168,6 @@
             margin-bottom: 12px;
             padding-bottom: 6px;
             border-bottom: 2px solid #1a73e8;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
         }
 
         .pricing-table {
@@ -205,8 +184,6 @@
             text-align: left;
             font-weight: 600;
             font-size: 9pt;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
         }
 
         .pricing-table tbody td {
@@ -238,7 +215,6 @@
             padding: 20px 24px;
             margin-top: 20px;
             page-break-inside: avoid;
-            border-radius: 4px;
         }
 
         .grand-total-table {
@@ -252,9 +228,6 @@
 
         .grand-label {
             font-size: 10pt;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            opacity: 0.85;
         }
 
         .grand-amount {
@@ -300,8 +273,6 @@
             text-align: center;
             font-weight: 700;
             font-size: 10pt;
-            text-transform: uppercase;
-            letter-spacing: 2px;
             margin-bottom: 18px;
         }
 
@@ -800,7 +771,8 @@
                     <tr class="highlight-row">
                         <td><strong>Selling Price</strong></td>
                         <td style="text-align:right;">
-                            <strong>{{ number_format(data_get($itinerary, 'total_price', 0), 2) }}</strong></td>
+                            <strong>{{ number_format(data_get($itinerary, 'total_price', 0), 2) }}</strong>
+                        </td>
                     </tr>
                 </tbody>
             </table>
