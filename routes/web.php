@@ -20,6 +20,7 @@ use App\Http\Controllers\Admin\GroupPackageItineraryController;
 use App\Http\Controllers\Admin\WebsiteManagementController;
 use App\Http\Controllers\Admin\PackageOfferController;
 use App\Http\Controllers\Admin\ReviewController;
+use App\Http\Controllers\Admin\SearchController;
 
 
 /*
@@ -57,9 +58,9 @@ Route::get('/composer-install', function () {
         }
         putenv('COMPOSER_HOME=' . $composerHome);
         putenv('HOME=' . $composerHome);
-        
+
         chdir(base_path());
-        
+
         $output = shell_exec('composer install --no-dev --optimize-autoloader 2>&1');
         return '<pre>' . $output . '</pre>';
     } catch (\Exception $e) {
@@ -71,7 +72,7 @@ Route::get('/debug-packages', function () {
     try {
         $packages = \DB::table('packages')->select('id', 'name', 'image', 'gallery')->orderBy('id', 'desc')->get();
         $groupPackages = \DB::table('group_packages')->select('id', 'name', 'image', 'gallery')->orderBy('id', 'desc')->get();
-        
+
         $html = '<h2>Standard Packages</h2>';
         $html .= '<table border="1" style="border-collapse:collapse; width:100%; font-family:sans-serif; margin-bottom:20px;">';
         $html .= '<tr style="background:#eee;"><th>ID</th><th>Name</th><th>Image Path/URL</th><th>Gallery</th></tr>';
@@ -97,7 +98,7 @@ Route::get('/debug-packages', function () {
             $html .= "</tr>";
         }
         $html .= '</table>';
-        
+
         return $html;
     } catch (\Exception $e) {
         return 'Error: ' . $e->getMessage();
@@ -126,8 +127,9 @@ Route::get('/migrate-status', function () {
 
 Route::get('/migrate-file', function (\Illuminate\Http\Request $request) {
     $file = $request->query('file');
-    if (!$file) return 'Please provide a ?file=filename parameter';
-    
+    if (!$file)
+        return 'Please provide a ?file=filename parameter';
+
     try {
         \Artisan::call('migrate', [
             '--path' => '/database/migrations/' . $file,
@@ -287,6 +289,9 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:admin'])->grou
         Route::delete('bookings/{id}/force-delete', [AdminBookingController::class, 'forceDelete'])->name('bookings.forceDelete');
     });
 
+    // Global Search
+    Route::get('search', [SearchController::class, 'index'])->name('search');
+
     // Bookings Management
     Route::get('bookings/create', [AdminBookingController::class, 'create'])->name('bookings.create');
     Route::post('bookings', [AdminBookingController::class, 'store'])->name('bookings.store');
@@ -357,4 +362,7 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:admin'])->grou
     Route::post('reviews/{id}/toggle-featured', [ReviewController::class, 'toggleFeatured'])->name('reviews.toggle-featured');
     Route::post('reviews/{id}/status', [ReviewController::class, 'updateStatus'])->name('reviews.updateStatus');
     Route::resource('reviews', ReviewController::class);
+
+    // Global Search
+    Route::get('search', [\App\Http\Controllers\Admin\SearchController::class, 'index'])->name('search');
 });
