@@ -368,6 +368,13 @@
                     }
                 });
 
+                // Pre-select category if passed in URL
+                const urlParams = new URLSearchParams(window.location.search);
+                const categoryParam = urlParams.get('category');
+                if (categoryParam) {
+                    $('#category').val(categoryParam).trigger('change');
+                }
+
                 $('#name').on('input', function () {
                     if (!$('#slug').val() || $('#slug').data('auto-generated')) {
                         const slug = $(this).val().toLowerCase().replace(/[^\w\s-]/g, '').replace(/\s+/g, '-').replace(/-+/g, '-').trim();

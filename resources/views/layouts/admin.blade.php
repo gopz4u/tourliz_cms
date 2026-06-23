@@ -569,7 +569,7 @@
                         </a>
                     </li>
                     <li>
-                        <a href="{{ route('admin.services.index') }}" class="{{ request()->routeIs('admin.services.*') ? 'active' : '' }}">
+                        <a href="{{ route('admin.services.index') }}" class="{{ request()->routeIs('admin.services.*') && !request()->has('category') ? 'active' : '' }}">
                             <i class="bi bi-tools main-icon"></i>
                             <span>Services</span>
                             <i class="bi bi-arrow-right nav-arrow"></i>
@@ -737,14 +737,14 @@
                             <span>Core Services</span>
                             <i class="bi bi-chevron-down ms-auto" style="font-size: 0.8rem; opacity: 0.5;"></i>
                         </a>
-                        <div id="collapseInventory" class="collapse {{ request()->routeIs('admin.hotels.*') || request()->routeIs('admin.activities.*') || request()->routeIs('admin.transports.*') || request()->routeIs('admin.entry-tickets.*') || request()->routeIs('admin.meals.*') || request()->routeIs('admin.tourist-spots.*') || request()->routeIs('admin.suppliers.*') ? 'show' : '' }}">
+                        <div id="collapseInventory" class="collapse {{ (request()->routeIs('admin.services.*') && request()->has('category')) || request()->routeIs('admin.suppliers.*') ? 'show' : '' }}">
                             <div class="collapse-inner">
-                                <a class="dropdown-item {{ request()->routeIs('admin.hotels.*') ? 'fw-bold' : '' }}" href="{{ route('admin.hotels.index') }}">Hotels</a>
-                                <a class="dropdown-item {{ request()->routeIs('admin.activities.*') ? 'fw-bold' : '' }}" href="{{ route('admin.activities.index') }}">Activities</a>
-                                <a class="dropdown-item {{ request()->routeIs('admin.transports.*') ? 'fw-bold' : '' }}" href="{{ route('admin.transports.index') }}">Transport</a>
-                                <a class="dropdown-item {{ request()->routeIs('admin.entry-tickets.*') ? 'fw-bold' : '' }}" href="{{ route('admin.entry-tickets.index') }}">Entry Tickets</a>
-                                <a class="dropdown-item {{ request()->routeIs('admin.meals.*') ? 'fw-bold' : '' }}" href="{{ route('admin.meals.index') }}">Meals Master</a>
-                                <a class="dropdown-item {{ request()->routeIs('admin.tourist-spots.*') ? 'fw-bold' : '' }}" href="{{ route('admin.tourist-spots.index') }}">Tourist Spots</a>
+                                <a class="dropdown-item {{ request()->routeIs('admin.services.*') && request('category') === 'Hotels' ? 'fw-bold' : '' }}" href="{{ route('admin.services.index') }}?category=Hotels">Hotels</a>
+                                <a class="dropdown-item {{ request()->routeIs('admin.services.*') && request('category') === 'Activities' ? 'fw-bold' : '' }}" href="{{ route('admin.services.index') }}?category=Activities">Activities</a>
+                                <a class="dropdown-item {{ request()->routeIs('admin.services.*') && request('category') === 'Transport' ? 'fw-bold' : '' }}" href="{{ route('admin.services.index') }}?category=Transport">Transport</a>
+                                <a class="dropdown-item {{ request()->routeIs('admin.services.*') && request('category') === 'Entry Tickets' ? 'fw-bold' : '' }}" href="{{ route('admin.services.index') }}?category=Entry Tickets">Entry Tickets</a>
+                                <a class="dropdown-item {{ request()->routeIs('admin.services.*') && request('category') === 'Meals' ? 'fw-bold' : '' }}" href="{{ route('admin.services.index') }}?category=Meals">Meals Master</a>
+                                <a class="dropdown-item {{ request()->routeIs('admin.services.*') && request('category') === 'Other Services' ? 'fw-bold' : '' }}" href="{{ route('admin.services.index') }}?category=Other Services">Tourist Spots</a>
                                 <a class="dropdown-item {{ request()->routeIs('admin.suppliers.*') && !request('type') ? 'fw-bold' : '' }}" href="{{ route('admin.suppliers.index') }}">
                                     <i class="bi bi-shop me-1"></i> All Suppliers
                                 </a>

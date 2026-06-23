@@ -8,7 +8,7 @@
             <h1 class="mb-0"><i class="bi bi-tools"></i> Services</h1>
             <p class="text-muted mb-0">Manage tourism services</p>
         </div>
-        <a href="{{ route('admin.services.create') }}" class="btn btn-primary">
+        <a id="add-service-btn" href="{{ route('admin.services.create') }}" class="btn btn-primary">
             <i class="bi bi-plus-circle"></i> Add New Service
         </a>
     </div>
@@ -27,6 +27,18 @@
                     <label for="filter-package" class="form-label"><i class="bi bi-funnel"></i> Filter by Package</label>
                     <select class="form-select" id="filter-package">
                         <option value="">All Packages</option>
+                    </select>
+                </div>
+                <div class="col-md-4">
+                    <label for="filter-category" class="form-label"><i class="bi bi-funnel"></i> Filter by Category</label>
+                    <select class="form-select" id="filter-category">
+                        <option value="">All Categories</option>
+                        <option value="Hotels">Hotels</option>
+                        <option value="Transport">Transport</option>
+                        <option value="Entry Tickets">Entry Tickets</option>
+                        <option value="Activities">Activities</option>
+                        <option value="Meals">Meals</option>
+                        <option value="Other Services">Other Services</option>
                     </select>
                 </div>
             </div>
@@ -69,6 +81,13 @@
     @push('scripts')
         <script>
             $(document).ready(function () {
+                // Read category parameter from URL
+                const urlParams = new URLSearchParams(window.location.search);
+                const categoryParam = urlParams.get('category');
+                if (categoryParam) {
+                    $('#filter-category').val(categoryParam);
+                }
+
                 loadDestinations();
                 loadPackages();
                 loadServices();
@@ -82,6 +101,24 @@
                 $('#filter-package').on('change', function () {
                     loadServices();
                 });
+
+                // Filter by category
+                $('#filter-category').on('change', function () {
+                    loadServices();
+                    updateAddButtonLink();
+                });
+
+                function updateAddButtonLink() {
+                    const cat = $('#filter-category').val();
+                    const btn = $('#add-service-btn');
+                    if (cat) {
+                        btn.attr('href', '{{ route("admin.services.create") }}?category=' + encodeURIComponent(cat));
+                    } else {
+                        btn.attr('href', '{{ route("admin.services.create") }}');
+                    }
+                }
+                
+                updateAddButtonLink();
             });
 
             function loadDestinations() {
@@ -138,10 +175,12 @@
             function loadServices() {
                 const destinationId = $('#filter-destination').val();
                 const packageId = $('#filter-package').val();
+                const category = $('#filter-category').val();
                 let url = '{{ route("admin.services.index") }}';
                 const params = [];
                 if (destinationId) params.push('destination_id=' + destinationId);
                 if (packageId) params.push('package_id=' + packageId);
+                if (category) params.push('category=' + encodeURIComponent(category));
                 if (params.length > 0) url += '?' + params.join('&');
 
                 $.ajax({

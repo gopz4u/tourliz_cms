@@ -98,17 +98,32 @@ class InventoryApiController extends Controller
     public function transports(Request $request)
     {
         $search = $request->query('search');
+        $destinationId = $request->query('destination_id');
+        $country = $request->query('country');
         $destination = $request->query('destination');
 
         $query = Service::with('supplier')
             ->whereIn('category', ['Transport', 'Airport Pickup', 'Airport Drop'])
             ->where('is_active', true);
 
-        if ($destination) {
-            $query->whereHas('destination', function ($q) use ($destination) {
-                $q->where('name', 'like', "%{$destination}%")
-                    ->orWhere('city', 'like', "%{$destination}%")
-                    ->orWhere('country', 'like', "%{$destination}%");
+        if ($destinationId) {
+            $query->where(function ($q) use ($destinationId) {
+                $q->where('destination_id', $destinationId)
+                    ->orWhereNull('destination_id');
+            });
+        } elseif ($country) {
+            $query->where(function ($q) use ($country) {
+                $q->whereHas('destination', function ($innerQ) use ($country) {
+                    $innerQ->where('country', $country);
+                })->orWhereNull('destination_id');
+            });
+        } elseif ($destination) {
+            $query->where(function ($q) use ($destination) {
+                $q->whereHas('destination', function ($innerQ) use ($destination) {
+                    $innerQ->where('name', 'like', "%{$destination}%")
+                        ->orWhere('city', 'like', "%{$destination}%")
+                        ->orWhere('country', 'like', "%{$destination}%");
+                })->orWhereNull('destination_id');
             });
         }
 

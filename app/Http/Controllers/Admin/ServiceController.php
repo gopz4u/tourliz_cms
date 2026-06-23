@@ -43,6 +43,16 @@ class ServiceController extends Controller
                     $query->where('package_id', $request->package_id);
                 }
 
+                // Filter by category if provided
+                if ($request->has('category') && $request->category) {
+                    $category = $request->category;
+                    if ($category === 'Transport') {
+                        $query->whereIn('category', ['Transport', 'Airport Pickup', 'Airport Drop']);
+                    } else {
+                        $query->where('category', $category);
+                    }
+                }
+
                 $services = $query->orderBy('created_at', 'desc')->paginate(15);
 
                 return response()->json($services);
