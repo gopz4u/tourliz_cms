@@ -98,7 +98,8 @@ class B2CItinerary extends Model
     public function calculatePricing()
     {
         $currency = $this->currency ?: 'MYR';
-        $costs = ItineraryHelper::calculateTotalCost($this->itinerary, $currency);
+        $enriched = ItineraryHelper::enrichItinerary($this->itinerary);
+        $costs = ItineraryHelper::calculateTotalCost($enriched, $currency);
 
         // base_cost is the total trip cost for the entire group
         $this->base_cost = $costs['total'];

@@ -1199,6 +1199,7 @@
                         currency: currency,
                         quantity: 1,
                         add_on_price: 0,
+                        service_id: item.is_core_service ? item.id : null,
                         supplier_id: item.supplier_id || null
                     });
                 } else if (currentType === 'activities') {
@@ -1217,6 +1218,7 @@
                             child_6_11_qty: c2,
                             currency: currency
                         },
+                        service_id: item.is_core_service ? item.id : null,
                         supplier_id: item.supplier_id || null
                     });
                 } else if (currentType === 'tickets') {
@@ -1235,18 +1237,40 @@
                             child_6_11_qty: c2,
                             currency: currency
                         },
+                        service_id: item.is_core_service ? item.id : null,
                         supplier_id: item.supplier_id || null
                     });
                 } else if (currentType === 'spots') {
                     if (!Array.isArray(itinerary[currentDayIndex].spots)) itinerary[currentDayIndex].spots = [];
-                    itinerary[currentDayIndex].spots.push({ name: item.name, description: item.description || '', hours: 2, price_per_hour: 0, supplier_id: item.supplier_id || null });
+                    itinerary[currentDayIndex].spots.push({ 
+                        name: item.name, 
+                        description: item.description || '', 
+                        hours: 2, 
+                        price_per_hour: 0, 
+                        service_id: item.is_core_service ? item.id : null,
+                        supplier_id: item.supplier_id || null 
+                    });
                 } else if (currentType === 'transports') {
                     if (!Array.isArray(itinerary[currentDayIndex].transport)) itinerary[currentDayIndex].transport = [];
-                    itinerary[currentDayIndex].transport.push({ name: item.name, type: item.vehicle_type, price: item.base_price, currency: currency, supplier_id: item.supplier_id || null });
+                    itinerary[currentDayIndex].transport.push({ 
+                        name: item.name, 
+                        type: item.vehicle_type, 
+                        price: item.base_price, 
+                        currency: currency, 
+                        service_id: item.is_core_service ? item.id : null,
+                        supplier_id: item.supplier_id || null 
+                    });
                 } else if (currentType === 'meals') {
                     if (!Array.isArray(itinerary[currentDayIndex].meals)) itinerary[currentDayIndex].meals = [];
                     const adults = parseInt(document.getElementById('pax-adults')?.value || 1);
-                    itinerary[currentDayIndex].meals.push({ name: '[' + item.type + '] ' + item.name, price: item.price, quantity: adults, currency: currency, supplier_id: item.supplier_id || null });
+                    itinerary[currentDayIndex].meals.push({ 
+                        name: '[' + item.type + '] ' + item.name, 
+                        price: item.price, 
+                        quantity: adults, 
+                        currency: currency, 
+                        service_id: item.is_core_service ? item.id : null,
+                        supplier_id: item.supplier_id || null 
+                    });
                 }
                 if (inventoryModal) inventoryModal.hide();
                 renderBuilder();

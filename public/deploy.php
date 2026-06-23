@@ -65,8 +65,40 @@ if (file_exists('.git')) {
 echo "----------------------------------------------<br><br>";
 
 echo "<strong>1. Running Git Fetch & Checkout...</strong><br>";
+
+// Backup .htaccess files before git checkout/reset
+$backups = [];
+$startDirHtaccess = $startDir . '/.htaccess';
+$projectRootHtaccess = $projectRoot . '/.htaccess';
+$projectRootPublicHtaccess = $projectRoot . '/public/.htaccess';
+
+if (file_exists($startDirHtaccess)) {
+    $backups['startDirHtaccess'] = [
+        'path' => $startDirHtaccess,
+        'content' => file_get_contents($startDirHtaccess)
+    ];
+}
+if (file_exists($projectRootHtaccess) && $projectRootHtaccess !== $startDirHtaccess) {
+    $backups['projectRootHtaccess'] = [
+        'path' => $projectRootHtaccess,
+        'content' => file_get_contents($projectRootHtaccess)
+    ];
+}
+if (file_exists($projectRootPublicHtaccess) && $projectRootPublicHtaccess !== $startDirHtaccess && $projectRootPublicHtaccess !== $projectRootHtaccess) {
+    $backups['projectRootPublicHtaccess'] = [
+        'path' => $projectRootPublicHtaccess,
+        'content' => file_get_contents($projectRootPublicHtaccess)
+    ];
+}
+
 $gitOutput = shell_exec('git fetch origin main && git checkout -f main && git reset --hard origin/main 2>&1');
 echo "<pre>$gitOutput</pre>";
+
+// Restore .htaccess files after git checkout/reset
+foreach ($backups as $name => $backup) {
+    file_put_contents($backup['path'], $backup['content']);
+    echo "Restored $name to {$backup['path']}<br>";
+}
 
 echo "<strong>1a. Running Composer Install...</strong><br>";
 $composerOutput = shell_exec('composer install --no-dev --optimize-autoloader 2>&1');

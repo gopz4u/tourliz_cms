@@ -327,13 +327,32 @@ class ItineraryHelper
                 }
             }
 
+            // Enrich hotels inside hotels array with service data if service_id is set
+            if (isset($day['hotels']) && is_array($day['hotels'])) {
+                foreach ($day['hotels'] as &$hotel) {
+                    if (is_array($hotel) && isset($hotel['service_id'])) {
+                        $service = Service::find($hotel['service_id']);
+                        if ($service) {
+                            $hotel['name'] = $service->name;
+                            $hotel['type'] = $service->accommodation_type ?: 'Core Service';
+                            $hotel['price_per_night'] = $service->price;
+                            $hotel['currency'] = $service->currency ?? 'MYR';
+                            $hotel['image'] = $service->image ?? null;
+                            $hotel['description'] = $service->short_description ?? $service->description ?? null;
+                        }
+                    }
+                }
+            }
+
             // Enrich transport with service data if service_id is set
             if (isset($day['transport']) && is_array($day['transport'])) {
                 foreach ($day['transport'] as &$trans) {
                     if (is_array($trans) && isset($trans['service_id'])) {
                         $service = Service::find($trans['service_id']);
                         if ($service) {
+                            $trans['name'] = $service->name;
                             $trans['mode'] = $service->name;
+                            $trans['type'] = $service->vehicle_type ?: $service->name;
                             $trans['price'] = $service->price;
                             $trans['currency'] = $service->currency ?? 'MYR';
                             $trans['image'] = $service->image ?? null;
@@ -359,10 +378,17 @@ class ItineraryHelper
                             $service = Service::find($place['service_id']);
                             if ($service) {
                                 $place['name'] = $service->name;
+                                $place['attraction_name'] = $service->name;
                                 $place['price'] = $service->price;
                                 $place['currency'] = $service->currency ?? 'MYR';
                                 $place['image'] = $service->image ?? null;
                                 $place['description'] = $service->short_description ?? $service->description ?? null;
+                                if (isset($place['entry_ticket']) && is_array($place['entry_ticket'])) {
+                                    $place['entry_ticket']['adult_price'] = $service->price;
+                                    $place['entry_ticket']['child_2_6_price'] = $service->price_2_6 ?: ($service->price * 0.5);
+                                    $place['entry_ticket']['child_6_11_price'] = $service->price_6_10 ?: ($service->price * 0.75);
+                                    $place['entry_ticket']['currency'] = $service->currency ?? 'MYR';
+                                }
                             }
                         }
                     }
@@ -390,6 +416,12 @@ class ItineraryHelper
                                 $activity['currency'] = $service->currency ?? 'MYR';
                                 $activity['image'] = $service->image ?? null;
                                 $activity['description'] = $service->short_description ?? $service->description ?? null;
+                                if (isset($activity['entry_ticket']) && is_array($activity['entry_ticket'])) {
+                                    $activity['entry_ticket']['adult_price'] = $service->price;
+                                    $activity['entry_ticket']['child_2_6_price'] = $service->price_2_6 ?: ($service->price * 0.5);
+                                    $activity['entry_ticket']['child_6_11_price'] = $service->price_6_10 ?: ($service->price * 0.75);
+                                    $activity['entry_ticket']['currency'] = $service->currency ?? 'MYR';
+                                }
                             }
                         }
                     }
@@ -400,13 +432,23 @@ class ItineraryHelper
             if (isset($day['spots']) && is_array($day['spots'])) {
                 foreach ($day['spots'] as &$spot) {
                     if (is_array($spot)) {
-                        $spotId = $spot['tourist_spot_id'] ?? $spot['id'] ?? null;
-                        if ($spotId) {
-                            $spotModel = TouristSpot::find($spotId);
-                            if ($spotModel) {
-                                $spot['name'] = $spotModel->name;
-                                $spot['image'] = $spotModel->image_url ?? null;
-                                $spot['description'] = $spotModel->description ?? null;
+                        if (isset($spot['service_id'])) {
+                            $service = Service::find($spot['service_id']);
+                            if ($service) {
+                                $spot['name'] = $service->name;
+                                $spot['description'] = $service->short_description ?? $service->description ?? null;
+                                $spot['price_per_hour'] = $service->price;
+                                $spot['hours'] = $spot['hours'] ?? 2;
+                            }
+                        } else {
+                            $spotId = $spot['tourist_spot_id'] ?? $spot['id'] ?? null;
+                            if ($spotId) {
+                                $spotModel = TouristSpot::find($spotId);
+                                if ($spotModel) {
+                                    $spot['name'] = $spotModel->name;
+                                    $spot['image'] = $spotModel->image_url ?? null;
+                                    $spot['description'] = $spotModel->description ?? null;
+                                }
                             }
                         }
                     }
@@ -426,6 +468,21 @@ class ItineraryHelper
                                 $mealItem['type'] = $mealModel->type;
                                 $mealItem['description'] = $mealModel->description;
                             }
+                        }
+                    }
+                }
+            }
+
+            // Enrich meals (B2B/B2C meals structure) with service data
+            if (isset($day['meals']) && is_array($day['meals'])) {
+                foreach ($day['meals'] as &$meal) {
+                    if (is_array($meal) && isset($meal['service_id'])) {
+                        $service = Service::find($meal['service_id']);
+                        if ($service) {
+                            $meal['name'] = '[' . ($service->accommodation_type ?: $service->vehicle_type ?: 'Meal') . '] ' . $service->name;
+                            $meal['price'] = $service->price;
+                            $meal['currency'] = $service->currency ?? 'MYR';
+                            $meal['description'] = $service->short_description ?? $service->description ?? null;
                         }
                     }
                 }
