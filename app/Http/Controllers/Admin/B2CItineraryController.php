@@ -180,24 +180,25 @@ class B2CItineraryController extends Controller
         $itinerary = B2CItinerary::with(['destination'])->findOrFail($id);
         $enrichedItinerary = ItineraryHelper::enrichItinerary($itinerary->itinerary);
 
+        $brand = config('tourliz.brand');
         $data = [
             'itinerary' => $itinerary,
             'enrichedItinerary' => $enrichedItinerary,
             'client' => $itinerary->client_name,
             'generated_at' => now()->format('d M Y'),
             'agency' => (object) [
-                'company_name' => 'Tourliz Official',
-                'whatsapp_number' => '+60 12-345 6789', // Malaysian format
-                'logo' => asset('images/logo.png') // Fallback logo path
+                'company_name' => $brand['name'],
+                'whatsapp_number' => $brand['whatsapp'],
+                'logo' => file_exists(public_path($brand['logo_path'])) ? asset($brand['logo_path']) : null,
             ],
             'is_public' => request()->has('public') || request()->get('mode') === 'customer'
         ];
 
         $pdf = Pdf::loadView('admin.b2b.pdf', $data);
-        
-        $filename = ($data['is_public'] ? 'Proposal' : 'Internal') . '_' . 
-                    \Illuminate\Support\Str::slug(ucwords(strtolower($itinerary->client_name ?? 'Guest'))) . '_' . 
-                    now()->format('d_M_Y') . '.pdf';
+
+        $filename = ($data['is_public'] ? 'Proposal' : 'Internal') . '_' .
+            \Illuminate\Support\Str::slug(ucwords(strtolower($itinerary->client_name ?? 'Guest'))) . '_' .
+            now()->format('d_M_Y') . '.pdf';
 
         return $pdf->download($filename);
     }
