@@ -131,4 +131,18 @@ $migrationOutput = shell_exec('php artisan migrate --force 2>&1');
 echo "<pre>$migrationOutput</pre>";
 
 echo "<h3>Deployment completed!</h3>";
+
+echo "<strong>Diagnostic: .htaccess files content</strong><br>";
+if (file_exists($startDirHtaccess)) {
+    echo "<strong>$startDirHtaccess Content:</strong><pre>" . htmlspecialchars(file_get_contents($startDirHtaccess)) . "</pre>";
+} else {
+    echo "No .htaccess in $startDirHtaccess<br>";
+}
+if (file_exists($projectRootHtaccess) && $projectRootHtaccess !== $startDirHtaccess) {
+    echo "<strong>$projectRootHtaccess Content:</strong><pre>" . htmlspecialchars(file_get_contents($projectRootHtaccess)) . "</pre>";
+}
+if (file_exists($projectRootPublicHtaccess) && $projectRootPublicHtaccess !== $startDirHtaccess && $projectRootPublicHtaccess !== $projectRootHtaccess) {
+    echo "<strong>$projectRootPublicHtaccess Content:</strong><pre>" . htmlspecialchars(file_get_contents($projectRootPublicHtaccess)) . "</pre>";
+}
+
 echo "<p style='color: red;'><strong>Important:</strong> Delete this file (deploy.php) from your public_html folder immediately for security.</p>";
