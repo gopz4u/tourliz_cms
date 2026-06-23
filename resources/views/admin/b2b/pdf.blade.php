@@ -29,23 +29,19 @@
             padding-bottom: 14px;
         }
 
-        .header-table td {
-            vertical-align: middle;
-        }
-
         .logo-cell {
-            width: 140px;
+            width: 55%;
+            text-align: left;
         }
 
         .logo-img {
-            height: 52px;
+            height: 48px;
         }
 
         .logo-text {
             font-size: 22pt;
             font-weight: 900;
             color: #1a73e8;
-            letter-spacing: 2px;
         }
 
         .logo-text span {
@@ -53,6 +49,7 @@
         }
 
         .company-info {
+            width: 45%;
             text-align: right;
             font-size: 9pt;
             color: #636e72;
