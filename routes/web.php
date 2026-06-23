@@ -362,7 +362,4 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:admin'])->grou
     Route::post('reviews/{id}/toggle-featured', [ReviewController::class, 'toggleFeatured'])->name('reviews.toggle-featured');
     Route::post('reviews/{id}/status', [ReviewController::class, 'updateStatus'])->name('reviews.updateStatus');
     Route::resource('reviews', ReviewController::class);
-
-    // Global Search
-    Route::get('search', [\App\Http\Controllers\Admin\SearchController::class, 'index'])->name('search');
 });
