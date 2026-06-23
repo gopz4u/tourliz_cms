@@ -79,332 +79,345 @@
 
     <div class="row">
         <!-- Left Sidebar: Settings -->
+        <!-- Left Sidebar: Settings, Pricing, CRM Tabs -->
         <div class="col-lg-3">
-            <div class="card mb-4">
-                <div class="card-header bg-light fw-bold">Proposal Settings</div>
-                <div class="card-body">
-                    <div class="mb-3">
-                        <label class="form-label small text-muted">Title</label>
-                        <input type="text" id="proposal-title" class="form-control form-control-sm"
-                            value="{{ $itinerary['title'] }}">
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label small text-muted">Client Name</label>
-                        <input type="text" id="client-name" class="form-control form-control-sm"
-                            value="{{ $itinerary['client_name'] }}">
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label small text-muted">Source Vendor</label>
-                        <select id="supplier_id" class="form-select form-select-sm">
-                            <option value="">Select Vendor (Optional)</option>
-                        </select>
-                    </div>
-                    <div class="row g-2 mb-3">
-                        <div class="col-md-7">
-                            <label class="form-label small text-muted">Arrival Date</label>
-                            <input type="date" id="arrival-date" class="form-control form-control-sm"
-                                value="{{ isset($itinerary['start_date']) ? \Carbon\Carbon::parse($itinerary['start_date'])->format('Y-m-d') : '' }}">
-                        </div>
-                        <div class="col-md-5">
-                            <label class="form-label small text-muted">Days</label>
-                            <input type="number" id="trip-duration" class="form-control form-control-sm"
-                                value="{{ $itinerary['duration_days'] }}">
-                        </div>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label small text-muted">Markup (%)</label>
-                        <div class="input-group input-group-sm">
-                            <input type="number" id="markup-percentage" class="form-control"
-                                value="{{ $itinerary['markup_percentage'] }}">
-                            <span class="input-group-text">%</span>
-                        </div>
-                        <div class="form-text small">Standard: {{ $itinerary['agency']['default_markup'] ?? 0 }}%</div>
-                    </div>
-                    <div class="row g-2 mb-3 border p-2 rounded bg-light">
-                        <div class="col-4">
-                            <label class="form-label small text-muted mb-1">Adults</label>
-                            <input type="number" id="pax-adults" class="form-control form-control-sm"
-                                value="{{ $itinerary['adults'] ?? 1 }}">
-                        </div>
-                        <div class="col-4">
-                            <label class="form-label small text-muted mb-1">Child 2-6</label>
-                            <input type="number" id="pax-child-small" class="form-control form-control-sm"
-                                value="{{ $itinerary['children_2_6'] ?? 0 }}">
-                        </div>
-                        <div class="col-4">
-                            <label class="form-label small text-muted mb-1">Child 6-11</label>
-                            <input type="number" id="pax-child-large" class="form-control form-control-sm"
-                                value="{{ $itinerary['children_6_11'] ?? 0 }}">
-                        </div>
-                        <div class="col-12 mt-1">
-                            <small class="text-info" style="font-size: 0.7rem;">Child 2-6: -75% | Child 6-11: -50%</small>
-                        </div>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label small text-muted">Involved Vendors</label>
-                        <div id="vendor-checkboxes" class="border rounded p-2 bg-white mb-1"
-                            style="max-height: 120px; overflow-y: auto;">
-                            <div class="text-muted small py-1">Loading partners...</div>
-                        </div>
-                        <button type="button" class="btn btn-link btn-xs p-0 small text-decoration-none" onclick="loadSuppliers()">
-                            <i class="bi bi-arrow-clockwise"></i> Refresh List
-                        </button>
-                        <input type="hidden" id="supplier_id" value="{{ $itinerary['supplier_id'] ?? '' }}">
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label small text-muted">Internal Notes</label>
-                        <textarea id="proposal-notes" class="form-control form-control-sm"
-                            rows="3">{{ $itinerary['notes'] }}</textarea>
-                    </div>
-                    <hr>
-                    <div class="d-grid">
-                        <button class="btn btn-outline-primary btn-sm" onclick="addDay()">Add Day</button>
-                    </div>
+            <div class="card shadow-sm border-0 mb-4 bg-white rounded-3">
+                <!-- Card Header with Navigation Tabs -->
+                <div class="card-header border-bottom-0 bg-light p-2" style="border-radius: 8px 8px 0 0;">
+                    <ul class="nav nav-pills nav-fill gap-1" id="sidebarTabs" role="tablist">
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link active py-2 d-flex flex-column align-items-center justify-content-center gap-1 border-0" id="settings-tab" data-bs-toggle="tab" data-bs-target="#settings-pane" type="button" role="tab" aria-controls="settings-pane" aria-selected="true" style="font-size: 0.7rem; border-radius: 6px; min-height: 52px; background: transparent;">
+                                <i class="bi bi-gear-fill fs-6"></i>
+                                <span class="fw-bold">Settings</span>
+                            </button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link py-2 d-flex flex-column align-items-center justify-content-center gap-1 border-0" id="pricing-tab" data-bs-toggle="tab" data-bs-target="#pricing-pane" type="button" role="tab" aria-controls="pricing-pane" aria-selected="false" style="font-size: 0.7rem; border-radius: 6px; min-height: 52px; background: transparent;">
+                                <i class="bi bi-wallet2 fs-6"></i>
+                                <span class="fw-bold">Pricing</span>
+                            </button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link py-2 d-flex flex-column align-items-center justify-content-center gap-1 border-0" id="crm-tab" data-bs-toggle="tab" data-bs-target="#crm-pane" type="button" role="tab" aria-controls="crm-pane" aria-selected="false" style="font-size: 0.7rem; border-radius: 6px; min-height: 52px; background: transparent;">
+                                <i class="bi bi-person-badge-fill fs-6"></i>
+                                <span class="fw-bold">CRM</span>
+                            </button>
+                        </li>
+                    </ul>
                 </div>
-            </div>
-
-            <!-- Real-Time Costing Card -->
-            <div class="card mb-4 border-primary shadow-sm">
-                <div class="card-header bg-primary text-white fw-bold">
-                    <i class="bi bi-calculator me-2"></i>Real-Time Costing
-                </div>
+                
+                <!-- Card Body with Tab Contents -->
                 <div class="card-body p-3">
-                    <div class="d-flex justify-content-between mb-2 small">
-                        <span class="text-muted">Hotel Cost</span>
-                        <span class="fw-bold" id="rt-cost-hotel">0.00</span>
-                    </div>
-                    <div class="d-flex justify-content-between mb-2 small">
-                        <span class="text-muted">Transport Cost</span>
-                        <span class="fw-bold" id="rt-cost-transport">0.00</span>
-                    </div>
-                    <div class="d-flex justify-content-between mb-2 small">
-                        <span class="text-muted">Activities/Tickets</span>
-                        <span class="fw-bold" id="rt-cost-tickets">0.00</span>
-                    </div>
-                    <div class="d-flex justify-content-between mb-2 small">
-                        <span class="text-muted">Meals/Other</span>
-                        <span class="fw-bold" id="rt-cost-other">0.00</span>
-                    </div>
-                    <hr class="my-2">
-                    <div class="d-flex justify-content-between mb-3">
-                        <span class="fw-bold text-dark">Total Net Cost</span>
-                        <span class="fw-bold text-dark" id="rt-total-net">0.00</span>
-                    </div>
+                    <div class="tab-content" id="sidebarTabContent">
+                        
+                        <!-- TAB 1: SETTINGS -->
+                        <div class="tab-pane fade show active" id="settings-pane" role="tabpanel" aria-labelledby="settings-tab">
+                            <div class="mb-3">
+                                <label class="form-label small text-muted mb-1">Proposal Title</label>
+                                <input type="text" id="proposal-title" class="form-control form-control-sm"
+                                    value="{{ $itinerary['title'] }}">
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label small text-muted mb-1">Client Name</label>
+                                <input type="text" id="client-name" class="form-control form-control-sm"
+                                    value="{{ $itinerary['client_name'] }}">
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label small text-muted mb-1">Source Vendor</label>
+                                <select id="supplier_id" class="form-select form-select-sm">
+                                    <option value="">Select Vendor (Optional)</option>
+                                </select>
+                            </div>
+                            <div class="row g-2 mb-3">
+                                <div class="col-md-7">
+                                    <label class="form-label small text-muted mb-1">Arrival Date</label>
+                                    <input type="date" id="arrival-date" class="form-control form-control-sm"
+                                        value="{{ isset($itinerary['start_date']) ? \Carbon\Carbon::parse($itinerary['start_date'])->format('Y-m-d') : '' }}">
+                                </div>
+                                <div class="col-md-5">
+                                    <label class="form-label small text-muted mb-1">Days</label>
+                                    <input type="number" id="trip-duration" class="form-control form-control-sm"
+                                        value="{{ $itinerary['duration_days'] }}">
+                                </div>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label small text-muted mb-1">Markup (%)</label>
+                                <div class="input-group input-group-sm">
+                                    <input type="number" id="markup-percentage" class="form-control"
+                                        value="{{ $itinerary['markup_percentage'] }}">
+                                    <span class="input-group-text">%</span>
+                                </div>
+                                <div class="form-text small" style="font-size: 0.7rem;">Standard: {{ $itinerary['agency']['default_markup'] ?? 0 }}%</div>
+                            </div>
+                            
+                            <div class="row g-2 mb-3 border p-2 rounded bg-light">
+                                <div class="col-4">
+                                    <label class="form-label small text-muted mb-1">Adults</label>
+                                    <input type="number" id="pax-adults" class="form-control form-control-sm"
+                                        value="{{ $itinerary['adults'] ?? 1 }}">
+                                </div>
+                                <div class="col-4">
+                                    <label class="form-label small text-muted mb-1">Child 2-6</label>
+                                    <input type="number" id="pax-child-small" class="form-control form-control-sm"
+                                        value="{{ $itinerary['children_2_6'] ?? 0 }}">
+                                </div>
+                                <div class="col-4">
+                                    <label class="form-label small text-muted mb-1">Child 6-11</label>
+                                    <input type="number" id="pax-child-large" class="form-control form-control-sm"
+                                        value="{{ $itinerary['children_6_11'] ?? 0 }}">
+                                </div>
+                                <div class="col-12 mt-1">
+                                    <small class="text-info" style="font-size: 0.65rem;">Child 2-6: -75% | Child 6-11: -50%</small>
+                                </div>
+                            </div>
 
-                    <div class="alert alert-warning py-1 px-2 small mb-2 d-none" id="rt-warning-box">
-                        <i class="bi bi-exclamation-triangle me-1"></i> <span id="rt-warning-msg">Missing prices!</span>
-                    </div>
+                            <div class="mb-3">
+                                <label class="form-label small text-muted mb-1">Involved Vendors</label>
+                                <div id="vendor-checkboxes" class="border rounded p-2 bg-white mb-1"
+                                    style="max-height: 120px; overflow-y: auto;">
+                                    <div class="text-muted small py-1">Loading partners...</div>
+                                </div>
+                                <button type="button" class="btn btn-link btn-xs p-0 small text-decoration-none" onclick="loadSuppliers()">
+                                    <i class="bi bi-arrow-clockwise"></i> Refresh List
+                                </button>
+                                <input type="hidden" id="supplier_id" value="{{ $itinerary['supplier_id'] ?? '' }}">
+                            </div>
 
-                    <div class="bg-light p-2 rounded">
-                        <div class="d-flex justify-content-between small mb-1">
-                            <span class="text-muted">Gross Profit</span>
-                            <span class="fw-bold text-success" id="rt-gross-profit">0.00</span>
+                            <div class="mb-3">
+                                <label class="form-label small text-muted mb-1">Internal Notes</label>
+                                <textarea id="proposal-notes" class="form-control form-control-sm"
+                                    rows="3">{{ $itinerary['notes'] }}</textarea>
+                            </div>
+                            <hr class="my-3">
+                            <div class="d-grid">
+                                <button class="btn btn-outline-primary btn-sm" onclick="addDay()">Add Day</button>
+                            </div>
                         </div>
-                        <div class="d-flex justify-content-between small">
-                            <span class="text-muted">Net Margin</span>
-                            <span class="fw-bold text-success" id="rt-net-margin">0%</span>
+
+                        <!-- TAB 2: PRICING -->
+                        <div class="tab-pane fade" id="pricing-pane" role="tabpanel" aria-labelledby="pricing-tab">
+                            <!-- Customer Quote -->
+                            <div class="d-flex justify-content-between align-items-center mb-2 pb-1 border-bottom">
+                                <h6 class="fw-bold mb-0 text-dark" style="font-size: 0.85rem;"><i class="bi bi-receipt me-1 text-info"></i> Customer Quote</h6>
+                                <span class="badge bg-info text-white" style="font-size: 0.6rem;">Client-Facing</span>
+                            </div>
+                            <div class="mb-3">
+                                <div class="d-flex justify-content-between mb-1 small">
+                                    <span class="text-muted">Hotels & Rooms:</span>
+                                    <span id="preview-hotels">0.00</span>
+                                </div>
+                                <div class="d-flex justify-content-between mb-1 small">
+                                    <span class="text-muted">Transport:</span>
+                                    <span id="preview-transport">0.00</span>
+                                </div>
+                                <div class="d-flex justify-content-between mb-1 small">
+                                    <span class="text-muted">Activities & Tickets:</span>
+                                    <span id="preview-activities">0.00</span>
+                                </div>
+                                <div class="d-flex justify-content-between mb-1 small">
+                                    <span class="text-muted">Meals:</span>
+                                    <span id="preview-meals">0.00</span>
+                                </div>
+                                <hr class="my-2">
+                                <div class="d-flex justify-content-between mb-1 small fw-bold">
+                                    <span>Base Cost:</span>
+                                    <span id="preview-base-total">0.00</span>
+                                </div>
+                                <div class="d-flex justify-content-between mb-1 small text-info">
+                                    <span>Per Pax Estimate:</span>
+                                    <span id="preview-perpax-total">0.00</span>
+                                </div>
+                                <div class="d-flex justify-content-between mb-1 small text-primary">
+                                    <span>Markup Cost (<span id="preview-markup-perc">0</span>%):</span>
+                                    <span id="preview-markup">0.00</span>
+                                </div>
+                                <div class="bg-light p-3 rounded text-center my-3 border shadow-sm">
+                                    <div class="small text-muted fw-bold text-uppercase" style="font-size: 0.7rem; letter-spacing: 0.5px;">TOTAL QUOTE</div>
+                                    <div class="fs-4 fw-bold text-dark" id="preview-grand-total">0.00</div>
+                                    <small class="text-muted d-block mt-1" style="font-size: 0.6rem;">* Updates in real-time. Save to finalize.</small>
+                                </div>
+                            </div>
+
+                            <!-- Estimated Net Cost -->
+                            <div class="d-flex justify-content-between align-items-center mb-2 pb-1 border-bottom mt-4">
+                                <h6 class="fw-bold mb-0 text-dark" style="font-size: 0.85rem;"><i class="bi bi-calculator me-1 text-primary"></i> Estimated Net Cost</h6>
+                                <span class="badge bg-primary text-white" style="font-size: 0.6rem;">Internal</span>
+                            </div>
+                            <div class="mb-3">
+                                <div class="d-flex justify-content-between mb-2 small">
+                                    <span class="text-muted">Hotel Cost</span>
+                                    <span class="fw-bold" id="rt-cost-hotel">0.00</span>
+                                </div>
+                                <div class="d-flex justify-content-between mb-2 small">
+                                    <span class="text-muted">Transport Cost</span>
+                                    <span class="fw-bold" id="rt-cost-transport">0.00</span>
+                                </div>
+                                <div class="d-flex justify-content-between mb-2 small">
+                                    <span class="text-muted">Activities/Tickets</span>
+                                    <span class="fw-bold" id="rt-cost-tickets">0.00</span>
+                                </div>
+                                <div class="d-flex justify-content-between mb-2 small">
+                                    <span class="text-muted">Meals/Other</span>
+                                    <span class="fw-bold" id="rt-cost-other">0.00</span>
+                                </div>
+                                <hr class="my-2">
+                                <div class="d-flex justify-content-between mb-3 small fw-bold">
+                                    <span class="text-dark">Total Net Cost</span>
+                                    <span class="text-dark" id="rt-total-net">0.00</span>
+                                </div>
+
+                                <div class="alert alert-warning py-1 px-2 small mb-2 d-none" id="rt-warning-box">
+                                    <i class="bi bi-exclamation-triangle me-1"></i> <span id="rt-warning-msg">Missing prices!</span>
+                                </div>
+
+                                <div class="bg-light p-2 rounded border">
+                                    <div class="d-flex justify-content-between small mb-1">
+                                        <span class="text-muted">Gross Profit</span>
+                                        <span class="fw-bold text-success" id="rt-gross-profit">0.00</span>
+                                    </div>
+                                    <div class="d-flex justify-content-between small">
+                                        <span class="text-muted">Net Margin</span>
+                                        <span class="fw-bold text-success" id="rt-net-margin">0%</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Net Profitability -->
+                            <div class="d-flex justify-content-between align-items-center mb-2 pb-1 border-bottom mt-4">
+                                <h6 class="fw-bold mb-0 text-dark" style="font-size: 0.85rem;"><i class="bi bi-graph-up-arrow me-1 text-success"></i> Net Profitability</h6>
+                                <span class="badge bg-dark text-white" style="font-size: 0.6rem;">Margin Analysis</span>
+                            </div>
+                            <div>
+                                <div class="d-flex justify-content-between mb-1 small">
+                                    <span>Agency Total:</span>
+                                    <span id="summary-quoted-total">{{ $itinerary['currency'] ?? 'USD' }} {{ number_format($itinerary['total_price'] ?? 0, 2) }}</span>
+                                </div>
+                                <div class="d-flex justify-content-between mb-1 small text-danger">
+                                    <span>Actual Costs:</span>
+                                    <span id="summary-actual-cost">{{ $itinerary['currency'] ?? 'USD' }} 0.00</span>
+                                </div>
+                                <div class="bg-dark text-white p-3 rounded text-center my-3 shadow-sm">
+                                    <div class="small text-white-50 fw-bold text-uppercase" style="font-size: 0.7rem; letter-spacing: 0.5px;">NET PROFIT</div>
+                                    <div class="fs-4 fw-bold text-success" id="actual-profit">{{ $itinerary['currency'] ?? 'USD' }} 0.00</div>
+                                    <div class="d-flex justify-content-between px-2 mt-2 border-top border-secondary pt-2 small text-white-50">
+                                        <span>Profit Margin:</span>
+                                        <span id="actual-margin" class="fw-bold text-white">0.00%</span>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
-                    </div>
-                </div>
-            </div>
 
-            <div class="card mb-4">
-                <div class="card-header bg-light fw-bold">Lead & Followup</div>
-                <div class="card-body">
-                    <div class="mb-3">
-                        <label class="form-label small text-muted">Lead Stage</label>
-                        <select id="followup-status" class="form-select form-select-sm">
-                            <option value="leads" {{ ($itinerary['followup_status'] ?? 'leads') == 'leads' ? 'selected' : '' }}>
-                                New Lead (Default)</option>
-                            <option value="waiting" {{ ($itinerary['followup_status'] ?? '') == 'waiting' ? 'selected' : '' }}>Waiting
-                                for Reply</option>
-                            <option value="interested" {{ ($itinerary['followup_status'] ?? '') == 'interested' ? 'selected' : '' }}>
-                                Interested / Hot</option>
-                            <option value="converted" {{ ($itinerary['followup_status'] ?? '') == 'converted' ? 'selected' : '' }}>
-                                Converted / Booking</option>
-                            <option value="not_interested" {{ ($itinerary['followup_status'] ?? '') == 'not_interested' ? 'selected' : '' }}>Not Interested</option>
-                            <option value="dead" {{ ($itinerary['followup_status'] ?? '') == 'dead' ? 'selected' : '' }}>Dead
-                                / Lost
-                            </option>
-                        </select>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label small text-muted">Proposal Status</label>
-                        <select id="proposal-lifecycle" class="form-select form-select-sm">
-                            <option value="draft" {{ ($itinerary['status'] ?? '') == 'draft' ? 'selected' : '' }}>Draft
-                            </option>
-                            <option value="proposed" {{ ($itinerary['status'] ?? '') == 'proposed' ? 'selected' : '' }}>
-                                Proposed to
-                                Agent</option>
-                            <option value="confirmed" {{ ($itinerary['status'] ?? '') == 'confirmed' ? 'selected' : '' }}>
-                                Confirmed /
-                                Booking</option>
-                            <option value="cancelled" {{ ($itinerary['status'] ?? '') == 'cancelled' ? 'selected' : '' }}>
-                                Cancelled
-                            </option>
-                        </select>
-                    </div>
-                    <div class="mb-0">
-                        <label class="form-label small text-muted">Next Followup Date</label>
-                        <input type="date" id="next-followup" class="form-control form-control-sm"
-                            value="{{ isset($itinerary['next_followup_date']) ? \Carbon\Carbon::parse($itinerary['next_followup_date'])->format('Y-m-d') : '' }}">
-                    </div>
-                    @if(isset($itinerary['followed_up_at']))
-                        <div class="mt-2 small text-muted">
-                            <i class="bi bi-clock-history me-1"></i>Last action:
-                            {{ \Carbon\Carbon::parse($itinerary['followed_up_at'])->diffForHumans() }}
+                        <!-- TAB 3: CRM -->
+                        <div class="tab-pane fade" id="crm-pane" role="tabpanel" aria-labelledby="crm-tab">
+                            <!-- Lead Status -->
+                            <div class="d-flex justify-content-between align-items-center mb-2 pb-1 border-bottom">
+                                <h6 class="fw-bold mb-0 text-dark" style="font-size: 0.85rem;"><i class="bi bi-funnel me-1 text-primary"></i> Lead & Followup</h6>
+                            </div>
+                            <div class="mb-3">
+                                <div class="mb-3">
+                                    <label class="form-label small text-muted mb-1">Lead Stage</label>
+                                    <select id="followup-status" class="form-select form-select-sm">
+                                        <option value="leads" {{ ($itinerary['followup_status'] ?? 'leads') == 'leads' ? 'selected' : '' }}>New Lead (Default)</option>
+                                        <option value="waiting" {{ ($itinerary['followup_status'] ?? '') == 'waiting' ? 'selected' : '' }}>Waiting for Reply</option>
+                                        <option value="interested" {{ ($itinerary['followup_status'] ?? '') == 'interested' ? 'selected' : '' }}>Interested / Hot</option>
+                                        <option value="converted" {{ ($itinerary['followup_status'] ?? '') == 'converted' ? 'selected' : '' }}>Converted / Booking</option>
+                                        <option value="not_interested" {{ ($itinerary['followup_status'] ?? '') == 'not_interested' ? 'selected' : '' }}>Not Interested</option>
+                                        <option value="dead" {{ ($itinerary['followup_status'] ?? '') == 'dead' ? 'selected' : '' }}>Dead / Lost</option>
+                                    </select>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label small text-muted mb-1">Proposal Status</label>
+                                    <select id="proposal-lifecycle" class="form-select form-select-sm">
+                                        <option value="draft" {{ ($itinerary['status'] ?? '') == 'draft' ? 'selected' : '' }}>Draft</option>
+                                        <option value="proposed" {{ ($itinerary['status'] ?? '') == 'proposed' ? 'selected' : '' }}>Proposed to Agent</option>
+                                        <option value="confirmed" {{ ($itinerary['status'] ?? '') == 'confirmed' ? 'selected' : '' }}>Confirmed / Booking</option>
+                                        <option value="cancelled" {{ ($itinerary['status'] ?? '') == 'cancelled' ? 'selected' : '' }}>Cancelled</option>
+                                    </select>
+                                </div>
+                                <div class="mb-0">
+                                    <label class="form-label small text-muted mb-1">Next Followup Date</label>
+                                    <input type="date" id="next-followup" class="form-control form-control-sm"
+                                        value="{{ isset($itinerary['next_followup_date']) ? \Carbon\Carbon::parse($itinerary['next_followup_date'])->format('Y-m-d') : '' }}">
+                                </div>
+                                @if(isset($itinerary['followed_up_at']))
+                                    <div class="mt-2 small text-muted" style="font-size: 0.7rem;">
+                                        <i class="bi bi-clock-history me-1"></i>Last action: {{ \Carbon\Carbon::parse($itinerary['followed_up_at'])->diffForHumans() }}
+                                    </div>
+                                @endif
+                            </div>
+
+                            <!-- Payment Tracking -->
+                            <div class="d-flex justify-content-between align-items-center mb-2 pb-1 border-bottom mt-4">
+                                <h6 class="fw-bold mb-0 text-dark" style="font-size: 0.85rem;"><i class="bi bi-cash-coin me-1 text-success"></i> Payment & Collection</h6>
+                            </div>
+                            <div class="mb-3">
+                                <div class="mb-3">
+                                    <label class="form-label small text-muted mb-1">Status</label>
+                                    <select id="payment-status" class="form-select form-select-sm">
+                                        <option value="pending" {{ ($itinerary['payment_status'] ?? '') == 'pending' ? 'selected' : '' }}>Pending</option>
+                                        <option value="partially_paid" {{ ($itinerary['payment_status'] ?? '') == 'partially_paid' ? 'selected' : '' }}>Partially Paid</option>
+                                        <option value="paid" {{ ($itinerary['payment_status'] ?? '') == 'paid' ? 'selected' : '' }}>Fully Paid</option>
+                                        <option value="cancelled" {{ ($itinerary['payment_status'] ?? '') == 'cancelled' ? 'selected' : '' }}>Cancelled</option>
+                                    </select>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label small text-muted mb-1">Amount Received</label>
+                                    <div class="input-group input-group-sm">
+                                        <span class="input-group-text">{{ $itinerary['currency'] ?? 'USD' }}</span>
+                                        <input type="number" id="payment-received" class="form-control"
+                                            value="{{ $itinerary['total_amount_received'] ?? 0 }}">
+                                    </div>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label small text-muted mb-1">Collection Progress</label>
+                                    <div class="border rounded p-2 bg-light shadow-xs">
+                                        @php $balance = ($itinerary['total_price'] ?? 0) - ($itinerary['total_amount_received'] ?? 0) @endphp
+                                        <div class="progress mb-2" style="height: 8px;">
+                                            @php $percent = ($itinerary['total_price'] ?? 0) > 0 ? (($itinerary['total_amount_received'] ?? 0) / $itinerary['total_price']) * 100 : 0 @endphp
+                                            <div class="progress-bar bg-success" role="progressbar" style="width: {{ $percent }}%"></div>
+                                        </div>
+                                        <div class="d-flex justify-content-between small" style="font-size: 0.75rem;">
+                                            <span class="text-muted">Collected: {{ number_format($percent, 0) }}%</span>
+                                            <span class="fw-bold {{ $balance <= 0 ? 'text-success' : 'text-danger' }}">
+                                                Bal: {{ $itinerary['currency'] ?? 'USD' }} {{ number_format($balance, 2) }}
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="mb-0">
+                                    <label class="form-label small text-muted mb-1">Payment Notes</label>
+                                    <textarea id="payment-details" class="form-control form-control-sm"
+                                        rows="2">{{ $itinerary['payment_details'] ?? '' }}</textarea>
+                                </div>
+                            </div>
+
+                            <!-- Actual Expenses -->
+                            <div class="d-flex justify-content-between align-items-center mb-2 pb-1 border-bottom mt-4">
+                                <h6 class="fw-bold mb-0 text-dark" style="font-size: 0.85rem;"><i class="bi bi-wallet2 me-1 text-danger"></i> Actual Expenses</h6>
+                                <button type="button" class="btn btn-xs btn-outline-danger py-0 px-2 fw-bold" style="font-size: 0.7rem;" data-bs-toggle="modal" data-bs-target="#expenseModal">
+                                    <i class="bi bi-plus-lg me-1"></i>Add
+                                </button>
+                            </div>
+                            <div>
+                                <div class="table-responsive border rounded bg-white mb-2" style="max-height: 200px; overflow-y: auto;">
+                                    <table class="table table-sm table-hover mb-0" id="expense-table" style="font-size: 0.75rem;">
+                                        <thead class="bg-light sticky-top">
+                                            <tr>
+                                                <th>Category</th>
+                                                <th class="text-end">Amount</th>
+                                                <th></th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>{{-- Loaded via JS --}}</tbody>
+                                    </table>
+                                </div>
+                                <div class="d-flex justify-content-between small fw-bold p-2 bg-light border rounded">
+                                    <span>Total Actual Cost:</span>
+                                    <span id="total-actual-cost">{{ $itinerary['currency'] ?? 'USD' }} 0.00</span>
+                                </div>
+                            </div>
                         </div>
-                    @endif
-                </div>
-            </div>
 
-            <div class="card mb-4">
-                <div class="card-header bg-light fw-bold">Payment Tracking</div>
-                <div class="card-body">
-                    <div class="mb-3">
-                        <label class="form-label small text-muted">Status</label>
-                        <select id="payment-status" class="form-select form-select-sm">
-                            <option value="pending" {{ ($itinerary['payment_status'] ?? '') == 'pending' ? 'selected' : '' }}>
-                                Pending
-                            </option>
-                            <option value="partially_paid" {{ ($itinerary['payment_status'] ?? '') == 'partially_paid' ? 'selected' : '' }}>Partially Paid</option>
-                            <option value="paid" {{ ($itinerary['payment_status'] ?? '') == 'paid' ? 'selected' : '' }}>Fully
-                                Paid
-                            </option>
-                            <option value="cancelled" {{ ($itinerary['payment_status'] ?? '') == 'cancelled' ? 'selected' : '' }}>
-                                Cancelled</option>
-                        </select>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label small text-muted">Amount Received</label>
-                        <div class="input-group input-group-sm">
-                            <span class="input-group-text">{{ $itinerary['currency'] ?? 'USD' }}</span>
-                            <input type="number" id="payment-received" class="form-control"
-                                value="{{ $itinerary['total_amount_received'] ?? 0 }}">
-                        </div>
-                    </div>
-                    <div class="mb-0">
-                        <label class="form-label small text-muted">Payment Notes</label>
-                        <textarea id="payment-details" class="form-control form-control-sm"
-                            rows="2">{{ $itinerary['payment_details'] ?? '' }}</textarea>
-                    </div>
-                </div>
-            </div>
-
-            <div class="card mb-4 border-primary">
-                <div
-                    class="card-header bg-primary text-white fw-bold d-flex justify-content-between align-items-center py-2">
-                    <span>Actual Expenses</span>
-                    <button type="button" class="btn btn-xs btn-light" data-bs-toggle="modal"
-                        data-bs-target="#expenseModal">
-                        <i class="bi bi-plus-lg"></i>
-                    </button>
-                </div>
-                <div class="card-body p-0">
-                    <div class="table-responsive">
-                        <table class="table table-sm table-hover mb-0" id="expense-table" style="font-size: 0.8rem;">
-                            <thead class="bg-light">
-                                <tr>
-                                    <th>Category</th>
-                                    <th class="text-end">Amount</th>
-                                    <th></th>
-                                </tr>
-                            </thead>
-                            <tbody>{{-- Loaded via JS --}}</tbody>
-                        </table>
-                    </div>
-                </div>
-                <div class="card-footer bg-light py-2">
-                    <div class="d-flex justify-content-between small fw-bold">
-                        <span>Total Actual Cost:</span>
-                        <span id="total-actual-cost">{{ $itinerary['currency'] ?? 'USD' }} 0.00</span>
-                    </div>
-                </div>
-            </div>
-
-            <div class="card mb-4 border-info shadow-sm">
-                <div class="card-header bg-info text-white fw-bold py-2 d-flex justify-content-between">
-                    <span>Price Breakdown</span>
-                    <i class="bi bi-calculator"></i>
-                </div>
-                <div class="card-body p-3">
-                    <div class="d-flex justify-content-between mb-1 small">
-                        <span class="text-muted">Hotels & Rooms:</span>
-                        <span id="preview-hotels">0.00</span>
-                    </div>
-                    <div class="d-flex justify-content-between mb-1 small">
-                        <span class="text-muted">Transport:</span>
-                        <span id="preview-transport">0.00</span>
-                    </div>
-                    <div class="d-flex justify-content-between mb-1 small">
-                        <span class="text-muted">Activities & Tickets:</span>
-                        <span id="preview-activities">0.00</span>
-                    </div>
-                    <div class="d-flex justify-content-between mb-1 small">
-                        <span class="text-muted">Meals:</span>
-                        <span id="preview-meals">0.00</span>
-                    </div>
-                    <hr class="my-2">
-                    <div class="d-flex justify-content-between mb-1 small fw-bold">
-                        <span>Base Cost:</span>
-                        <span id="preview-base-total">0.00</span>
-                    </div>
-                    <div class="d-flex justify-content-between mb-1 small text-info">
-                        <span>Per Pax Estimate:</span>
-                        <span id="preview-perpax-total">0.00</span>
-                    </div>
-                    <div class="d-flex justify-content-between mb-1 small text-primary">
-                        <span>Markup Cost (<span id="preview-markup-perc">0</span>%):</span>
-                        <span id="preview-markup">0.00</span>
-                    </div>
-                    <div class="d-flex justify-content-between fw-bold border-top pt-2 text-dark fs-6">
-                        <span>TOTAL QUOTE:</span>
-                        <span id="preview-grand-total">0.00</span>
-                    </div>
-                    <div class="mt-2 text-center">
-                        <small class="text-muted" style="font-size: 0.65rem;">* Updates in real-time. Save to
-                            finalize.</small>
-                    </div>
-                </div>
-            </div>
-
-            <div class="card mb-4">
-                <div class="card-header bg-dark text-white fw-bold py-2">Net Profitability</div>
-                <div class="card-body">
-                    <div class="d-flex justify-content-between mb-1 small">
-                        <span>Agency Total:</span>
-                        <span id="summary-quoted-total">{{ $itinerary['currency'] ?? 'USD' }}
-                            {{ number_format($itinerary['total_price'] ?? 0, 2) }}</span>
-                    </div>
-                    <div class="d-flex justify-content-between mb-1 small text-danger">
-                        <span>Actual Costs:</span>
-                        <span id="summary-actual-cost">{{ $itinerary['currency'] ?? 'USD' }} 0.00</span>
-                    </div>
-                    <hr class="my-2">
-                    <div class="d-flex justify-content-between fw-bold text-success fs-5">
-                        <span>NET PROFIT:</span>
-                        <span id="actual-profit">{{ $itinerary['currency'] ?? 'USD' }} 0.00</span>
-                    </div>
-                    <div class="d-flex justify-content-between small mt-1">
-                        <span class="text-muted">Profit Margin:</span>
-                        <span id="actual-margin" class="fw-bold">0.00%</span>
-                    </div>
-                </div>
-            </div>
-
-            <div class="card">
-                <div class="card-header bg-light fw-bold py-2">Collection Progress</div>
-                <div class="card-body">
-                    @php $balance = ($itinerary['total_price'] ?? 0) - ($itinerary['total_amount_received'] ?? 0) @endphp
-                    <div class="progress mb-2" style="height: 10px;">
-                        @php $percent = ($itinerary['total_price'] ?? 0) > 0 ? (($itinerary['total_amount_received'] ?? 0) / $itinerary['total_price']) * 100 : 0 @endphp
-                        <div class="progress-bar bg-success" role="progressbar" style="width: {{ $percent }}%"></div>
-                    </div>
-                    <div class="d-flex justify-content-between small">
-                        <span class="text-muted">Collected: {{ number_format($percent, 0) }}%</span>
-                        <span class="fw-bold {{ $balance <= 0 ? 'text-success' : 'text-danger' }}">
-                            Bal: {{ $itinerary['currency'] ?? 'USD' }} {{ number_format($balance, 2) }}
-                        </span>
                     </div>
                 </div>
             </div>

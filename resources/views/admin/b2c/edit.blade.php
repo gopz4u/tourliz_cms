@@ -80,303 +80,330 @@
     <div class="row">
         <!-- Left Sidebar: Settings -->
         <div class="col-lg-3">
-            <!-- Client Info Card -->
-            <div class="card mb-4 border-primary">
-                <div class="card-header bg-primary text-white fw-bold">Customer Profile</div>
-                <div class="card-body">
-                    <div class="mb-3">
-                        <label class="form-label small text-muted">Full Name</label>
-                        <input type="text" id="client-name" class="form-control form-control-sm fw-bold"
-                            value="{{ data_get($itinerary, 'client_name') }}">
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label small text-muted">Email Address</label>
-                        <input type="email" id="client-email" class="form-control form-control-sm"
-                            value="{{ data_get($itinerary, 'email') }}">
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label small text-muted">Primary Phone</label>
-                        <input type="text" id="client-phone" class="form-control form-control-sm"
-                            value="{{ data_get($itinerary, 'phone') }}">
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label small text-muted">Secondary Contact</label>
-                        <input type="text" id="client-phone-secondary" class="form-control form-control-sm"
-                            value="{{ data_get($itinerary, 'secondary_phone') }}" placeholder="Alternate Number">
-                    </div>
-                    <div class="mb-0">
-                        <label class="form-label small text-muted">Lead Source</label>
-                        <select id="lead-source" class="form-select form-select-sm">
-                            <option value="walk_in" {{ data_get($itinerary, 'lead_source') == 'walk_in' ? 'selected' : '' }}>
-                                Walk-in
-                            </option>
-                            <option value="call" {{ data_get($itinerary, 'lead_source') == 'call' ? 'selected' : '' }}>
-                                Phone/WhatsApp
-                            </option>
-                            <option value="social" {{ data_get($itinerary, 'lead_source') == 'social' ? 'selected' : '' }}>
-                                Social Media
-                            </option>
-                            <option value="reference" {{ data_get($itinerary, 'lead_source') == 'reference' ? 'selected' : '' }}>Reference
-                            </option>
-                        </select>
+            <div class="card shadow-sm border-0 mb-4 bg-white rounded-3">
+                <!-- Card Header with Navigation Tabs -->
+                <div class="card-header border-bottom-0 bg-light p-2" style="border-radius: 8px 8px 0 0;">
+                    <ul class="nav nav-pills nav-fill gap-1" id="sidebarTabs" role="tablist">
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link active py-2 d-flex flex-column align-items-center justify-content-center gap-1 border-0" id="settings-tab" data-bs-toggle="tab" data-bs-target="#settings-pane" type="button" role="tab" aria-controls="settings-pane" aria-selected="true" style="font-size: 0.7rem; border-radius: 6px; min-height: 52px; background: transparent;">
+                                <i class="bi bi-gear-fill fs-6"></i>
+                                <span class="fw-bold">Settings</span>
+                            </button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link py-2 d-flex flex-column align-items-center justify-content-center gap-1 border-0" id="pricing-tab" data-bs-toggle="tab" data-bs-target="#pricing-pane" type="button" role="tab" aria-controls="pricing-pane" aria-selected="false" style="font-size: 0.7rem; border-radius: 6px; min-height: 52px; background: transparent;">
+                                <i class="bi bi-wallet2 fs-6"></i>
+                                <span class="fw-bold">Pricing</span>
+                            </button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link py-2 d-flex flex-column align-items-center justify-content-center gap-1 border-0" id="crm-tab" data-bs-toggle="tab" data-bs-target="#crm-pane" type="button" role="tab" aria-controls="crm-pane" aria-selected="false" style="font-size: 0.7rem; border-radius: 6px; min-height: 52px; background: transparent;">
+                                <i class="bi bi-person-badge-fill fs-6"></i>
+                                <span class="fw-bold">CRM</span>
+                            </button>
+                        </li>
+                    </ul>
+                </div>
+                
+                <!-- Card Body with Tab Contents -->
+                <div class="card-body p-3">
+                    <div class="tab-content" id="sidebarTabContent">
+                        
+                        <!-- TAB 1: SETTINGS -->
+                        <div class="tab-pane fade show active" id="settings-pane" role="tabpanel" aria-labelledby="settings-tab">
+                            <!-- Customer Profile -->
+                            <div class="d-flex justify-content-between align-items-center mb-2 pb-1 border-bottom">
+                                <h6 class="fw-bold mb-0 text-dark" style="font-size: 0.85rem;"><i class="bi bi-person-fill me-1 text-primary"></i> Customer Profile</h6>
+                            </div>
+                            <div class="mb-3">
+                                <div class="mb-3">
+                                    <label class="form-label small text-muted mb-1">Full Name</label>
+                                    <input type="text" id="client-name" class="form-control form-control-sm fw-bold"
+                                        value="{{ data_get($itinerary, 'client_name') }}">
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label small text-muted mb-1">Email Address</label>
+                                    <input type="email" id="client-email" class="form-control form-control-sm"
+                                        value="{{ data_get($itinerary, 'email') }}">
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label small text-muted mb-1">Primary Phone</label>
+                                    <input type="text" id="client-phone" class="form-control form-control-sm"
+                                        value="{{ data_get($itinerary, 'phone') }}">
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label small text-muted mb-1">Secondary Contact</label>
+                                    <input type="text" id="client-phone-secondary" class="form-control form-control-sm"
+                                        value="{{ data_get($itinerary, 'secondary_phone') }}" placeholder="Alternate Number">
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label small text-muted mb-1">Lead Source</label>
+                                    <select id="lead-source" class="form-select form-select-sm">
+                                        <option value="walk_in" {{ data_get($itinerary, 'lead_source') == 'walk_in' ? 'selected' : '' }}>
+                                            Walk-in
+                                        </option>
+                                        <option value="call" {{ data_get($itinerary, 'lead_source') == 'call' ? 'selected' : '' }}>
+                                            Phone/WhatsApp
+                                        </option>
+                                        <option value="social" {{ data_get($itinerary, 'lead_source') == 'social' ? 'selected' : '' }}>
+                                            Social Media
+                                        </option>
+                                        <option value="reference" {{ data_get($itinerary, 'lead_source') == 'reference' ? 'selected' : '' }}>Reference
+                                        </option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <!-- Trip Details -->
+                            <div class="d-flex justify-content-between align-items-center mb-2 pb-1 border-bottom mt-4">
+                                <h6 class="fw-bold mb-0 text-dark" style="font-size: 0.85rem;"><i class="bi bi-compass-fill me-1 text-success"></i> Trip Details</h6>
+                            </div>
+                            <div class="mb-3">
+                                <div class="mb-3">
+                                    <label class="form-label small text-muted mb-1">Proposal Title</label>
+                                    <input type="text" id="proposal-title" class="form-control form-control-sm"
+                                        value="{{ data_get($itinerary, 'title') }}">
+                                </div>
+                                <div class="row g-2 mb-3">
+                                    <div class="col-md-7">
+                                        <label class="form-label small text-muted mb-1">Arrival Date</label>
+                                        <input type="date" id="arrival-date" class="form-control form-control-sm"
+                                            value="{{ data_get($itinerary, 'start_date') ? \Carbon\Carbon::parse(data_get($itinerary, 'start_date'))->format('Y-m-d') : '' }}">
+                                    </div>
+                                    <div class="col-md-5">
+                                        <label class="form-label small text-muted mb-1">Days</label>
+                                        <input type="number" id="trip-duration" class="form-control form-control-sm"
+                                            value="{{ data_get($itinerary, 'duration_days') }}">
+                                    </div>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label small text-muted mb-1">Markup (%)</label>
+                                    <div class="input-group input-group-sm">
+                                        <input type="number" id="markup-percentage" class="form-control"
+                                            value="{{ data_get($itinerary, 'markup_percentage') }}">
+                                        <span class="input-group-text">%</span>
+                                    </div>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label small text-muted mb-1">Involved Vendors</label>
+                                    <div id="vendor-checkboxes" class="border rounded p-2 bg-white mb-1"
+                                        style="max-height: 120px; overflow-y: auto;">
+                                        <div class="text-muted small py-1">Loading partners...</div>
+                                    </div>
+                                    <button type="button" class="btn btn-link btn-xs p-0 small text-decoration-none" onclick="loadSuppliers()">
+                                        <i class="bi bi-arrow-clockwise"></i> Refresh List
+                                    </button>
+                                    <input type="hidden" id="supplier_id" value="{{ data_get($itinerary, 'supplier_id') }}">
+                                </div>
+                                <div class="row g-2 mb-3 border p-2 rounded bg-light">
+                                    <div class="col-4">
+                                        <label class="form-label small text-muted mb-1">Adults</label>
+                                        <input type="number" id="pax-adults" class="form-control form-control-sm"
+                                            value="{{ data_get($itinerary, 'adults', 1) }}">
+                                    </div>
+                                    <div class="col-4">
+                                        <label class="form-label small text-muted mb-1">Child 2-6</label>
+                                        <input type="number" id="pax-child-small" class="form-control form-control-sm"
+                                            value="{{ data_get($itinerary, 'children_2_6', 0) }}">
+                                    </div>
+                                    <div class="col-4">
+                                        <label class="form-label small text-muted mb-1">Child 6-11</label>
+                                        <input type="number" id="pax-child-large" class="form-control form-control-sm"
+                                            value="{{ data_get($itinerary, 'children_6_11', 0) }}">
+                                    </div>
+                                    <div class="col-12 mt-1">
+                                        <small class="text-info" style="font-size: 0.65rem;">Child 2-6: -75% | Child 6-11: -50%</small>
+                                    </div>
+                                </div>
+                                <div class="mb-0">
+                                    <label class="form-label small text-muted mb-1">Internal Notes</label>
+                                    <textarea id="proposal-notes" class="form-control form-control-sm"
+                                        rows="2">{{ data_get($itinerary, 'notes') }}</textarea>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- TAB 2: PRICING -->
+                        <div class="tab-pane fade" id="pricing-pane" role="tabpanel" aria-labelledby="pricing-tab">
+                            <!-- Customer Quote -->
+                            <div class="d-flex justify-content-between align-items-center mb-2 pb-1 border-bottom">
+                                <h6 class="fw-bold mb-0 text-dark" style="font-size: 0.85rem;"><i class="bi bi-receipt me-1 text-info"></i> Customer Quote</h6>
+                                <span class="badge bg-info text-white" style="font-size: 0.6rem;">Client-Facing</span>
+                            </div>
+                            <div class="mb-3">
+                                <div class="d-flex justify-content-between mb-1 small">
+                                    <span class="text-muted">Hotels & Rooms:</span>
+                                    <span id="preview-hotels">0.00</span>
+                                </div>
+                                <div class="d-flex justify-content-between mb-1 small">
+                                    <span class="text-muted">Transport:</span>
+                                    <span id="preview-transport">0.00</span>
+                                </div>
+                                <div class="d-flex justify-content-between mb-1 small">
+                                    <span class="text-muted">Activities & Tickets:</span>
+                                    <span id="preview-activities">0.00</span>
+                                </div>
+                                <div class="d-flex justify-content-between mb-1 small">
+                                    <span class="text-muted">Meals:</span>
+                                    <span id="preview-meals">0.00</span>
+                                </div>
+                                <hr class="my-2">
+                                <div class="d-flex justify-content-between mb-1 small fw-bold">
+                                    <span>Base Cost:</span>
+                                    <span id="preview-base-total">0.00</span>
+                                </div>
+                                <div class="d-flex justify-content-between mb-1 small text-info">
+                                    <span>Per Pax Estimate:</span>
+                                    <span id="preview-perpax-total">0.00</span>
+                                </div>
+                                <div class="d-flex justify-content-between mb-1 small text-primary">
+                                    <span>Markup Cost (<span id="preview-markup-perc">0</span>%):</span>
+                                    <span id="preview-markup">0.00</span>
+                                </div>
+                                <div class="bg-light p-3 rounded text-center my-3 border shadow-sm">
+                                    <div class="small text-muted fw-bold text-uppercase" style="font-size: 0.7rem; letter-spacing: 0.5px;">TOTAL QUOTE</div>
+                                    <div class="fs-4 fw-bold text-dark" id="preview-grand-total">0.00</div>
+                                    <small class="text-muted d-block mt-1" style="font-size: 0.6rem;">* Updates in real-time. Save to finalize.</small>
+                                </div>
+                            </div>
+
+                            <!-- Financial Summary -->
+                            <div class="d-flex justify-content-between align-items-center mb-2 pb-1 border-bottom mt-4">
+                                <h6 class="fw-bold mb-0 text-dark" style="font-size: 0.85rem;"><i class="bi bi-graph-up-arrow me-1 text-success"></i> Financial Summary</h6>
+                                <span class="badge bg-dark text-white" style="font-size: 0.6rem;">Margin Analysis</span>
+                            </div>
+                            <div>
+                                <div class="d-flex justify-content-between mb-1 small">
+                                    <span>Total Quoted:</span>
+                                    <span id="summary-quoted-total">{{ data_get($itinerary, 'currency') }} {{ number_format(data_get($itinerary, 'total_price', 0), 2) }}</span>
+                                </div>
+                                <div class="d-flex justify-content-between mb-1 small text-danger">
+                                    <span>Actual Costs:</span>
+                                    <span id="summary-actual-cost">{{ data_get($itinerary, 'currency') }} 0.00</span>
+                                </div>
+                                <div class="bg-dark text-white p-3 rounded text-center my-3 shadow-sm">
+                                    <div class="small text-white-50 fw-bold text-uppercase" style="font-size: 0.7rem; letter-spacing: 0.5px;">ACTUAL PROFIT</div>
+                                    <div class="fs-4 fw-bold text-success" id="actual-profit">{{ data_get($itinerary, 'currency') }} 0.00</div>
+                                    <div class="d-flex justify-content-between px-2 mt-2 border-top border-secondary pt-2 small text-white-50">
+                                        <span>Profit Margin:</span>
+                                        <span id="actual-margin" class="fw-bold text-white">0.00%</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- TAB 3: CRM -->
+                        <div class="tab-pane fade" id="crm-pane" role="tabpanel" aria-labelledby="crm-tab">
+                            <!-- Lead & Followup -->
+                            <div class="d-flex justify-content-between align-items-center mb-2 pb-1 border-bottom">
+                                <h6 class="fw-bold mb-0 text-dark" style="font-size: 0.85rem;"><i class="bi bi-funnel me-1 text-primary"></i> Lead & Followup</h6>
+                            </div>
+                            <div class="mb-3">
+                                <div class="mb-3">
+                                    <label class="form-label small text-muted mb-1">Assigned To</label>
+                                    <select id="assigned-user" class="form-select form-select-sm">
+                                        @foreach($admins as $admin)
+                                            <option value="{{ $admin->id }}" {{ (data_get($itinerary, 'user_id', 0) == $admin->id) ? 'selected' : '' }}>
+                                                {{ $admin->name }}
+                                            </option>
+                                        @endforeach
+                                    </select>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label small text-muted mb-1">Lead Stage</label>
+                                    <select id="followup-status" class="form-select form-select-sm">
+                                        <option value="leads" {{ (data_get($itinerary, 'followup_status', 'leads') == 'leads') ? 'selected' : '' }}>New lead</option>
+                                        <option value="interested" {{ data_get($itinerary, 'followup_status') == 'interested' ? 'selected' : '' }}>Interested</option>
+                                        <option value="converted" {{ data_get($itinerary, 'followup_status') == 'converted' ? 'selected' : '' }}>Booking Confirmed</option>
+                                        <option value="dead" {{ data_get($itinerary, 'followup_status') == 'dead' ? 'selected' : '' }}>Lost Lead</option>
+                                    </select>
+                                </div>
+                                <div class="mb-0">
+                                    <label class="form-label small text-muted mb-1">Next Followup Date</label>
+                                    <input type="date" id="next-followup" class="form-control form-control-sm"
+                                        value="{{ data_get($itinerary, 'next_followup_date') ? \Carbon\Carbon::parse(data_get($itinerary, 'next_followup_date'))->format('Y-m-d') : '' }}">
+                                </div>
+                            </div>
+
+                            <!-- Direct Payment -->
+                            <div class="d-flex justify-content-between align-items-center mb-2 pb-1 border-bottom mt-4">
+                                <h6 class="fw-bold mb-0 text-dark" style="font-size: 0.85rem;"><i class="bi bi-cash-coin me-1 text-success"></i> Payment & Progress</h6>
+                            </div>
+                            <div class="mb-3">
+                                <div class="mb-3">
+                                    <label class="form-label small text-muted mb-1">Status</label>
+                                    <select id="payment-status" class="form-select form-select-sm">
+                                        <option value="pending" {{ data_get($itinerary, 'payment_status') == 'pending' ? 'selected' : '' }}>Pending</option>
+                                        <option value="partially_paid" {{ data_get($itinerary, 'payment_status') == 'partially_paid' ? 'selected' : '' }}>Partially Paid</option>
+                                        <option value="paid" {{ data_get($itinerary, 'payment_status') == 'paid' ? 'selected' : '' }}>Fully Paid</option>
+                                    </select>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label small text-muted mb-1">Total Received</label>
+                                    <div class="input-group input-group-sm">
+                                        <span class="input-group-text">{{ data_get($itinerary, 'currency') }}</span>
+                                        <input type="number" id="payment-received" class="form-control fw-bold"
+                                            value="{{ data_get($itinerary, 'total_amount_received', 0) }}">
+                                    </div>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label small text-muted mb-1">Payment Progress</label>
+                                    <div class="border rounded p-2 bg-light shadow-xs">
+                                        @php 
+                                            $tPrice = (float) data_get($itinerary, 'total_price', 0);
+                                            $tPaid = (float) data_get($itinerary, 'total_amount_received', 0);
+                                            $balance = $tPrice - $tPaid;
+                                            $percent = $tPrice > 0 ? ($tPaid / $tPrice) * 100 : 0;
+                                        @endphp
+                                        <div class="progress mb-2" style="height: 8px;">
+                                            <div class="progress-bar bg-success" role="progressbar" style="width: {{ $percent }}%"></div>
+                                        </div>
+                                        <div class="d-flex justify-content-between small" style="font-size: 0.75rem;">
+                                            <span class="text-muted">Paid: {{ number_format($percent, 0) }}%</span>
+                                            <span class="fw-bold {{ $balance <= 0 ? 'text-success' : 'text-danger' }}">
+                                                Due: {{ data_get($itinerary, 'currency') }} {{ number_format($balance, 2) }}
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="mb-0">
+                                    <label class="form-label small text-muted mb-1">Payment Notes</label>
+                                    <textarea id="payment-details" class="form-control form-control-sm"
+                                        rows="2">{{ data_get($itinerary, 'payment_details') }}</textarea>
+                                </div>
+                            </div>
+
+                            <!-- Actual Expenses -->
+                            <div class="d-flex justify-content-between align-items-center mb-2 pb-1 border-bottom mt-4">
+                                <h6 class="fw-bold mb-0 text-dark" style="font-size: 0.85rem;"><i class="bi bi-wallet2 me-1 text-danger"></i> Actual Expenses</h6>
+                                <button type="button" class="btn btn-xs btn-outline-danger py-0 px-2 fw-bold" style="font-size: 0.7rem;" data-bs-toggle="modal" data-bs-target="#expenseModal">
+                                    <i class="bi bi-plus-lg me-1"></i>Add
+                                </button>
+                            </div>
+                            <div>
+                                <div class="table-responsive border rounded bg-white mb-2" style="max-height: 200px; overflow-y: auto;">
+                                    <table class="table table-sm table-hover mb-0" id="expense-table" style="font-size: 0.75rem;">
+                                        <thead class="bg-light sticky-top">
+                                            <tr>
+                                                <th>Category</th>
+                                                <th class="text-end">Amount</th>
+                                                <th></th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>{{-- Loaded via JS --}}</tbody>
+                                    </table>
+                                </div>
+                                <div class="d-flex justify-content-between small fw-bold p-2 bg-light border rounded">
+                                    <span>Total Actual Cost:</span>
+                                    <span id="total-actual-cost">{{ data_get($itinerary, 'currency') }} 0.00</span>
+                                </div>
+                            </div>
+                        </div>
+
                     </div>
                 </div>
             </div>
-
-            <div class="card mb-4">
-                <div class="card-header bg-light fw-bold">Trip Details</div>
-                <div class="card-body">
-                    <div class="mb-3">
-                        <label class="form-label small text-muted">Proposal Title</label>
-                        <input type="text" id="proposal-title" class="form-control form-control-sm"
-                            value="{{ data_get($itinerary, 'title') }}">
-                    </div>
-                    <div class="row g-2 mb-3">
-                        <div class="col-md-7">
-                            <label class="form-label small text-muted">Arrival Date</label>
-                            <input type="date" id="arrival-date" class="form-control form-control-sm"
-                                value="{{ data_get($itinerary, 'start_date') ? \Carbon\Carbon::parse(data_get($itinerary, 'start_date'))->format('Y-m-d') : '' }}">
-                        </div>
-                        <div class="col-md-5">
-                            <label class="form-label small text-muted">Days</label>
-                            <input type="number" id="trip-duration" class="form-control form-control-sm"
-                                value="{{ data_get($itinerary, 'duration_days') }}">
-                        </div>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label small text-muted">Markup (%)</label>
-                        <div class="input-group input-group-sm">
-                            <input type="number" id="markup-percentage" class="form-control"
-                                value="{{ data_get($itinerary, 'markup_percentage') }}">
-                            <span class="input-group-text">%</span>
-                        </div>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label small text-muted">Involved Vendors</label>
-                        <div id="vendor-checkboxes" class="border rounded p-2 bg-white mb-1"
-                            style="max-height: 120px; overflow-y: auto;">
-                            {{-- Checkboxes loaded via JS --}}
-                            <div class="text-muted small py-1">Loading partners...</div>
-                        </div>
-                        <button type="button" class="btn btn-link btn-xs p-0 small text-decoration-none" onclick="loadSuppliers()">
-                            <i class="bi bi-arrow-clockwise"></i> Refresh List
-                        </button>
-                        <input type="hidden" id="supplier_id" value="{{ data_get($itinerary, 'supplier_id') }}">
-                    </div>
-                    <div class="row g-2 mb-3 border p-2 rounded bg-light">
-                        <div class="col-4">
-                            <label class="form-label small text-muted mb-1">Adults</label>
-                            <input type="number" id="pax-adults" class="form-control form-control-sm"
-                                value="{{ data_get($itinerary, 'adults', 1) }}">
-                        </div>
-                        <div class="col-4">
-                            <label class="form-label small text-muted mb-1">Child 2-6</label>
-                            <input type="number" id="pax-child-small" class="form-control form-control-sm"
-                                value="{{ data_get($itinerary, 'children_2_6', 0) }}">
-                        </div>
-                        <div class="col-4">
-                            <label class="form-label small text-muted mb-1">Child 6-11</label>
-                            <input type="number" id="pax-child-large" class="form-control form-control-sm"
-                                value="{{ data_get($itinerary, 'children_6_11', 0) }}">
-                        </div>
-                        <div class="col-12 mt-1">
-                            <small class="text-info" style="font-size: 0.7rem;">Child 2-6: -75% | Child 6-11: -50%</small>
-                        </div>
-                    </div>
-                    <div class="mb-0">
-                        <label class="form-label small text-muted">Internal Notes</label>
-                        <textarea id="proposal-notes" class="form-control form-control-sm"
-                            rows="2">{{ data_get($itinerary, 'notes') }}</textarea>
-                    </div>
-                </div>
-            </div>
-
-            <div class="card mb-4">
-                <div class="card-header bg-light fw-bold">Lead & Followup</div>
-                <div class="card-body">
-                    <div class="mb-3">
-                        <label class="form-label small text-muted">Assigned To (Managed By)</label>
-                        <select id="assigned-user" class="form-select form-select-sm">
-                            @foreach($admins as $admin)
-                                <option value="{{ $admin->id }}" {{ (data_get($itinerary, 'user_id', 0) == $admin->id) ? 'selected' : '' }}>
-                                    {{ $admin->name }}
-                                </option>
-                            @endforeach
-                        </select>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label small text-muted">Lead Stage</label>
-                        <select id="followup-status" class="form-select form-select-sm">
-                            <option value="leads" {{ (data_get($itinerary, 'followup_status', 'leads') == 'leads') ? 'selected' : '' }}>
-                                New lead</option>
-                            <option value="interested" {{ data_get($itinerary, 'followup_status') == 'interested' ? 'selected' : '' }}>
-                                Interested</option>
-                            <option value="converted" {{ data_get($itinerary, 'followup_status') == 'converted' ? 'selected' : '' }}>
-                                Booking Confirmed</option>
-                            <option value="dead" {{ data_get($itinerary, 'followup_status') == 'dead' ? 'selected' : '' }}>
-                                Lost Lead
-                            </option>
-                        </select>
-                    </div>
-                    <div class="mb-0">
-                        <label class="form-label small text-muted">Next Followup</label>
-                        <input type="date" id="next-followup" class="form-control form-control-sm"
-                            value="{{ data_get($itinerary, 'next_followup_date') ? \Carbon\Carbon::parse(data_get($itinerary, 'next_followup_date'))->format('Y-m-d') : '' }}">
-                    </div>
-                </div>
-            </div>
-
-            <div class="card mb-4">
-                <div class="card-header bg-light fw-bold">Direct Payment</div>
-                <div class="card-body">
-                    <div class="mb-3">
-                        <label class="form-label small text-muted">Status</label>
-                        <select id="payment-status" class="form-select form-select-sm">
-                            <option value="pending" {{ data_get($itinerary, 'payment_status') == 'pending' ? 'selected' : '' }}>Pending
-                            </option>
-                            <option value="partially_paid" {{ data_get($itinerary, 'payment_status') == 'partially_paid' ? 'selected' : '' }}>Partially Paid</option>
-                            <option value="paid" {{ data_get($itinerary, 'payment_status') == 'paid' ? 'selected' : '' }}>
-                                Fully Paid
-                            </option>
-                        </select>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label small text-muted">Total Received</label>
-                        <div class="input-group input-group-sm">
-                            <span class="input-group-text">{{ data_get($itinerary, 'currency') }}</span>
-                            <input type="number" id="payment-received" class="form-control fw-bold"
-                                value="{{ data_get($itinerary, 'total_amount_received', 0) }}">
-                        </div>
-                    </div>
-                    <div class="mb-0">
-                        <label class="form-label small text-muted">Payment Notes</label>
-                        <textarea id="payment-details" class="form-control form-control-sm"
-                            rows="2">{{ data_get($itinerary, 'payment_details') }}</textarea>
-                    </div>
-                </div>
-            </div>
-
-            <div class="card mb-4 border-infoshadow-sm">
-                    <div class="card-header bg-info text-white fw-bold py-2 d-flex justify-content-between">
-                        <span>Price Breakdown</span>
-                        <i class="bi bi-calculator"></i>
-                    </div>
-                    <div class="card-body p-3">
-                        <div class="d-flex justify-content-between mb-1 small">
-                            <span class="text-muted">Hotels & Rooms:</span>
-                            <span id="preview-hotels">0.00</span>
-                        </div>
-                        <div class="d-flex justify-content-between mb-1 small">
-                            <span class="text-muted">Transport:</span>
-                            <span id="preview-transport">0.00</span>
-                        </div>
-                        <div class="d-flex justify-content-between mb-1 small">
-                            <span class="text-muted">Activities & Tickets:</span>
-                            <span id="preview-activities">0.00</span>
-                        </div>
-                        <div class="d-flex justify-content-between mb-1 small">
-                            <span class="text-muted">Meals:</span>
-                            <span id="preview-meals">0.00</span>
-                        </div>
-                        <hr class="my-2">
-                        <div class="d-flex justify-content-between mb-1 small fw-bold">
-                            <span>Base Cost:</span>
-                            <span id="preview-base-total">0.00</span>
-                        </div>
-                        <div class="d-flex justify-content-between mb-1 small text-info">
-                            <span>Per Pax Estimate:</span>
-                            <span id="preview-perpax-total">0.00</span>
-                        </div>
-                        <div class="d-flex justify-content-between mb-1 small text-primary">
-                            <span>Markup Cost (<span id="preview-markup-perc">0</span>%):</span>
-                            <span id="preview-markup">0.00</span>
-                        </div>
-                        <div class="d-flex justify-content-between fw-bold border-top pt-2 text-dark fs-6">
-                            <span>TOTAL QUOTE:</span>
-                            <span id="preview-grand-total">0.00</span>
-                        </div>
-                        <div class="mt-2 text-center">
-                            <small class="text-muted" style="font-size: 0.65rem;">* Updates in real-time. Save to finalize.</small>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="card mb-4 border-primary">
-                    <div class="card-header bg-primary text-white fw-bold d-flex justify-content-between align-items-center">
-                        <span>Actual Expenses</span>
-                        <button type="button" class="btn btn-xs btn-light" data-bs-toggle="modal"
-                            data-bs-target="#expenseModal">
-                            <i class="bi bi-plus-lg"></i>
-                        </button>
-                    </div>
-                    <div class="card-body p-0">
-                        <div class="table-responsive">
-                            <table class="table table-sm table-hover mb-0" id="expense-table" style="font-size: 0.85rem;">
-                                <thead class="bg-light">
-                                    <tr>
-                                        <th>Category</th>
-                                        <th class="text-end">Amount</th>
-                                        <th></th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {{-- Loaded via JS --}}
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                    <div class="card-footer bg-light py-2">
-                        <div class="d-flex justify-content-between small fw-bold">
-                            <span>Total Actual Cost:</span>
-                            <span id="total-actual-cost">{{ data_get($itinerary, 'currency') }} 0.00</span>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="card mb-4">
-                    <div class="card-header bg-dark text-white fw-bold">Financial Summary</div>
-                    <div class="card-body">
-                        <div class="d-flex justify-content-between mb-1 small">
-                            <span>Total Quoted:</span>
-                            <span id="summary-quoted-total">{{ data_get($itinerary, 'currency') }} {{ number_format(data_get($itinerary, 'total_price', 0), 2) }}</span>
-                        </div>
-                        <div class="d-flex justify-content-between mb-1 small text-danger">
-                            <span>Actual Costs:</span>
-                            <span id="summary-actual-cost">{{ data_get($itinerary, 'currency') }} 0.00</span>
-                        </div>
-                        <hr class="my-2">
-                        <div class="d-flex justify-content-between fw-bold text-success fs-5">
-                            <span>ACTUAL PROFIT:</span>
-                            <span id="actual-profit">{{ data_get($itinerary, 'currency') }} 0.00</span>
-                        </div>
-                        <div class="d-flex justify-content-between small mt-1">
-                            <span class="text-muted">Profit Margin:</span>
-                            <span id="actual-margin" class="fw-bold">0.00%</span>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="card">
-                    <div class="card-header bg-light fw-bold">Payment Progress</div>
-                    <div class="card-body">
-                        @php 
-                                                    $tPrice = (float) data_get($itinerary, 'total_price', 0);
-                            $tPaid = (float) data_get($itinerary, 'total_amount_received', 0);
-                            $balance = $tPrice - $tPaid;
-                            $percent = $tPrice > 0 ? ($tPaid / $tPrice) * 100 : 0;
-                        @endphp
-                        <div class="progress mb-2" style="height: 10px;">
-                            <div class="progress-bar bg-success" role="progressbar" style="width: {{ $percent }}%"></div>
-                        </div>
-                        <div class="d-flex justify-content-between small">
-                            <span class="text-muted">Paid: {{ number_format($percent, 0) }}%</span>
-                            <span class="fw-bold {{ $balance <= 0 ? 'text-success' : 'text-danger' }}">
-                                Due: {{ data_get($itinerary, 'currency') }} {{ number_format($balance, 2) }}
-                            </span>
-                        </div>
-                    </div>
-                </div>
-            </div>
+        </div>
 
             <!-- Right Content: Builder -->
             <div class="col-lg-9">
