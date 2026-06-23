@@ -100,6 +100,17 @@ foreach ($backups as $name => $backup) {
     echo "Restored $name to {$backup['path']}<br>";
 }
 
+// Auto-heal missing root .htaccess on Hostinger
+if (!file_exists($projectRootHtaccess)) {
+    $rootHtaccessContent = "<IfModule mod_rewrite.c>\n" .
+                           "    RewriteEngine On\n" .
+                           "    RewriteRule ^\$ public/ [L]\n" .
+                           "    RewriteRule ((?s).*) public/\$1 [L]\n" .
+                           "</IfModule>\n";
+    file_put_contents($projectRootHtaccess, $rootHtaccessContent);
+    echo "Auto-healed: Recreated missing root .htaccess at $projectRootHtaccess<br>";
+}
+
 echo "<strong>1a. Running Composer Install...</strong><br>";
 $composerOutput = shell_exec('composer install --no-dev --optimize-autoloader 2>&1');
 echo "<pre>$composerOutput</pre>";
