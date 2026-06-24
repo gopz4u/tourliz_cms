@@ -1001,7 +1001,136 @@
             border-radius: 8px;
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
         }
+
+        /* --- Floating Action Button (FAB) --- */
+        .fab-container {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            z-index: 1050;
+            display: flex;
+            flex-direction: column-reverse;
+            align-items: flex-end;
+            gap: 15px;
+        }
+
+        .fab-main {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--primary), #8b5cf6);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            cursor: pointer;
+            box-shadow: 0 10px 25px rgba(90, 82, 229, 0.4);
+            border: none;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            outline: none;
+        }
+
+        .fab-main:hover {
+            transform: scale(1.1);
+            box-shadow: 0 12px 30px rgba(90, 82, 229, 0.5);
+        }
+
+        .fab-main.active {
+            transform: scale(1.05) rotate(135deg);
+            background: #ef4444;
+            box-shadow: 0 10px 25px rgba(239, 68, 68, 0.4);
+        }
+
+        .fab-menu {
+            display: flex;
+            flex-direction: column-reverse;
+            align-items: flex-end;
+            gap: 12px;
+            visibility: hidden;
+            opacity: 0;
+            transform: translateY(20px);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .fab-menu.show {
+            visibility: visible;
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .fab-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            text-decoration: none !important;
+        }
+
+        .fab-label {
+            background: white;
+            color: var(--text-main);
+            padding: 6px 14px;
+            border-radius: 10px;
+            font-size: 0.85rem;
+            font-weight: 700;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+            white-space: nowrap;
+            opacity: 0;
+            transform: translateX(10px);
+            transition: all 0.3s ease;
+            border: 1px solid rgba(0, 0, 0, 0.03);
+        }
+
+        .fab-menu.show .fab-label {
+            opacity: 1;
+            transform: translateX(0);
+        }
+
+        .fab-item:hover .fab-label {
+            background: var(--primary-light);
+            color: var(--primary);
+        }
+
+        .fab-icon-btn {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1.2rem;
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08);
+            transition: all 0.2s ease;
+            border: none;
+        }
+
+        .fab-icon-btn:hover {
+            transform: scale(1.1);
+        }
+
+        .fab-icon-btn.b2b {
+            background: #06b6d4;
+        }
+        .fab-icon-btn.b2c {
+            background: #10b981;
+        }
+        .fab-icon-btn.group {
+            background: #f59e0b;
+        }
+
+        @media (max-width: 991.98px) {
+            .fab-container {
+                bottom: 20px;
+                right: 20px;
+            }
+            .fab-label {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
     </style>
+
 
     <script>
         // CSRF Token setup for AJAX
@@ -1073,6 +1202,54 @@
             }
             return null;
         }
+    </script>
+
+    <!-- Quick Create FAB -->
+    <div class="fab-container" id="quickCreateFab">
+        <div class="fab-menu" id="fabMenu">
+            <!-- New Group Lead -->
+            <a href="{{ route('admin.group-itineraries.create') }}" class="fab-item">
+                <span class="fab-label">New Group Lead</span>
+                <div class="fab-icon-btn group" title="New Group Lead">
+                    <i class="bi bi-people-fill"></i>
+                </div>
+            </a>
+            <!-- New Walk-in Lead -->
+            <a href="{{ route('admin.b2c-itineraries.create') }}" class="fab-item">
+                <span class="fab-label">New Walk-in Lead</span>
+                <div class="fab-icon-btn b2c" title="New Walk-in Lead">
+                    <i class="bi bi-person-badge-fill"></i>
+                </div>
+            </a>
+            <!-- New B2B Proposal -->
+            <a href="{{ route('admin.b2b-itineraries.create') }}" class="fab-item">
+                <span class="fab-label">New B2B Proposal</span>
+                <div class="fab-icon-btn b2b" title="New B2B Proposal">
+                    <i class="bi bi-building-fill"></i>
+                </div>
+            </a>
+        </div>
+        <button class="fab-main" id="fabMainBtn" title="Quick Create">
+            <i class="bi bi-plus-lg"></i>
+        </button>
+    </div>
+
+    <script>
+        $(document).ready(function () {
+            // --- FAB Menu Toggle ---
+            $('#fabMainBtn').on('click', function (e) {
+                e.stopPropagation();
+                $(this).toggleClass('active');
+                $('#fabMenu').toggleClass('show');
+            });
+            
+            $(document).on('click', function (e) {
+                if (!$(e.target).closest('#quickCreateFab').length) {
+                    $('#fabMainBtn').removeClass('active');
+                    $('#fabMenu').removeClass('show');
+                }
+            });
+        });
     </script>
 
     @stack('scripts')
