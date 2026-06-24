@@ -842,6 +842,18 @@
                     delete day.hotel;
                 }
 
+                if (hotels.length === 0) {
+                    const placeholder = document.createElement('div');
+                    placeholder.className = 'text-center p-3 border border-dashed rounded-3 text-muted mb-2';
+                    placeholder.style.cssText = 'font-size: 0.8rem; background-color: #fafafa; border-color: #dee2e6 !important;';
+                    placeholder.innerHTML = `
+                        <i class="bi bi-building fs-5 d-block mb-1 text-primary"></i>
+                        No hotels added yet — click "Master" to search inventory or "Add Manual" to enter custom details.
+                    `;
+                    container.appendChild(placeholder);
+                    return;
+                }
+
                 hotels.forEach((hotel, hIndex) => {
                     const row = document.createElement('div');
                     row.className = 'mb-3 bg-light rounded-3 p-2 border position-relative';
@@ -890,6 +902,63 @@
                 container.innerHTML = '';
 
                 const safeItems = Array.isArray(items) ? items : [];
+
+                if (safeItems.length === 0) {
+                    const placeholder = document.createElement('div');
+                    placeholder.className = 'text-center p-3 border border-dashed rounded-3 text-muted mb-2';
+                    placeholder.style.cssText = 'font-size: 0.8rem; background-color: #fafafa; border-color: #dee2e6 !important;';
+                    
+                    let icon = '';
+                    let colorClass = '';
+                    let searchBtn = 'the search icon';
+                    let addBtn = '';
+                    let textName = '';
+
+                    switch (type) {
+                        case 'transports':
+                            icon = 'bi-car-front';
+                            colorClass = 'text-secondary';
+                            searchBtn = '"Master"';
+                            addBtn = '"Add Manual"';
+                            textName = 'transport';
+                            break;
+                        case 'spots':
+                            icon = 'bi-geo-alt';
+                            colorClass = 'text-info';
+                            searchBtn = 'the search icon';
+                            addBtn = '"Add Tourist Spot"';
+                            textName = 'tourist spots';
+                            break;
+                        case 'activities':
+                            icon = 'bi-lightning';
+                            colorClass = 'text-warning';
+                            searchBtn = 'the search icon';
+                            addBtn = '"Add Activity"';
+                            textName = 'activities';
+                            break;
+                        case 'tickets':
+                            icon = 'bi-ticket-perforated';
+                            colorClass = 'text-danger';
+                            searchBtn = 'the search icon';
+                            addBtn = '"Add Ticket"';
+                            textName = 'entry tickets';
+                            break;
+                        case 'meals':
+                            icon = 'bi-cup-hot';
+                            colorClass = 'text-success';
+                            searchBtn = 'the search icon';
+                            addBtn = '"Add Meal"';
+                            textName = 'meals';
+                            break;
+                    }
+
+                    placeholder.innerHTML = `
+                        <i class="bi ${icon} fs-5 d-block mb-1 ${colorClass}"></i>
+                        No ${textName} added yet — click ${searchBtn} to search inventory or ${addBtn} to enter custom details.
+                    `;
+                    container.appendChild(placeholder);
+                    return;
+                }
 
                 safeItems.forEach((item, itemIndex) => {
                     const row = document.createElement('div');
