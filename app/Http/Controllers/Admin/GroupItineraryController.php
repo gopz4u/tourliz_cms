@@ -187,9 +187,9 @@ class GroupItineraryController extends Controller
             'client' => $itinerary->client_name,
             'generated_at' => now()->format('d M Y'),
             'agency' => (object) [
-                'company_name' => 'Tourliz Official',
-                'whatsapp_number' => '+60 12-345 6789',
-                'logo' => asset('images/logo.png')
+                'company_name' => config('tourliz.brand.name', 'Tourliz Official'),
+                'whatsapp_number' => config('tourliz.brand.whatsapp', '+60 12-345 6789'),
+                'logo' => file_exists(public_path(config('tourliz.brand.logo_path', 'img/tourliz_logo.png'))) ? asset(config('tourliz.brand.logo_path', 'img/tourliz_logo.png')) : null,
             ],
             'is_public' => request()->has('public') || request()->get('mode') === 'customer'
         ];

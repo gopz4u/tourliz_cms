@@ -329,8 +329,44 @@
     <table class="header-table">
         <tr>
             <td class="logo-cell">
-                @if(data_get($agency, 'logo'))
-                    <img src="{{ data_get($agency, 'logo') }}" class="logo-img" alt="Logo">
+                @php
+                    $brand = config('tourliz.brand');
+                    $logoPath = $brand['logo_path'] ?? 'img/tourliz_logo.png';
+                    
+                    // Check if agency has logo
+                    $agencyLogo = data_get($agency, 'logo');
+                    $localPath = null;
+
+                    if ($agencyLogo) {
+                        // If it's a full URL, try to extract the relative path if it belongs to our host
+                        $appUrl = config('app.url');
+                        if (str_starts_with($agencyLogo, $appUrl)) {
+                            $relativePath = str_replace($appUrl, '', $agencyLogo);
+                            $relativePath = ltrim($relativePath, '/');
+                            $checkPath = public_path($relativePath);
+                            if (file_exists($checkPath)) {
+                                $localPath = $checkPath;
+                            }
+                        } else if (!str_starts_with($agencyLogo, 'http')) {
+                            $checkPath = public_path($agencyLogo);
+                            if (file_exists($checkPath)) {
+                                $localPath = $checkPath;
+                            }
+                        }
+                    }
+
+                    // Fallback to Tourliz brand logo
+                    if (!$localPath) {
+                        if (file_exists(public_path($logoPath))) {
+                            $localPath = public_path($logoPath);
+                        }
+                    }
+                @endphp
+
+                @if($localPath)
+                    <img src="{{ $localPath }}" class="logo-img" alt="Logo">
+                @elseif($agencyLogo)
+                    <img src="{{ $agencyLogo }}" class="logo-img" alt="Logo">
                 @else
                     <div class="logo-text">TOUR<span>LIZ</span></div>
                 @endif
