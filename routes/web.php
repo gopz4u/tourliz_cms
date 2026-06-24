@@ -21,6 +21,7 @@ use App\Http\Controllers\Admin\WebsiteManagementController;
 use App\Http\Controllers\Admin\PackageOfferController;
 use App\Http\Controllers\Admin\ReviewController;
 use App\Http\Controllers\Admin\SearchController;
+use App\Http\Controllers\Admin\CalendarController;
 
 
 /*
@@ -291,6 +292,10 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:admin'])->grou
 
     // Global Search
     Route::get('search', [SearchController::class, 'index'])->name('search');
+
+    // Calendar
+    Route::get('calendar', [CalendarController::class, 'index'])->name('calendar.index');
+    Route::get('calendar/events', [CalendarController::class, 'events'])->name('calendar.events');
 
     // Bookings Management
     Route::get('bookings/create', [AdminBookingController::class, 'create'])->name('bookings.create');

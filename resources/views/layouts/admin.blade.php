@@ -591,6 +591,16 @@
                     </a>
                 </li>
 
+                <li>
+                    <a href="{{ route('admin.calendar.index') }}"
+                        class="{{ request()->routeIs('admin.calendar.*') ? 'active' : '' }}">
+                        <i class="bi bi-calendar3 main-icon"></i>
+                        <span>Calendar View</span>
+                        <i class="bi bi-arrow-right nav-arrow"></i>
+                    </a>
+                </li>
+
+
                 @if(auth()->user()->isSuperAdmin())
                     <li>
                         <a href="{{ route('admin.countries.index') }}"
