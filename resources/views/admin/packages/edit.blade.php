@@ -898,8 +898,8 @@
         $('.itinerary-day-card').each(function() {
             let spotsSelect = $(this).find('.select2-spots-multi');
             spotsSelect.find('option').each(function() {
-                let spotCountry = $(this).data('country');
-                if (!countryName || !spotCountry || spotCountry === countryName) {
+                let spotCountry = ($(this).data('country') || '').trim().toLowerCase();
+                if (!countryName || !spotCountry || spotCountry === countryName.trim().toLowerCase()) {
                     $(this).prop('disabled', false);
                 } else {
                     $(this).prop('disabled', true);
@@ -926,8 +926,8 @@
         let selectedCountryName = $('#country_id').find(':selected').data('country-name') || '';
         if (selectedCountryName) {
             card.find('.select2-spots-multi option').each(function() {
-                let spotCountry = $(this).data('country');
-                if (spotCountry && spotCountry !== selectedCountryName) {
+                let spotCountry = ($(this).data('country') || '').trim().toLowerCase();
+                if (spotCountry && spotCountry !== selectedCountryName.trim().toLowerCase()) {
                     $(this).prop('disabled', true);
                 }
             });
@@ -968,12 +968,12 @@
         let row = $(el).closest('.service-row');
         let type = $(el).val();
         let vendorSelect = row.find('.select2-vendor');
-        let selectedCountry = $('#country_id').find(':selected').data('country-name') || '';
+        let selectedCountry = ($('#country_id').find(':selected').data('country-name') || '').trim().toLowerCase();
 
         // Filter inventory by country first
         let filteredItems = inventory[type];
         if (selectedCountry) {
-            filteredItems = inventory[type].filter(i => !i.country || i.country === selectedCountry);
+            filteredItems = inventory[type].filter(i => !i.country || i.country.trim().toLowerCase() === selectedCountry);
         }
 
         // Find vendors who have items of this type (and country)
@@ -1000,7 +1000,7 @@
         let type = row.find('.service-type').val();
         let vendorId = $(el).val();
         let serviceSelect = row.find('.select2-service');
-        let selectedCountry = $('#country_id').find(':selected').data('country-name') || '';
+        let selectedCountry = ($('#country_id').find(':selected').data('country-name') || '').trim().toLowerCase();
         serviceSelect.empty().append('<option value="">Choose Service</option>');
         if(type) {
             let items = [];
@@ -1011,7 +1011,7 @@
             }
             // Apply country filter
             if (selectedCountry) {
-                items = items.filter(i => !i.country || i.country === selectedCountry);
+                items = items.filter(i => !i.country || i.country.trim().toLowerCase() === selectedCountry);
             }
             items.forEach(i => { serviceSelect.append(`<option value="${i.id}" data-price="${i.price}">${i.name}</option>`); });
         }
