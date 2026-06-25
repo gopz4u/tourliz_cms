@@ -21,6 +21,12 @@
             <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
         </div>
     @endif
+    @if(session('error'))
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            <i class="bi bi-exclamation-triangle me-2"></i>{{ session('error') }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    @endif
 
     <div class="card mb-3">
         <div class="card-body bg-light border-bottom">
@@ -229,10 +235,11 @@
                                                     <i class="bi bi-file-pdf"></i>
                                                 </a>
                                                 <form action="{{ route('admin.b2b-itineraries.destroy', $itinerary->id) }}"
-                                                    method="POST" class="d-inline" onsubmit="return confirm('Delete?');">
+                                                    method="POST" class="d-inline delete-form" onsubmit="return confirm('Delete this proposal? This action cannot be undone.');">
                                                     @csrf @method('DELETE')
-                                                    <button type="submit" class="btn btn-sm btn-outline-danger"><i
-                                                            class="bi bi-trash"></i></button>
+                                                    <button type="submit" class="btn btn-sm btn-outline-danger" title="Delete">
+                                                        <i class="bi bi-trash"></i>
+                                                    </button>
                                                 </form>
                                             </div>
                                         </td>

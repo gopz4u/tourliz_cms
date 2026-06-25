@@ -481,8 +481,14 @@ class B2BItineraryController extends Controller
 
     public function destroy($id)
     {
-        $itinerary = CustomItinerary::findOrFail($id);
-        $itinerary->delete();
-        return redirect()->route('admin.b2b-itineraries.index')->with('success', 'Itinerary deleted.');
+        try {
+            $itinerary = CustomItinerary::findOrFail($id);
+            // Delete associated expenses first
+            \App\Models\ItineraryExpense::where('itinerary_id', $id)->where('itinerary_type', 'b2b')->delete();
+            $itinerary->delete();
+            return redirect()->route('admin.b2b-itineraries.index')->with('success', 'Itinerary deleted.');
+        } catch (\Exception $e) {
+            return redirect()->back()->with('error', 'Cannot delete: ' . $e->getMessage());
+        }
     }
 }

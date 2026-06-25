@@ -317,7 +317,13 @@ class B2CItineraryController extends Controller
 
     public function destroy($id)
     {
-        B2CItinerary::findOrFail($id)->delete();
-        return redirect()->route('admin.b2c-itineraries.index')->with('success', 'B2C lead deleted.');
+        try {
+            // Delete associated expenses first
+            \App\Models\ItineraryExpense::where('itinerary_id', $id)->where('itinerary_type', 'b2c')->delete();
+            B2CItinerary::findOrFail($id)->delete();
+            return redirect()->route('admin.b2c-itineraries.index')->with('success', 'B2C lead deleted.');
+        } catch (\Exception $e) {
+            return redirect()->back()->with('error', 'Cannot delete: ' . $e->getMessage());
+        }
     }
 }
