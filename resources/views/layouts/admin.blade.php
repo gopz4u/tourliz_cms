@@ -855,7 +855,12 @@
                                 <a class="dropdown-item {{ request()->routeIs('admin.services.*') && request('category') === 'Meals' ? 'fw-bold' : '' }}"
                                     href="{{ route('admin.services.index') }}?category=Meals">Meals Master</a>
                                 <a class="dropdown-item {{ request()->routeIs('admin.services.*') && request('category') === 'Other Services' ? 'fw-bold' : '' }}"
-                                    href="{{ route('admin.services.index') }}?category=Other Services">Tourist Spots</a>
+                                    href="{{ route('admin.services.index') }}?category=Other Services">Tourist Spots
+                                    (Legacy)</a>
+                                <a class="dropdown-item {{ request()->routeIs('admin.tourist-spots.*') ? 'fw-bold' : '' }}"
+                                    href="{{ route('admin.tourist-spots.index') }}">
+                                    <i class="bi bi-geo-alt-fill me-1"></i> Tourist Spots
+                                </a>
                                 <a class="dropdown-item {{ request()->routeIs('admin.suppliers.*') && !request('type') ? 'fw-bold' : '' }}"
                                     href="{{ route('admin.suppliers.index') }}">
                                     <i class="bi bi-shop me-1"></i> All Suppliers
