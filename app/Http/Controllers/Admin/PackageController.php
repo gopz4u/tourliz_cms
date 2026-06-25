@@ -84,8 +84,8 @@ class PackageController extends Controller
         $activities = \App\Models\Activity::with('supplier.destination')->where('is_active', true)->orderBy('name')->get();
         $destinations = \App\Models\Destination::orderBy('name')->get();
         $transportRoutes = \App\Models\Transport::with('supplier.destination')->get();
-        $entryTickets = \App\Models\EntryTicket::with('supplier')->get();
-        $meals = \App\Models\Meal::with('supplier')->get();
+        $entryTickets = \App\Models\EntryTicket::with('supplier.destination')->get();
+        $meals = \App\Models\Meal::with('supplier.destination')->get();
         $touristSpots = \App\Models\TouristSpot::with(['supplier', 'destination'])->where('is_active', true)->orderBy('name')->get();
 
         return view('admin.packages.create', compact(
