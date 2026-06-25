@@ -532,9 +532,9 @@
                     <div id="inventorySearchBox" class="mb-3 d-flex gap-2">
                         <select id="inventoryCountrySelect" class="form-select" style="max-width: 180px;"
                             onchange="filterInventoryCities()">
-                            <option value="">All Countries</option>
+                            <option value="" data-country-id="">All Countries</option>
                             @foreach($countries as $country)
-                                <option value="{{ $country->name }}" {{ (isset($itinerary->destination) && $itinerary->destination->name == $country->name) ? 'selected' : '' }}>
+                                <option value="{{ $country->name }}" data-country-id="{{ $country->id }}" {{ (isset($itinerary->destination) && $itinerary->destination->name == $country->name) ? 'selected' : '' }}>
                                     {{ $country->name }}
                                 </option>
                             @endforeach
@@ -1159,11 +1159,16 @@
                 const dSelect = document.getElementById('inventoryDestinationId');
                 const selectedDestinationId = dSelect ? dSelect.value : "";
                 const countryFilter = document.getElementById('inventoryCountrySelect').value;
+                const countrySelectEl = document.getElementById('inventoryCountrySelect');
+                const countryId = countrySelectEl ? (countrySelectEl.options[countrySelectEl.selectedIndex]?.getAttribute('data-country-id') || '') : '';
                 const search = document.getElementById('inventorySearch').value;
 
                 let url = `/api/inventory/${currentType}?search=${encodeURIComponent(search)}`;
                 if (selectedDestinationId) {
                     url += `&destination_id=${selectedDestinationId}`;
+                } else if (countryId && currentType === 'spots') {
+                    // For tourist spots: use country_id (direct FK — most accurate)
+                    url += `&country_id=${countryId}`;
                 } else if (countryFilter) {
                     url += `&country=${encodeURIComponent(countryFilter)}`;
                 }

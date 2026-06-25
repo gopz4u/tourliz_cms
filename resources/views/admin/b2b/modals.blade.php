@@ -9,9 +9,9 @@
             <div class="modal-body p-4 bg-light rounded-bottom-4 mt-3">
                 <div id="inventorySearchBox" class="mb-4 d-flex flex-wrap gap-2">
                     <select id="inventoryCountrySelect" class="form-select border-0 shadow-sm rounded-pill px-3" style="max-width: 180px;" onchange="filterInventoryCities()">
-                        <option value="">All Countries</option>
+                        <option value="" data-country-id="">All Countries</option>
                         @foreach($countries as $country)
-                            <option value="{{ $country->name }}" {{ (isset($itinerary->destination) && $itinerary->destination->name == $country->name) ? 'selected' : '' }}>
+                            <option value="{{ $country->name }}" data-country-id="{{ $country->id }}" {{ (isset($itinerary->destination) && $itinerary->destination->name == $country->name) ? 'selected' : '' }}>
                                 {{ $country->name }}
                             </option>
                         @endforeach

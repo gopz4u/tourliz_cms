@@ -233,38 +233,54 @@ class InventoryApiController extends Controller
     public function spots(Request $request)
     {
         $destinationId = $request->query('destination_id');
-        $country = $request->query('country');
-        $search = $request->query('search');
+        $countryId     = $request->query('country_id');
+        $country       = $request->query('country');   // country name string fallback
+        $search        = $request->query('search');
 
-        $query = Service::where('category', 'Other Services')->where('is_active', true);
+        $query = \App\Models\TouristSpot::with(['destination', 'country'])
+            ->where('is_active', true);
 
-        if ($destinationId) {
-            $query->where('destination_id', $destinationId);
+        // Primary filter: country_id (direct FK — most accurate)
+        if ($countryId) {
+            $query->where('country_id', $countryId);
         } elseif ($country) {
-            $query->whereHas('destination', function ($q) use ($country) {
+            // Fallback: match by country name string
+            $query->whereHas('country', function ($q) use ($country) {
+                $q->where('name', $country);
+            })->orWhereHas('destination', function ($q) use ($country) {
                 $q->where('country', $country);
             });
+        }
+
+        // Optional: further narrow by specific city/destination
+        if ($destinationId) {
+            $query->where('destination_id', $destinationId);
         }
 
         if ($search) {
             $query->where('name', 'like', "%{$search}%");
         }
 
-        $results = $query->get()->map(function ($service) {
+        $results = $query->orderBy('name')->get()->map(function ($ts) {
             return [
-                'id' => $service->id,
-                'name' => $service->name,
-                'description' => $service->short_description ?? $service->description,
-                'is_core_service' => true,
-                'supplier_id' => $service->supplier_id,
-                'price' => $service->price,
-                'base_price' => $service->price,
-                'currency' => $service->currency ?? 'MYR',
+                'id'             => $ts->id,
+                'name'           => $ts->name,
+                'description'    => $ts->description,
+                'image_url'      => $ts->image_url,
+                'supplier_id'    => $ts->supplier_id,
+                'country_id'     => $ts->country_id,
+                'country_name'   => $ts->country->name ?? '',
+                'destination_id' => $ts->destination_id,
+                'destination'    => $ts->destination->name ?? '',
+                'price'          => 0,
+                'price_per_hour' => 0,
+                'is_core_service'=> false,
             ];
         });
 
         return response()->json($results->values());
     }
+
 
     public function supplierAssets(Request $request, $id)
     {

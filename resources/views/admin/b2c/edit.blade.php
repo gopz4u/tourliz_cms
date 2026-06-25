@@ -1303,11 +1303,16 @@
             const dSelect = document.getElementById('inventoryDestinationId');
             const selectedDestinationId = dSelect ? dSelect.value : "";
             const countryFilter = document.getElementById('inventoryCountrySelect')?.value || "";
+            const countrySelectEl = document.getElementById('inventoryCountrySelect');
+            const countryId = countrySelectEl ? (countrySelectEl.options[countrySelectEl.selectedIndex]?.getAttribute('data-country-id') || '') : '';
             const search = document.getElementById('inventorySearch')?.value || "";
 
             let url = `/api/inventory/${currentType}?search=${encodeURIComponent(search)}`;
             if (selectedDestinationId) {
                 url += `&destination_id=${selectedDestinationId}`;
+            } else if (countryId && currentType === 'spots') {
+                // For tourist spots: use country_id (direct FK — most accurate)
+                url += `&country_id=${countryId}`;
             } else if (countryFilter) {
                 url += `&country=${encodeURIComponent(countryFilter)}`;
             }
