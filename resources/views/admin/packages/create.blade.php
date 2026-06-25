@@ -247,9 +247,9 @@
                                 <div class="col-md-6">
                                     <label class="premium-label">Country</label>
                                     <select name="country_id" id="country_id" class="form-select select2" required>
-                                        <option value="">Select Country</option>
+                                        <option value="" data-country-name="">Select Country</option>
                                         @foreach($countries as $country)
-                                            <option value="{{ $country->id }}">{{ $country->name }}</option>
+                                            <option value="{{ $country->id }}" data-country-name="{{ $country->name }}">{{ $country->name }}</option>
                                         @endforeach
                                     </select>
                                 </div>
@@ -257,7 +257,7 @@
                                     <label class="premium-label">Primary Destinations</label>
                                     <select name="destination_ids[]" id="destination_ids" class="form-select select2" multiple required data-placeholder="Select Primary Cities">
                                         @foreach($destinations as $dest)
-                                            <option value="{{ $dest->id }}" data-country="{{ $dest->country_id }}">{{ $dest->name }}</option>
+                                            <option value="{{ $dest->id }}" data-country="{{ $dest->country }}">{{ $dest->name }}</option>
                                         @endforeach
                                     </select>
                                 </div>
@@ -390,6 +390,16 @@
                                 </div>
                             </div>
 
+                            {{-- Price Mode Toggle --}}
+                            <div class="bg-light p-3 rounded-3 border mb-4 d-flex align-items-center gap-3">
+                                <div class="form-check form-switch mb-0">
+                                    <input class="form-check-input" type="checkbox" id="direct-price-toggle" onchange="togglePriceMode(this)">
+                                    <label class="form-check-label fw-bold small" for="direct-price-toggle">Enter Direct Price</label>
+                                </div>
+                                <span class="text-muted small" id="price-mode-hint">Auto-calculating from services below</span>
+                            </div>
+
+                            <div id="auto-price-section">
                             <div class="row g-4 mt-2">
                                 <div class="col-md-6">
                                     <label class="premium-label">Service Markup (%)</label>
@@ -407,6 +417,29 @@
                                     <label class="premium-label">Final Selling Rate (Auto-Calculated)</label>
                                     <input type="number" name="price" id="selling-in" class="form-control premium-input form-control-lg fw-black text-primary" readonly>
                                     <small class="text-muted">Formula: (Cost + Markup) + Taxes</small>
+                                </div>
+                            </div>
+                            </div>
+
+                            <div id="direct-price-section" style="display:none;">
+                                <div class="row g-4 mt-2">
+                                    <div class="col-md-6">
+                                        <label class="premium-label">Direct Selling Price (RM)</label>
+                                        <input type="number" name="price" id="direct-price-in" class="form-control premium-input form-control-lg fw-black text-primary" placeholder="Enter price directly" min="0" step="0.01" oninput="onDirectPriceChange()">
+                                        <small class="text-muted">Enter the final price when you don't have itemised services.</small>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="premium-label">Service Markup (%)</label>
+                                        <input type="number" name="markup_percentage" class="form-control premium-input" placeholder="Optional" value="0">
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="premium-label">Government GST (%)</label>
+                                        <input type="number" name="gst_percentage" class="form-control premium-input" placeholder="Optional" value="0">
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="premium-label">TCS (If applicable %)</label>
+                                        <input type="number" name="tcs_percentage" class="form-control premium-input" placeholder="Optional" value="0">
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -524,7 +557,7 @@
                 </label>
                 <select class="form-select select2-spots-multi" multiple data-placeholder="Select multiple tourist spots for Day {N}..." style="width: 100%;">
                     @foreach($touristSpots as $spot)
-                        <option value="{{ $spot->id }}">{{ $spot->name }}</option>
+                        <option value="{{ $spot->id }}" data-dest-country="{{ $spot->destination->country ?? '' }}">{{ $spot->name }}</option>
                     @endforeach
                 </select>
             </div>
@@ -616,7 +649,7 @@
         $activityList = $activities->map(function($a) { return ['id' => $a->id, 'name' => $a->name, 'supplier_id' => $a->supplier_id, 'price' => $a->base_price]; });
         $ticketList = $entryTickets->map(function($et) { return ['id' => $et->id, 'name' => $et->attraction_name, 'supplier_id' => $et->supplier_id, 'price' => $et->adult_price]; });
         $mealList = $meals->map(function($m) { return ['id' => $m->id, 'name' => $m->name, 'supplier_id' => $m->supplier_id, 'price' => $m->price]; });
-        $touristSpotList = $touristSpots->map(function($ts) { return ['id' => $ts->id, 'name' => $ts->name, 'supplier_id' => $ts->supplier_id, 'price' => 0]; });
+        $touristSpotList = $touristSpots->map(function($ts) { return ['id' => $ts->id, 'name' => $ts->name, 'supplier_id' => $ts->supplier_id, 'destination_country' => $ts->destination->country ?? '', 'price' => 0]; });
     @endphp
 
     const inventory = {
@@ -633,16 +666,16 @@
         
         // Country to Destination Cascading
         $('#country_id').on('change', function() {
-            let countryId = $(this).val();
+            let selectedCountryName = $(this).find(':selected').data('country-name') || '';
             let destSelect = $('#destination_ids');
             
             // Clear current selection
             destSelect.val(null).trigger('change');
             
-            // Hide all options first
+            // Filter destinations by country string match
             destSelect.find('option').each(function() {
-                let optCountry = $(this).data('country');
-                if (!countryId || !optCountry || optCountry == countryId || $(this).val() === "") {
+                let optCountry = $(this).data('country'); // country string e.g. "Thailand"
+                if (!selectedCountryName || !optCountry || optCountry === selectedCountryName || $(this).val() === "") {
                     $(this).prop('disabled', false);
                 } else {
                     $(this).prop('disabled', true);
@@ -651,6 +684,9 @@
             
             // Re-init select2 to refresh disabled states
             destSelect.select2({ theme: 'bootstrap-5' });
+
+            // Filter tourist spots in all day cards by country
+            filterAllSpotsByCountry(selectedCountryName);
         });
 
         quillEditors['highlight'] = initQuillEditor('#highlight-editor-container', 200);
@@ -723,11 +759,45 @@
         return errors;
     }
 
+    function filterAllSpotsByCountry(countryName) {
+        $('.itinerary-day-card').each(function() {
+            let spotsSelect = $(this).find('.select2-spots-multi');
+            spotsSelect.find('option').each(function() {
+                let spotCountry = $(this).data('dest-country');
+                if (!countryName || !spotCountry || spotCountry === countryName) {
+                    $(this).prop('disabled', false);
+                } else {
+                    $(this).prop('disabled', true);
+                }
+            });
+            // Refresh select2
+            let currentVal = spotsSelect.val();
+            spotsSelect.select2({ theme: 'bootstrap-5', placeholder: spotsSelect.data('placeholder') });
+            if (currentVal) {
+                let validVals = currentVal.filter(v => {
+                    return !spotsSelect.find('option[value="'+v+'"]').prop('disabled');
+                });
+                spotsSelect.val(validVals).trigger('change');
+            }
+        });
+    }
+
     function addDay() {
         let n = $('.itinerary-day-card').length + 1;
         let tpl = $('#day-tpl').html().replace(/{N}/g, n);
         let card = $(tpl).appendTo('#itinerary-timeline');
         card.find('.select2-spots-multi').select2({ theme: 'bootstrap-5' });
+        // Apply current country filter to new day
+        let selectedCountryName = $('#country_id').find(':selected').data('country-name') || '';
+        if (selectedCountryName) {
+            card.find('.select2-spots-multi option').each(function() {
+                let spotCountry = $(this).data('dest-country');
+                if (spotCountry && spotCountry !== selectedCountryName) {
+                    $(this).prop('disabled', true);
+                }
+            });
+            card.find('.select2-spots-multi').select2({ theme: 'bootstrap-5' });
+        }
         updateDuration();
     }
 
@@ -873,6 +943,27 @@
         $('#fx-matrix').html(matrix);
     }
 
+    function togglePriceMode(toggle) {
+        if (toggle.checked) {
+            $('#auto-price-section').hide();
+            $('#direct-price-section').show();
+            $('#price-mode-hint').text('Entering price directly — no auto calculation');
+            // Remove required from auto-calc selling input
+            $('#selling-in').removeAttr('required').val('');
+        } else {
+            $('#auto-price-section').show();
+            $('#direct-price-section').hide();
+            $('#price-mode-hint').text('Auto-calculating from services below');
+            $('#direct-price-in').val('');
+            calculateRates();
+        }
+    }
+
+    function onDirectPriceChange() {
+        let val = parseFloat($('#direct-price-in').val()) || 0;
+        $('#foot-price').text('RM ' + Math.round(val).toLocaleString());
+    }
+
     function previewHero(input) {
         if (input.files && input.files[0]) {
             let reader = new FileReader();
@@ -893,7 +984,19 @@
     }
 
     function submitPackage() {
-        calculateRates(); // Ensure rates and hidden fields are populated
+        // Handle direct price mode
+        let isDirectMode = $('#direct-price-toggle').is(':checked');
+        if (isDirectMode) {
+            let directPrice = parseFloat($('#direct-price-in').val()) || 0;
+            if (directPrice <= 0) {
+                Swal.fire({ icon: 'error', title: 'Price Required', text: 'Please enter a direct selling price.' });
+                return;
+            }
+            // Sync price to the selling-in hidden value so form captures it
+            $('#selling-in').val(directPrice);
+        } else {
+            calculateRates(); // Ensure rates and hidden fields are populated
+        }
         let allErrors = [];
         for (let i = 1; i <= 4; i++) {
             allErrors = allErrors.concat(validateStep(i));
