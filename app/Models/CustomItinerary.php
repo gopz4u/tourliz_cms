@@ -18,6 +18,7 @@ class CustomItinerary extends Model
         'title',
         'client_name',
         'destination_id',
+        'country_ids',
         'start_date',
         'duration_days',
         'itinerary',
@@ -62,6 +63,7 @@ class CustomItinerary extends Model
         'user_id' => 'integer',
         'agency_id' => 'integer',
         'destination_id' => 'integer',
+        'country_ids' => 'array',
         'duration_days' => 'integer',
         'adults' => 'integer',
         'children_2_6' => 'integer',
@@ -99,6 +101,15 @@ class CustomItinerary extends Model
     public function destination()
     {
         return $this->belongsTo(Country::class, 'destination_id');
+    }
+
+    public function getCountriesAttribute()
+    {
+        $ids = $this->country_ids ?: [];
+        if (empty($ids)) {
+            return collect();
+        }
+        return Country::whereIn('id', $ids)->get();
     }
 
     public function expenses()

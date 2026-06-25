@@ -263,6 +263,21 @@
                                         @endforeach
                                     </select>
                                 </div>
+                                <div class="col-12">
+                                    <label class="premium-label">Additional Countries Covered</label>
+                                    <div class="row g-2" style="max-height: 120px; overflow-y: auto;">
+                                        @foreach($countries as $c)
+                                        @php $pkgCountryIds = $package->country_ids ?? []; @endphp
+                                        <div class="col-md-3">
+                                            <div class="form-check">
+                                                <input class="form-check-input" type="checkbox" name="country_ids[]" value="{{ $c->id }}" id="pkg_edit_country_{{ $c->id }}"
+                                                    {{ in_array($c->id, $pkgCountryIds) ? 'checked' : '' }}>
+                                                <label class="form-check-label small" for="pkg_edit_country_{{ $c->id }}">{{ $c->name }}</label>
+                                            </div>
+                                        </div>
+                                        @endforeach
+                                    </div>
+                                </div>
                                 <div class="col-md-6">
                                     <label class="premium-label">Package Category</label>
                                     <select name="package_category" class="form-select premium-input">

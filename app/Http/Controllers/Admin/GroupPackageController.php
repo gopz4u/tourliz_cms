@@ -88,6 +88,8 @@ class GroupPackageController extends Controller
     {
         $validated = $request->validate([
             'destination_id' => 'nullable|exists:destinations,id',
+            'country_ids' => 'nullable|array',
+            'country_ids.*' => 'exists:countries,id',
             'supplier_id' => 'nullable|exists:suppliers,id',
             'supplier_ids' => 'nullable|array',
             'category' => 'nullable|string',
@@ -148,6 +150,7 @@ class GroupPackageController extends Controller
         // Map form fields to database columns
         $groupPackageData = [
             'destination_id' => $validated['destination_id'] ?? null,
+            'country_ids' => $validated['country_ids'] ?? [],
             'supplier_id' => $validated['supplier_id'] ?? null,
             'supplier_ids' => $validated['supplier_ids'] ?? [],
             'category' => $validated['category'] ?? null,
@@ -261,6 +264,8 @@ class GroupPackageController extends Controller
 
         $validated = $request->validate([
             'destination_id' => 'nullable|exists:destinations,id',
+            'country_ids' => 'nullable|array',
+            'country_ids.*' => 'exists:countries,id',
             'supplier_id' => 'nullable|exists:suppliers,id',
             'supplier_ids' => 'nullable|array',
             'category' => 'nullable|string',
@@ -310,6 +315,7 @@ class GroupPackageController extends Controller
         // Map form fields to database columns
         $groupPackageData = [
             'destination_id' => $validated['destination_id'] ?? null,
+            'country_ids' => $validated['country_ids'] ?? [],
             'supplier_id' => $validated['supplier_id'] ?? null,
             'supplier_ids' => $validated['supplier_ids'] ?? [],
             'category' => $validated['category'] ?? null,
@@ -444,8 +450,8 @@ class GroupPackageController extends Controller
                 // Came from multi-select (indexed array of strings)
                 $meals = [
                     'breakfast' => in_array('Breakfast', $mealsInput) ? 'Included' : 'Not included',
-                    'lunch'     => in_array('Lunch', $mealsInput)     ? 'Included' : 'Not included',
-                    'dinner'    => in_array('Dinner', $mealsInput)    ? 'Included' : 'Not included',
+                    'lunch' => in_array('Lunch', $mealsInput) ? 'Included' : 'Not included',
+                    'dinner' => in_array('Dinner', $mealsInput) ? 'Included' : 'Not included',
                 ];
             } elseif (is_array($mealsInput) && array_key_exists('breakfast', $mealsInput)) {
                 // Already in object form (from manage-itinerary editor re-saving)
@@ -503,15 +509,15 @@ class GroupPackageController extends Controller
             }
 
             return [
-                'day'         => (int) ($day['day'] ?? 1),
-                'title'       => $day['title'] ?? ('Day ' . ($day['day'] ?? 1)),
-                'places'      => $places,
-                'activities'  => $activities,
-                'transport'   => $transport,
-                'hotel'       => $hotel,
-                'meals'       => $meals,
-                'notes'       => $day['description'] ?? ($day['notes'] ?? ''),
-                'destinations'=> $day['destinations'] ?? [],
+                'day' => (int) ($day['day'] ?? 1),
+                'title' => $day['title'] ?? ('Day ' . ($day['day'] ?? 1)),
+                'places' => $places,
+                'activities' => $activities,
+                'transport' => $transport,
+                'hotel' => $hotel,
+                'meals' => $meals,
+                'notes' => $day['description'] ?? ($day['notes'] ?? ''),
+                'destinations' => $day['destinations'] ?? [],
             ];
         }, $itinerary));
     }
@@ -524,19 +530,19 @@ class GroupPackageController extends Controller
         try {
             $original = GroupPackage::findOrFail($id);
             $new = $original->replicate();
-            
+
             // Append " (Copy)" to the name
             $new->name = $original->name . ' (Copy)';
-            
+
             // Generate a unique slug
             $slug = Str::slug($new->name);
             $count = GroupPackage::where('slug', 'like', $slug . '%')->count();
             $new->slug = $count ? $slug . '-' . ($count + 1) : $slug;
-            
+
             // Set status to inactive (false) by default for safety
             $new->status = false;
             $new->featured = false;
-            
+
             $new->save();
 
             return response()->json([

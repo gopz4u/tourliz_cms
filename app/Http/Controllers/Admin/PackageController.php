@@ -21,7 +21,7 @@ class PackageController extends Controller
         if ($request->wantsJson() || $request->ajax()) {
             try {
                 $query = Package::query();
-                
+
                 if ($request->has('trash')) {
                     $query->onlyTrashed();
                 }
@@ -87,13 +87,13 @@ class PackageController extends Controller
         $entryTickets = \App\Models\EntryTicket::with('supplier')->get();
         $meals = \App\Models\Meal::with('supplier')->get();
         $touristSpots = \App\Models\TouristSpot::with(['supplier', 'destination'])->where('is_active', true)->orderBy('name')->get();
-        
+
         return view('admin.packages.create', compact(
-            'countries', 
-            'suppliers', 
-            'hotels', 
-            'activities', 
-            'destinations', 
+            'countries',
+            'suppliers',
+            'hotels',
+            'activities',
+            'destinations',
             'transportRoutes',
             'entryTickets',
             'meals',
@@ -108,6 +108,8 @@ class PackageController extends Controller
     {
         $validated = $request->validate([
             'country_id' => 'required|exists:countries,id',
+            'country_ids' => 'nullable|array',
+            'country_ids.*' => 'exists:countries,id',
             'destination_id' => 'nullable|exists:destinations,id',
             'hotel_id' => 'nullable|exists:hotels,id',
             'destination_ids' => 'nullable|array',
@@ -186,6 +188,7 @@ class PackageController extends Controller
         // Map form fields to database columns
         $packageData = [
             'country_id' => $validated['country_id'] ?? null,
+            'country_ids' => $validated['country_ids'] ?? [],
             'destination_id' => isset($validated['destination_ids']) && count($validated['destination_ids']) > 0 ? $validated['destination_ids'][0] : null,
             'destination_ids' => $validated['destination_ids'] ?? [],
             'supplier_ids' => $validated['supplier_ids'] ?? [],
@@ -291,8 +294,8 @@ class PackageController extends Controller
 
             // Link Multiple Hotels
             if (!empty($dayData['hotels']) && is_array($dayData['hotels'])) {
-                foreach($dayData['hotels'] as $h) {
-                    if(!empty($h['hotel_id'])) {
+                foreach ($dayData['hotels'] as $h) {
+                    if (!empty($h['hotel_id'])) {
                         $day->hotels()->create([
                             'hotel_id' => $h['hotel_id'],
                             'meal_plan_code' => 'CP',
@@ -306,8 +309,8 @@ class PackageController extends Controller
 
             // Link Multiple Transports
             if (!empty($dayData['transports']) && is_array($dayData['transports'])) {
-                foreach($dayData['transports'] as $t) {
-                    if(!empty($t['transport_id'])) {
+                foreach ($dayData['transports'] as $t) {
+                    if (!empty($t['transport_id'])) {
                         $day->transports()->create(['transport_id' => $t['transport_id']]);
                     }
                 }
@@ -317,21 +320,22 @@ class PackageController extends Controller
 
             // Link Multiple Activities
             if (!empty($dayData['activities']) && is_array($dayData['activities'])) {
-                foreach($dayData['activities'] as $a) {
-                    if(!empty($a['activity_id'])) {
+                foreach ($dayData['activities'] as $a) {
+                    if (!empty($a['activity_id'])) {
                         $day->activities()->create(['activity_id' => $a['activity_id']]);
                     }
                 }
             } elseif (!empty($dayData['activity_ids'])) { // Fallback
                 foreach ($dayData['activity_ids'] as $id) {
-                    if ($id) $day->activities()->create(['activity_id' => $id]);
+                    if ($id)
+                        $day->activities()->create(['activity_id' => $id]);
                 }
             }
 
             // Link Multiple Entry Tickets (Attractions)
             if (!empty($dayData['tickets']) && is_array($dayData['tickets'])) {
-                foreach($dayData['tickets'] as $t) {
-                    if(!empty($t['ticket_id'])) {
+                foreach ($dayData['tickets'] as $t) {
+                    if (!empty($t['ticket_id'])) {
                         $day->attractions()->create(['attraction_id' => $t['ticket_id']]);
                     }
                 }
@@ -339,8 +343,8 @@ class PackageController extends Controller
 
             // Link Multiple Meals
             if (!empty($dayData['meals_list']) && is_array($dayData['meals_list'])) {
-                foreach($dayData['meals_list'] as $m) {
-                    if(!empty($m['meal_id'])) {
+                foreach ($dayData['meals_list'] as $m) {
+                    if (!empty($m['meal_id'])) {
                         $day->meals_list()->create(['meal_id' => $m['meal_id']]);
                     }
                 }
@@ -361,8 +365,8 @@ class PackageController extends Controller
                 // Came from multi-select (indexed array of strings)
                 $meals = [
                     'breakfast' => in_array('Breakfast', $mealsInput) ? 'Included' : 'Not included',
-                    'lunch'     => in_array('Lunch', $mealsInput)     ? 'Included' : 'Not included',
-                    'dinner'    => in_array('Dinner', $mealsInput)    ? 'Included' : 'Not included',
+                    'lunch' => in_array('Lunch', $mealsInput) ? 'Included' : 'Not included',
+                    'dinner' => in_array('Dinner', $mealsInput) ? 'Included' : 'Not included',
                 ];
             } elseif (is_array($mealsInput) && array_key_exists('breakfast', $mealsInput)) {
                 // Already in object form (from manage-itinerary editor re-saving)
@@ -420,15 +424,15 @@ class PackageController extends Controller
             }
 
             return [
-                'day'         => (int) ($day['day'] ?? 1),
-                'title'       => $day['title'] ?? ('Day ' . ($day['day'] ?? 1)),
-                'places'      => $places,
-                'activities'  => $activities,
-                'transport'   => $transport,
-                'hotel'       => $hotel,
-                'meals'       => $meals,
-                'notes'       => $day['description'] ?? ($day['notes'] ?? ''),
-                'destinations'=> $day['destinations'] ?? [],
+                'day' => (int) ($day['day'] ?? 1),
+                'title' => $day['title'] ?? ('Day ' . ($day['day'] ?? 1)),
+                'places' => $places,
+                'activities' => $activities,
+                'transport' => $transport,
+                'hotel' => $hotel,
+                'meals' => $meals,
+                'notes' => $day['description'] ?? ($day['notes'] ?? ''),
+                'destinations' => $day['destinations'] ?? [],
             ];
         }, $itinerary));
     }
@@ -520,6 +524,8 @@ class PackageController extends Controller
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'country_id' => 'required|exists:countries,id',
+            'country_ids' => 'nullable|array',
+            'country_ids.*' => 'exists:countries,id',
             'destination_id' => 'nullable|exists:destinations,id',
             'destination_ids' => 'nullable|array',
             'destination_ids.*' => 'exists:destinations,id',
@@ -550,6 +556,7 @@ class PackageController extends Controller
         $packageData = [
             'name' => $validated['name'],
             'country_id' => $validated['country_id'] ?? $package->country_id,
+            'country_ids' => $request->country_ids ?? $package->country_ids,
             'destination_id' => isset($request->destination_ids) && count($request->destination_ids) > 0 ? $request->destination_ids[0] : null,
             'destination_ids' => $request->destination_ids ?? [],
             'package_category' => $validated['package_category'],
@@ -683,19 +690,19 @@ class PackageController extends Controller
         try {
             $original = Package::findOrFail($id);
             $new = $original->replicate();
-            
+
             // Append " (Copy)" to the name
             $new->name = $original->name . ' (Copy)';
-            
+
             // Generate a unique slug
             $slug = Str::slug($new->name);
             $count = Package::where('slug', 'like', $slug . '%')->count();
             $new->slug = $count ? $slug . '-' . ($count + 1) : $slug;
-            
+
             // Set status to inactive by default for safety
             $new->status = 'inactive';
             $new->featured = false;
-            
+
             $new->save();
 
             return response()->json([

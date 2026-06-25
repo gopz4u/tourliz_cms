@@ -16,6 +16,7 @@ class GroupItinerary extends Model
     protected $fillable = [
         'user_id',
         'destination_id',
+        'country_ids',
         'supplier_id',
         'client_name',
         'email',
@@ -52,6 +53,7 @@ class GroupItinerary extends Model
         'markup_amount' => 'decimal:2',
         'total_price' => 'decimal:2',
         'adults' => 'integer',
+        'country_ids' => 'array',
         'children_2_6' => 'integer',
         'children_6_11' => 'integer',
         'total_amount_received' => 'decimal:2',
@@ -65,6 +67,15 @@ class GroupItinerary extends Model
     public function destination()
     {
         return $this->belongsTo(Country::class, 'destination_id');
+    }
+
+    public function getCountriesAttribute()
+    {
+        $ids = $this->country_ids ?: [];
+        if (empty($ids)) {
+            return collect();
+        }
+        return Country::whereIn('id', $ids)->get();
     }
 
     public function supplier()

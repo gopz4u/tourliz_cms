@@ -12,6 +12,7 @@ class GroupPackage extends Model
 
     protected $fillable = [
         'destination_id',
+        'country_ids',
         'supplier_id',
         'supplier_ids',
         'category',
@@ -53,6 +54,7 @@ class GroupPackage extends Model
 
     protected $casts = [
         'supplier_ids' => 'array',
+        'country_ids' => 'array',
         'categories' => 'array',
         'gallery' => 'array',
         'addon_amenities' => 'array',
@@ -86,6 +88,15 @@ class GroupPackage extends Model
     public function destination()
     {
         return $this->belongsTo(Destination::class, 'destination_id');
+    }
+
+    public function getCountriesAttribute()
+    {
+        $ids = $this->country_ids ?: [];
+        if (empty($ids)) {
+            return collect();
+        }
+        return \App\Models\Country::whereIn('id', $ids)->get();
     }
 
     /**

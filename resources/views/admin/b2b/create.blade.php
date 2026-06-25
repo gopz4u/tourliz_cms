@@ -61,6 +61,21 @@
                         </div>
 
                         <div class="mb-3">
+                            <label class="form-label">Additional Countries Covered</label>
+                            <div class="row g-2" style="max-height: 150px; overflow-y: auto;">
+                                @foreach($destinations as $dest)
+                                <div class="col-md-6">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" name="country_ids[]" value="{{ $dest->id }}" id="b2b_country_{{ $dest->id }}">
+                                        <label class="form-check-label small" for="b2b_country_{{ $dest->id }}">{{ $dest->name }}</label>
+                                    </div>
+                                </div>
+                                @endforeach
+                            </div>
+                            <div class="form-text">Select all countries this itinerary covers (multi-country tour).</div>
+                        </div>
+
+                        <div class="mb-3">
                             <label class="form-label">Proposal Title <span class="text-danger">*</span></label>
                             <input type="text" name="title" class="form-control" value="{{ old('title') }}"
                                 placeholder="e.g. 5 Days Bali Honeymoon" required>

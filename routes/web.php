@@ -325,6 +325,9 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:admin'])->grou
     Route::get('group-itineraries/{id}/pdf', [\App\Http\Controllers\Admin\GroupItineraryController::class, 'pdf'])->name('group-itineraries.pdf');
     Route::get('group-itineraries/{id}/whatsapp', [\App\Http\Controllers\Admin\GroupItineraryController::class, 'whatsapp'])->name('group-itineraries.whatsapp');
 
+    // Fixed Itineraries (Multi-country, fixed-price, single-vendor)
+    Route::resource('fixed-itineraries', \App\Http\Controllers\Admin\FixedItineraryController::class);
+
     // Itineraries Management (Standard Packages)
     Route::prefix('itineraries')->name('itineraries.')->group(function () {
         Route::get('/', [ItineraryController::class, 'index'])->name('index');

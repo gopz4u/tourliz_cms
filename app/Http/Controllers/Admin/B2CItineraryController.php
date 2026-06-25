@@ -52,6 +52,8 @@ class B2CItineraryController extends Controller
     {
         $request->validate([
             'destination_id' => 'required|exists:countries,id',
+            'country_ids' => 'nullable|array',
+            'country_ids.*' => 'exists:countries,id',
             'title' => 'required|string|max:255',
             'client_name' => 'required|string|max:255',
             'duration_days' => 'required|integer|min:1',
@@ -64,6 +66,7 @@ class B2CItineraryController extends Controller
         $itinerary = B2CItinerary::create([
             'user_id' => $request->user_id ?? auth()->id(),
             'destination_id' => $request->destination_id,
+            'country_ids' => $request->country_ids ?? [],
             'title' => $request->title,
             'client_name' => $request->client_name,
             'phone' => $request->phone,
@@ -99,6 +102,7 @@ class B2CItineraryController extends Controller
             'title' => 'required|string',
             'client_name' => 'required|string',
             'adults' => 'required|integer|min:1',
+            'country_ids' => 'nullable|array',
             'supplier_id' => 'nullable|exists:suppliers,id',
             'user_id' => 'nullable|exists:admins,id',
         ]);
@@ -109,6 +113,7 @@ class B2CItineraryController extends Controller
             'title' => $request->title,
             'client_name' => $request->client_name,
             'supplier_id' => $request->supplier_id,
+            'country_ids' => $request->country_ids ?? $itinerary->country_ids,
             'email' => $request->email,
             'phone' => $request->phone,
             'secondary_phone' => $request->secondary_phone,

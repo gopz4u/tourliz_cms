@@ -691,6 +691,14 @@
                         <i class="bi bi-arrow-right nav-arrow"></i>
                     </a>
                 </li>
+                <li>
+                    <a href="{{ route('admin.fixed-itineraries.index') }}"
+                        class="{{ request()->routeIs('admin.fixed-itineraries.*') ? 'active' : '' }}">
+                        <i class="bi bi-pin-map-fill main-icon"></i>
+                        <span>Fixed Itineraries</span>
+                        <i class="bi bi-arrow-right nav-arrow"></i>
+                    </a>
+                </li>
                 @if(auth()->user()->isSuperAdmin())
                     <li>
                         <a href="{{ route('admin.currency-rates.index') }}"

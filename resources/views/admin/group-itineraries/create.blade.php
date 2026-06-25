@@ -27,8 +27,8 @@
                             <div class="col-md-6">
                                 <label class="form-label fw-bold small text-muted">Group / Lead Name <span
                                         class="text-danger">*</span></label>
-                                <input type="text" name="client_name" class="form-control" placeholder="e.g. Acme Corp Group"
-                                    required>
+                                <input type="text" name="client_name" class="form-control"
+                                    placeholder="e.g. Acme Corp Group" required>
                             </div>
                             <div class="col-md-6">
                                 <label class="form-label fw-bold small text-muted">Primary Phone / WhatsApp <span
@@ -76,6 +76,22 @@
                                 <label class="form-label fw-bold small text-muted">Duration (Days) <span
                                         class="text-danger">*</span></label>
                                 <input type="number" name="duration_days" class="form-control" value="5" min="1" required>
+                            </div>
+
+                            <div class="col-12 mt-2">
+                                <label class="form-label fw-bold small text-muted">Additional Countries Covered</label>
+                                <div class="row g-2" style="max-height: 120px; overflow-y: auto;">
+                                    @foreach($destinations as $dest)
+                                        <div class="col-md-4">
+                                            <div class="form-check">
+                                                <input class="form-check-input" type="checkbox" name="country_ids[]"
+                                                    value="{{ $dest->id }}" id="grp_country_{{ $dest->id }}">
+                                                <label class="form-check-label small"
+                                                    for="grp_country_{{ $dest->id }}">{{ $dest->name }}</label>
+                                            </div>
+                                        </div>
+                                    @endforeach
+                                </div>
                             </div>
 
                             <div class="col-md-12 mt-3">

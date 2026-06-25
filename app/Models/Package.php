@@ -12,6 +12,7 @@ class Package extends Model
 
     protected $fillable = [
         'country_id',
+        'country_ids',
         'destination_id',
         'destination_ids',
         'hotel_id',
@@ -64,6 +65,7 @@ class Package extends Model
     ];
 
     protected $casts = [
+        'country_ids' => 'array',
         'destination_ids' => 'array',
         'supplier_ids' => 'array',
         'categories' => 'array',
@@ -113,6 +115,15 @@ class Package extends Model
     public function country()
     {
         return $this->belongsTo(Country::class);
+    }
+
+    public function getCountriesAttribute()
+    {
+        $ids = $this->country_ids ?: [];
+        if (empty($ids)) {
+            return collect();
+        }
+        return Country::whereIn('id', $ids)->get();
     }
 
     public function destination()
@@ -245,20 +256,23 @@ class Package extends Model
     {
         $amenities = $this->addon_amenities ?: [];
         $hotelIds = [];
-        
+
         // Include main hotel if set
-        if ($this->hotel_id) $hotelIds[] = $this->hotel_id;
-        
+        if ($this->hotel_id)
+            $hotelIds[] = $this->hotel_id;
+
         foreach ($amenities as $amenity) {
             if (($amenity['type'] ?? '') === 'hotel' && !empty($amenity['supplier_id'])) {
-                if (!empty($amenity['supplier_id'])) $hotelIds[] = $amenity['supplier_id'];
+                if (!empty($amenity['supplier_id']))
+                    $hotelIds[] = $amenity['supplier_id'];
             }
         }
-        
+
         $hotelIds = array_unique($hotelIds);
-        
-        if (empty($hotelIds)) return collect();
-        
+
+        if (empty($hotelIds))
+            return collect();
+
         return \App\Models\Hotel::whereIn('id', $hotelIds)->with('rooms')->get();
     }
 

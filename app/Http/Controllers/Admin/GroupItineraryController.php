@@ -51,6 +51,8 @@ class GroupItineraryController extends Controller
     {
         $request->validate([
             'destination_id' => 'required|exists:countries,id',
+            'country_ids' => 'nullable|array',
+            'country_ids.*' => 'exists:countries,id',
             'title' => 'required|string|max:255',
             'client_name' => 'required|string|max:255',
             'duration_days' => 'required|integer|min:1',
@@ -61,6 +63,7 @@ class GroupItineraryController extends Controller
         $itinerary = GroupItinerary::create([
             'user_id' => $request->user_id ?? auth()->id(),
             'destination_id' => $request->destination_id,
+            'country_ids' => $request->country_ids ?? [],
             'title' => $request->title,
             'client_name' => $request->client_name,
             'phone' => $request->phone,
@@ -95,6 +98,7 @@ class GroupItineraryController extends Controller
             'title' => 'required|string',
             'client_name' => 'required|string',
             'adults' => 'required|integer|min:1',
+            'country_ids' => 'nullable|array',
             'supplier_id' => 'nullable|exists:suppliers,id',
             'user_id' => 'nullable|exists:admins,id',
         ]);
@@ -105,6 +109,7 @@ class GroupItineraryController extends Controller
             'title' => $request->title,
             'client_name' => $request->client_name,
             'supplier_id' => $request->supplier_id,
+            'country_ids' => $request->country_ids ?? $itinerary->country_ids,
             'email' => $request->email,
             'phone' => $request->phone,
             'markup_percentage' => $request->markup_percentage ?: 0,
@@ -196,10 +201,10 @@ class GroupItineraryController extends Controller
 
         // Using b2b.pdf as a common template if it works, or we can create a group-specific one
         $pdf = Pdf::loadView('admin.b2b.pdf', $data);
-        
-        $filename = ($data['is_public'] ? 'Group_Proposal' : 'Group_Internal') . '_' . 
-                    \Illuminate\Support\Str::slug(ucwords(strtolower($itinerary->client_name ?? 'Group'))) . '_' . 
-                    now()->format('d_M_Y') . '.pdf';
+
+        $filename = ($data['is_public'] ? 'Group_Proposal' : 'Group_Internal') . '_' .
+            \Illuminate\Support\Str::slug(ucwords(strtolower($itinerary->client_name ?? 'Group'))) . '_' .
+            now()->format('d_M_Y') . '.pdf';
 
         return $pdf->download($filename);
     }
