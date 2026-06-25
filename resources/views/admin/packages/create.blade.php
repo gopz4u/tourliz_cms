@@ -656,7 +656,7 @@
                     <select class="form-select select2-spots-multi" multiple
                         data-placeholder="Select multiple tourist spots for Day {N}..." style="width: 100%;">
                         @foreach($touristSpots as $spot)
-                            <option value="{{ $spot->id }}" data-country="{{ $spot->destination->country ?? '' }}">
+                            <option value="{{ $spot->id }}" data-country="{{ $spot->country->name ?? $spot->destination->country ?? '' }}">
                                 {{ $spot->name }}
                             </option>
                         @endforeach
@@ -764,7 +764,7 @@
                 return ['id' => $m->id, 'name' => $m->name, 'supplier_id' => $m->supplier_id, 'country' => $m->supplier->destination->country ?? '', 'price' => $m->price];
             });
             $touristSpotList = $touristSpots->map(function ($ts) {
-                return ['id' => $ts->id, 'name' => $ts->name, 'supplier_id' => $ts->supplier_id, 'country' => $ts->destination->country ?? '', 'price' => 0];
+                return ['id' => $ts->id, 'name' => $ts->name, 'supplier_id' => $ts->supplier_id, 'country' => $ts->country->name ?? $ts->destination->country ?? '', 'price' => 0];
             });
         @endphp
 

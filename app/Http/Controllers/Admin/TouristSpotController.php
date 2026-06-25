@@ -12,7 +12,7 @@ class TouristSpotController extends Controller
 {
     public function index()
     {
-        $spots = TouristSpot::with('destination')->paginate(15);
+        $spots = TouristSpot::with(['country', 'destination'])->paginate(15);
         return view('admin.tourist-spots.index', compact('spots'));
     }
 
@@ -28,7 +28,8 @@ class TouristSpotController extends Controller
     {
         $request->validate([
             'name' => 'required|string|max:255',
-            'destination_id' => 'required|exists:destinations,id',
+            'country_id' => 'nullable|exists:countries,id',
+            'destination_id' => 'nullable|exists:destinations,id',
         ]);
 
         TouristSpot::create($request->all());
@@ -48,7 +49,8 @@ class TouristSpotController extends Controller
     {
         $request->validate([
             'name' => 'required|string|max:255',
-            'destination_id' => 'required|exists:destinations,id',
+            'country_id' => 'nullable|exists:countries,id',
+            'destination_id' => 'nullable|exists:destinations,id',
         ]);
 
         $touristSpot->update($request->all());

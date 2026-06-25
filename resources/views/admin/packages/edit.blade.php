@@ -592,7 +592,7 @@
                 </label>
                 <select class="form-select select2-spots-multi" multiple data-placeholder="Select multiple tourist spots for Day {N}..." style="width: 100%;">
                     @foreach($touristSpots as $spot)
-                        <option value="{{ $spot->id }}" data-country="{{ $spot->destination->country ?? '' }}">{{ $spot->name }}</option>
+                        <option value="{{ $spot->id }}" data-country="{{ $spot->country->name ?? $spot->destination->country ?? '' }}">{{ $spot->name }}</option>
                     @endforeach
                 </select>
             </div>
@@ -684,7 +684,7 @@
         $activityList = $activities->map(function($a) { return ['id' => $a->id, 'name' => $a->name, 'supplier_id' => $a->supplier_id, 'country' => $a->supplier->destination->country ?? '', 'price' => $a->base_price]; });
         $ticketList = $entryTickets->map(function($et) { return ['id' => $et->id, 'name' => $et->attraction_name, 'supplier_id' => $et->supplier_id, 'country' => $et->supplier->destination->country ?? '', 'price' => $et->adult_price]; });
         $mealList = $meals->map(function($m) { return ['id' => $m->id, 'name' => $m->name, 'supplier_id' => $m->supplier_id, 'country' => $m->supplier->destination->country ?? '', 'price' => $m->price]; });
-        $touristSpotList = $touristSpots->map(function($ts) { return ['id' => $ts->id, 'name' => $ts->name, 'supplier_id' => $ts->supplier_id, 'country' => $ts->destination->country ?? '', 'price' => 0]; });
+        $touristSpotList = $touristSpots->map(function($ts) { return ['id' => $ts->id, 'name' => $ts->name, 'supplier_id' => $ts->supplier_id, 'country' => $ts->country->name ?? $ts->destination->country ?? '', 'price' => 0]; });
     @endphp
 
     const inventory = {

@@ -10,7 +10,12 @@ class TouristSpot extends Model
 {
     use HasFactory, SoftDeletes;
 
-    protected $fillable = ['name', 'destination_id', 'supplier_id', 'description', 'image_url', 'is_active'];
+    protected $fillable = ['name', 'country_id', 'destination_id', 'supplier_id', 'description', 'image_url', 'is_active'];
+
+    public function country()
+    {
+        return $this->belongsTo(Country::class, 'country_id');
+    }
 
     public function destination()
     {

@@ -26,20 +26,24 @@
                             <input type="text" name="name" class="form-control" required>
                         </div>
                         <div class="mb-3">
-                            <label class="form-label">Country Filter <span class="text-danger">*</span></label>
-                            <select id="countrySelect" class="form-select" onchange="filterDestinations()" required>
-                                <option value="">-- Select Country --</option>
+                            <label class="form-label">Country</label>
+                            <select name="country_id" id="countrySelect" class="form-select"
+                                onchange="filterDestinations()">
+                                <option value="">-- Select Country (Optional) --</option>
                                 @foreach($countries as $country)
-                                    <option value="{{ $country->name }}">{{ $country->name }}</option>
+                                    <option value="{{ $country->id }}" data-country-name="{{ $country->name }}">
+                                        {{ $country->name }}
+                                    </option>
                                 @endforeach
                             </select>
                         </div>
                         <div class="mb-3">
-                            <label class="form-label">City / Destination <span class="text-danger">*</span></label>
-                            <select name="destination_id" id="destinationSelect" class="form-select" required>
-                                <option value="">-- Select Destination --</option>
+                            <label class="form-label">City / Destination <span class="text-muted">(Optional)</span></label>
+                            <select name="destination_id" id="destinationSelect" class="form-select">
+                                <option value="">-- Any / Country-level --</option>
                                 @foreach($destinations as $dest)
-                                    <option value="{{ $dest->id }}" data-country="{{ $dest->country }}">{{ $dest->city }} ({{ $dest->name }})</option>
+                                    <option value="{{ $dest->id }}" data-country="{{ $dest->country }}">{{ $dest->city }}
+                                        ({{ $dest->name }})</option>
                                 @endforeach
                             </select>
                         </div>
@@ -69,22 +73,24 @@
 @endsection
 
 @push('scripts')
-<script>
-    function filterDestinations() {
-        var country = document.getElementById('countrySelect').value;
-        var destinationSelect = document.getElementById('destinationSelect');
-        var options = destinationSelect.options;
+    <script>
+        function filterDestinations() {
+            var countrySelect = document.getElementById('countrySelect');
+            var selectedOption = countrySelect.options[countrySelect.selectedIndex];
+            var countryName = selectedOption ? (selectedOption.getAttribute('data-country-name') || '') : '';
+            var destinationSelect = document.getElementById('destinationSelect');
+            var options = destinationSelect.options;
 
-        destinationSelect.value = ""; // Reset current selection
+            destinationSelect.value = "";
 
-        for (var i = 1; i < options.length; i++) {
-            var opt = options[i];
-            if (!country || opt.getAttribute('data-country') === country) {
-                opt.style.display = "";
-            } else {
-                opt.style.display = "none";
+            for (var i = 1; i < options.length; i++) {
+                var opt = options[i];
+                if (!countryName || opt.getAttribute('data-country') === countryName) {
+                    opt.style.display = "";
+                } else {
+                    opt.style.display = "none";
+                }
             }
         }
-    }
-</script>
+    </script>
 @endpush
