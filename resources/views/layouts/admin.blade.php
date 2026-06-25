@@ -773,7 +773,7 @@
                         <i class="bi bi-chevron-down ms-auto" style="font-size: 0.8rem; opacity: 0.5;"></i>
                     </a>
                     <div id="collapseB2C"
-                        class="collapse {{ request()->routeIs('admin.b2c-itineraries.*') ? 'show' : '' }}">
+                        class="collapse {{ request()->routeIs('admin.b2c-itineraries.*') || request()->routeIs('admin.b2c-itineraries.kanban') ? 'show' : '' }}">
                         <div class="collapse-inner">
                             <a class="dropdown-item {{ request()->routeIs('admin.b2c-itineraries.create') ? 'fw-bold' : '' }}"
                                 href="{{ route('admin.b2c-itineraries.create') }}">
@@ -783,8 +783,13 @@
                                 href="{{ route('admin.b2c-itineraries.index') }}">
                                 Manage Leads
                             </a>
+                            <a class="dropdown-item {{ request()->routeIs('admin.b2c-itineraries.kanban') ? 'fw-bold' : '' }}"
+                                href="{{ route('admin.b2c-itineraries.kanban') }}">
+                                <i class="bi bi-kanban me-1 text-primary" style="font-size:.75rem;"></i>Pipeline Kanban
+                            </a>
                         </div>
                     </div>
+
                 </li>
 
                 <li class="nav-item">

@@ -285,6 +285,36 @@ class B2CItineraryController extends Controller
         return response()->json(['text' => $text]);
     }
 
+    public function kanban(Request $request)
+    {
+        $stages = ['leads', 'quoted', 'interested', 'confirmed', 'travelled'];
+
+        $allLeads = B2CItinerary::with(['destination', 'user'])
+            ->orderBy('updated_at', 'desc')
+            ->get();
+
+        $columns = [];
+        foreach ($stages as $stage) {
+            $columns[$stage] = $allLeads->filter(fn($i) => ($i->followup_status ?? 'leads') === $stage)->values();
+        }
+
+        return view('admin.b2c.kanban', compact('columns', 'stages'));
+    }
+
+    public function updateStatus(Request $request, $id)
+    {
+        $request->validate([
+            'status' => 'required|in:leads,quoted,interested,confirmed,travelled',
+        ]);
+
+        $itinerary = B2CItinerary::findOrFail($id);
+        $itinerary->followup_status = $request->status;
+        $itinerary->followed_up_at = now();
+        $itinerary->save();
+
+        return response()->json(['success' => true, 'status' => $itinerary->followup_status]);
+    }
+
     public function destroy($id)
     {
         B2CItinerary::findOrFail($id)->delete();

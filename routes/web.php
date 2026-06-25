@@ -317,6 +317,8 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:admin'])->grou
     Route::resource('b2c-itineraries', \App\Http\Controllers\Admin\B2CItineraryController::class);
     Route::get('b2c-itineraries/{id}/pdf', [\App\Http\Controllers\Admin\B2CItineraryController::class, 'pdf'])->name('b2c-itineraries.pdf');
     Route::get('b2c-itineraries/{id}/whatsapp', [\App\Http\Controllers\Admin\B2CItineraryController::class, 'whatsapp'])->name('b2c-itineraries.whatsapp');
+    Route::get('b2c-itineraries-kanban', [\App\Http\Controllers\Admin\B2CItineraryController::class, 'kanban'])->name('b2c-itineraries.kanban');
+    Route::patch('b2c-itineraries/{id}/status', [\App\Http\Controllers\Admin\B2CItineraryController::class, 'updateStatus'])->name('b2c-itineraries.updateStatus');
 
     // Group Itineraries (Dynamic Group Packages)
     Route::resource('group-itineraries', \App\Http\Controllers\Admin\GroupItineraryController::class);
