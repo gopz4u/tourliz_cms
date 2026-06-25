@@ -291,9 +291,9 @@
                             <div class="row g-4 mt-1">
                                 <div class="col-md-12">
                                     <label class="premium-label">Source Vendors (Suppliers)</label>
-                                    <select name="supplier_ids[]" class="form-select select2" multiple data-placeholder="Select vendors for this package...">
+                                    <select name="supplier_ids[]" id="supplier_ids" class="form-select select2" multiple data-placeholder="Select vendors for this package...">
                                         @foreach($suppliers as $supplier)
-                                            <option value="{{ $supplier->id }}" {{ is_array($package->supplier_ids) && in_array($supplier->id, $package->supplier_ids) ? 'selected' : '' }}>
+                                            <option value="{{ $supplier->id }}" data-country="{{ $supplier->destination->country ?? '' }}" {{ is_array($package->supplier_ids) && in_array($supplier->id, $package->supplier_ids) ? 'selected' : '' }}>
                                                 {{ $supplier->name }}
                                             </option>
                                         @endforeach
@@ -679,9 +679,9 @@
     
     // Inventory Data
     @php
-        $hotelList = $hotels->map(function($h) { return ['id' => $h->id, 'name' => $h->name, 'supplier_id' => $h->supplier_id, 'price' => $h->roomTypes->avg('base_price') ?? 0]; });
-        $transportList = $transportRoutes->map(function($t) { return ['id' => $t->id, 'name' => $t->name, 'supplier_id' => $t->supplier_id, 'price' => $t->base_price]; });
-        $activityList = $activities->map(function($a) { return ['id' => $a->id, 'name' => $a->name, 'supplier_id' => $a->supplier_id, 'price' => $a->base_price]; });
+        $hotelList = $hotels->map(function($h) { return ['id' => $h->id, 'name' => $h->name, 'supplier_id' => $h->supplier_id, 'country' => $h->supplier->destination->country ?? '', 'price' => $h->roomTypes->avg('base_price') ?? 0]; });
+        $transportList = $transportRoutes->map(function($t) { return ['id' => $t->id, 'name' => $t->name, 'supplier_id' => $t->supplier_id, 'country' => $t->supplier->destination->country ?? '', 'price' => $t->base_price]; });
+        $activityList = $activities->map(function($a) { return ['id' => $a->id, 'name' => $a->name, 'supplier_id' => $a->supplier_id, 'country' => $a->supplier->destination->country ?? '', 'price' => $a->base_price]; });
         $ticketList = $entryTickets->map(function($et) { return ['id' => $et->id, 'name' => $et->attraction_name, 'supplier_id' => $et->supplier_id, 'price' => $et->adult_price]; });
         $mealList = $meals->map(function($m) { return ['id' => $m->id, 'name' => $m->name, 'supplier_id' => $m->supplier_id, 'price' => $m->price]; });
         $touristSpotList = $touristSpots->map(function($ts) { return ['id' => $ts->id, 'name' => $ts->name, 'supplier_id' => $ts->supplier_id, 'destination_country' => $ts->destination->country ?? '', 'price' => 0]; });
@@ -719,6 +719,22 @@
             
             // Re-init select2 to refresh disabled states
             destSelect.select2({ theme: 'bootstrap-5' });
+
+            // Filter suppliers by country
+            let supplierSelect = $('#supplier_ids');
+            let currentSuppliers = supplierSelect.val() || [];
+            supplierSelect.find('option').each(function () {
+                let sCountry = $(this).data('country');
+                if (!selectedCountryName || !sCountry || sCountry === selectedCountryName || $(this).val() === '') {
+                    $(this).prop('disabled', false);
+                } else {
+                    $(this).prop('disabled', true);
+                }
+            });
+            supplierSelect.val(currentSuppliers.filter(v => {
+                return !supplierSelect.find('option[value="' + v + '"]').prop('disabled');
+            })).trigger('change');
+            supplierSelect.select2({ theme: 'bootstrap-5' });
 
             // Filter tourist spots in all day cards by country
             filterAllSpotsByCountry(selectedCountryName);
@@ -952,12 +968,19 @@
         let row = $(el).closest('.service-row');
         let type = $(el).val();
         let vendorSelect = row.find('.select2-vendor');
-        
-        // Find vendors who have items of this type
-        let validVendorIds = [...new Set(inventory[type].map(i => i.supplier_id))];
-        
+        let selectedCountry = $('#country_id').find(':selected').data('country-name') || '';
+
+        // Filter inventory by country first
+        let filteredItems = inventory[type];
+        if (selectedCountry && type !== 'spot') {
+            filteredItems = inventory[type].filter(i => !i.country || i.country === selectedCountry);
+        }
+
+        // Find vendors who have items of this type (and country)
+        let validVendorIds = [...new Set(filteredItems.map(i => i.supplier_id))];
+
         vendorSelect.empty().append('<option value="">Choose Vendor</option>');
-        
+
         if (type === 'spot') {
             vendorSelect.append('<option value="none">No Vendor / Public Spot</option>');
         }
@@ -977,14 +1000,18 @@
         let type = row.find('.service-type').val();
         let vendorId = $(el).val();
         let serviceSelect = row.find('.select2-service');
+        let selectedCountry = $('#country_id').find(':selected').data('country-name') || '';
         serviceSelect.empty().append('<option value="">Choose Service</option>');
         if(type) {
             let items = [];
             if (type === 'spot' && (!vendorId || vendorId === 'none')) {
-                // If tourist spot and no specific vendor, show all spots
                 items = inventory[type];
             } else if (vendorId) {
                 items = inventory[type].filter(i => i.supplier_id == vendorId);
+            }
+            // Apply country filter
+            if (selectedCountry && type !== 'spot') {
+                items = items.filter(i => !i.country || i.country === selectedCountry);
             }
             items.forEach(i => { serviceSelect.append(`<option value="${i.id}" data-price="${i.price}">${i.name}</option>`); });
         }

@@ -1,19 +1,22 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Tourliz | Experience Luxury Travel</title>
-    
+
     <!-- Bootstrap 5 -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
-    
+
     <!-- Premium Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    
+    <link
+        href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap"
+        rel="stylesheet">
+
     <!-- AOS Animation Library -->
     <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
 
@@ -37,7 +40,12 @@
             overflow-x: hidden;
         }
 
-        h1, h2, h3, h4, h5, .display-font {
+        h1,
+        h2,
+        h3,
+        h4,
+        h5,
+        .display-font {
             font-family: 'Outfit', sans-serif;
         }
 
@@ -55,7 +63,7 @@
         .navbar.scrolled {
             background: rgba(255, 255, 255, 0.9);
             padding: 0.8rem 0;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
         }
 
         .navbar-brand {
@@ -92,8 +100,8 @@
         .hero {
             height: 100vh;
             min-height: 800px;
-            background: linear-gradient(rgba(0, 0, 0, 0.3), rgba(0, 0, 0, 0.5)), 
-                        url('https://images.unsplash.com/photo-1506929562872-bb421503ef21?q=80&w=2000&auto=format&fit=crop') center/cover no-repeat;
+            background: linear-gradient(rgba(0, 0, 0, 0.3), rgba(0, 0, 0, 0.5)),
+                url('https://images.unsplash.com/photo-1506929562872-bb421503ef21?q=80&w=2000&auto=format&fit=crop') center/cover no-repeat;
             display: flex;
             align-items: center;
             position: relative;
@@ -137,7 +145,7 @@
             max-width: 900px;
             display: flex;
             align-items: center;
-            box-shadow: 0 25px 50px rgba(0,0,0,0.2);
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.2);
         }
 
         .search-group {
@@ -227,7 +235,7 @@
             overflow: hidden;
             background: white;
             border: 1px solid #f1f5f9;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.03);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.03);
             transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
             height: 100%;
             display: flex;
@@ -259,7 +267,7 @@
         .package-overlay {
             position: absolute;
             inset: 0;
-            background: linear-gradient(to top, rgba(0,0,0,0.6) 0%, transparent 60%);
+            background: linear-gradient(to top, rgba(0, 0, 0, 0.6) 0%, transparent 60%);
             display: flex;
             align-items: flex-end;
             padding: 25px;
@@ -282,7 +290,7 @@
             font-weight: 800;
             font-size: 0.8rem;
             color: var(--primary);
-            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
         }
 
         .package-body {
@@ -367,9 +375,17 @@
 
         /* Floating Animation */
         @keyframes float {
-            0% { transform: translateY(0px); }
-            50% { transform: translateY(-20px); }
-            100% { transform: translateY(0px); }
+            0% {
+                transform: translateY(0px);
+            }
+
+            50% {
+                transform: translateY(-20px);
+            }
+
+            100% {
+                transform: translateY(0px);
+            }
         }
 
         .float-anim {
@@ -421,7 +437,7 @@
 
         .footer-link {
             display: block;
-            color: rgba(255,255,255,0.6);
+            color: rgba(255, 255, 255, 0.6);
             text-decoration: none;
             margin-bottom: 15px;
             font-weight: 500;
@@ -437,7 +453,7 @@
             width: 50px;
             height: 50px;
             border-radius: 18px;
-            background: rgba(255,255,255,0.05);
+            background: rgba(255, 255, 255, 0.05);
             display: inline-flex;
             align-items: center;
             justify-content: center;
@@ -455,15 +471,40 @@
 
         /* Responsive */
         @media (max-width: 991px) {
-            .hero-title { font-size: 3.5rem; }
-            .search-container { flex-direction: column; border-radius: 30px; padding: 30px; }
-            .search-group { border-right: none; border-bottom: 1px solid rgba(255, 255, 255, 0.2); width: 100%; padding: 15px 0; }
-            .btn-search { width: 100%; margin-top: 20px; }
-            .navbar-brand, .nav-link { color: var(--text-main) !important; }
-            .navbar { background: white !important; }
+            .hero-title {
+                font-size: 3.5rem;
+            }
+
+            .search-container {
+                flex-direction: column;
+                border-radius: 30px;
+                padding: 30px;
+            }
+
+            .search-group {
+                border-right: none;
+                border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+                width: 100%;
+                padding: 15px 0;
+            }
+
+            .btn-search {
+                width: 100%;
+                margin-top: 20px;
+            }
+
+            .navbar-brand,
+            .nav-link {
+                color: var(--text-main) !important;
+            }
+
+            .navbar {
+                background: white !important;
+            }
         }
     </style>
 </head>
+
 <body>
     <!-- Removed currency selector from landing page -->
 
@@ -471,7 +512,8 @@
     <nav class="navbar navbar-expand-lg fixed-top">
         <div class="container">
             <a class="navbar-brand" href="/">
-                <i class="bi bi-airplane-engines-fill me-2" style="color: var(--secondary); transform: rotate(-15deg); display: inline-block;"></i>Tourliz<span>.</span>
+                <i class="bi bi-airplane-engines-fill me-2"
+                    style="color: var(--secondary); transform: rotate(-15deg); display: inline-block;"></i>Tourliz<span>.</span>
             </a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
                 <i class="bi bi-list fs-1 text-white" id="navIcon"></i>
@@ -484,11 +526,14 @@
                     <li class="nav-item"><a class="nav-link" href="#">Support</a></li>
                     @guest
                         <li class="nav-item ms-lg-4">
-                            <a class="btn btn-light fw-800 rounded-pill px-4 py-2 shadow-sm" href="{{ route('login') }}" style="font-weight: 800; font-size: 0.9rem;">Sign In</a>
+                            <a class="btn btn-light fw-800 rounded-pill px-4 py-2 shadow-sm" href="{{ route('login') }}"
+                                style="font-weight: 800; font-size: 0.9rem;">Sign In</a>
                         </li>
                     @else
                         <li class="nav-item ms-lg-4 text-center">
-                            <a class="btn btn-primary fw-800 rounded-pill px-4 py-2 border-0 shadow-lg" href="{{ route('admin.dashboard') }}" style="background: var(--primary); font-weight: 800; font-size: 0.9rem;">Dashboard</a>
+                            <a class="btn btn-primary fw-800 rounded-pill px-4 py-2 border-0 shadow-lg"
+                                href="{{ route('admin.dashboard') }}"
+                                style="background: var(--primary); font-weight: 800; font-size: 0.9rem;">Dashboard</a>
                         </li>
                     @endguest
                 </ul>
@@ -502,10 +547,14 @@
             <div class="row">
                 <div class="col-lg-10 col-xl-8">
                     <div data-aos="fade-up" data-aos-duration="1000">
-                        <span class="badge rounded-pill bg-white text-primary px-3 py-2 mb-4 fw-800"><i class="bi bi-stars me-2"></i>PREMIUM TRAVEL PARTNER</span>
-                        <h1 class="hero-title">Escape the Ordinary. <br>Explore the <span style="background: linear-gradient(to right, #6dd5ed, #2193b0); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">Extraordinary</span>.</h1>
-                        <p class="hero-subtitle">Curated travel experiences for the discerning nomad. Discover the world's most breathtaking hidden gems with Tourliz.</p>
-                        
+                        <span class="badge rounded-pill bg-white text-primary px-3 py-2 mb-4 fw-800"><i
+                                class="bi bi-stars me-2"></i>PREMIUM TRAVEL PARTNER</span>
+                        <h1 class="hero-title">Escape the Ordinary. <br>Explore the <span
+                                style="background: linear-gradient(to right, #6dd5ed, #2193b0); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">Extraordinary</span>.
+                        </h1>
+                        <p class="hero-subtitle">Curated travel experiences for the discerning nomad. Discover the
+                            world's most breathtaking hidden gems with Tourliz.</p>
+
                         <div class="search-container">
                             <div class="search-group">
                                 <label class="search-label">Location</label>
@@ -541,10 +590,14 @@
             <div class="row g-4">
                 @foreach($topDestinations->take(4) as $index => $dest)
                     <div class="col-md-6 col-lg-3" data-aos="fade-up" data-aos-delay="{{ $index * 100 }}">
-                        <a href="#" class="text-decoration-none group">
-                            <div class="position-relative overflow-hidden rounded-[40px] shadow-lg" style="height: 450px; border-radius: 40px;">
-                                <img src="https://images.unsplash.com/photo-{{ 1500000000000 + $index * 1234567 }}?auto=format&fit=crop&w=800&q=80" alt="{{ $dest->name }}" class="w-100 h-100 object-fit-cover transition-transform duration-700 hover:scale-110">
-                                <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent flex flex-col justify-end p-5" style="position: absolute; bottom: 0; left: 0; width: 100%; padding: 30px; background: linear-gradient(transparent, rgba(0,0,0,0.8));">
+                        <a href="/packages?country={{ $dest->id }}" class="text-decoration-none group">
+                            <div class="position-relative overflow-hidden rounded-[40px] shadow-lg"
+                                style="height: 450px; border-radius: 40px;">
+                                <img src="https://images.unsplash.com/photo-{{ 1500000000000 + $index * 1234567 }}?auto=format&fit=crop&w=800&q=80"
+                                    alt="{{ $dest->name }}"
+                                    class="w-100 h-100 object-fit-cover transition-transform duration-700 hover:scale-110">
+                                <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent flex flex-col justify-end p-5"
+                                    style="position: absolute; bottom: 0; left: 0; width: 100%; padding: 30px; background: linear-gradient(transparent, rgba(0,0,0,0.8));">
                                     <h4 class="text-white fw-800 m-0 fs-3">{{ $dest->name }}</h4>
                                     <span class="text-white/60 small font-semibold">12+ Packages</span>
                                 </div>
@@ -564,36 +617,43 @@
                     <span class="section-tag">Exclusive Offers</span>
                     <h2 class="section-title mb-md-0">Featured Experiences<span>.</span></h2>
                 </div>
-                <button class="btn btn-outline-primary rounded-pill px-5 py-3 fw-800">Browse All Packages <i class="bi bi-arrow-right ms-2"></i></button>
+                <button class="btn btn-outline-primary rounded-pill px-5 py-3 fw-800">Browse All Packages <i
+                        class="bi bi-arrow-right ms-2"></i></button>
             </div>
 
             <div class="row g-5">
                 @forelse($featuredPackages as $index => $package)
                     <div class="col-lg-4 col-md-6" data-aos="fade-up" data-aos-delay="{{ $index * 150 }}">
-                        <div class="package-card" onclick="window.location.href='{{ route('packages.show', $package->slug) }}'">
+                        <div class="package-card"
+                            onclick="window.location.href='{{ route('packages.show', $package->slug) }}'">
                             <div class="package-img-box">
-                                <img src="{{ getImageUrl($package->image) }}" class="package-img" alt="{{ $package->name }}">
+                                <img src="{{ getImageUrl($package->image) }}" class="package-img"
+                                    alt="{{ $package->name }}">
                                 <div class="package-duration">
                                     <i class="bi bi-clock-fill me-1"></i> {{ $package->duration }}
                                 </div>
                                 <div class="package-overlay">
-                                    <button class="btn btn-light rounded-pill w-100 fw-800 py-3 mb-3 shadow">Quick View Details</button>
+                                    <button class="btn btn-light rounded-pill w-100 fw-800 py-3 mb-3 shadow">Quick View
+                                        Details</button>
                                 </div>
                             </div>
                             <div class="package-body">
                                 <div class="package-loc">
-                                    <i class="bi bi-geo-alt-fill text-secondary"></i> {{ $package->destination->name ?? 'Global' }}
+                                    <i class="bi bi-geo-alt-fill text-secondary"></i>
+                                    {{ $package->destination->name ?? 'Global' }}
                                 </div>
                                 <h3 class="package-name">{{ $package->name }}</h3>
                                 <div class="package-footer">
                                     <div>
                                         <span class="package-price-label">Starting Price</span>
-                                        <div class="package-price" data-price="{{ $package->price }}" data-currency="{{ $package->currency ?? 'MYR' }}">
+                                        <div class="package-price" data-price="{{ $package->price }}"
+                                            data-currency="{{ $package->currency ?? 'MYR' }}">
                                             {{ \App\Helpers\CurrencyHelper::format($package->price, $package->currency ?? 'MYR') }}
                                             <span>/ guest</span>
                                         </div>
                                     </div>
-                                    <div class="btn btn-primary rounded-2xl p-0 d-flex align-items-center justify-content-center" style="width: 50px; height: 50px; background: var(--primary); border-radius: 18px;">
+                                    <div class="btn btn-primary rounded-2xl p-0 d-flex align-items-center justify-content-center"
+                                        style="width: 50px; height: 50px; background: var(--primary); border-radius: 18px;">
                                         <i class="bi bi-arrow-right-short fs-2 text-white"></i>
                                     </div>
                                 </div>
@@ -602,7 +662,8 @@
                     </div>
                 @empty
                     <div class="col-12 text-center py-5">
-                        <div class="glass-alert p-5 rounded-[40px] bg-white border border-gray-100 shadow-sm" style="border-radius: 40px;">
+                        <div class="glass-alert p-5 rounded-[40px] bg-white border border-gray-100 shadow-sm"
+                            style="border-radius: 40px;">
                             <i class="bi bi-cloud-unfill text-primary display-1 opacity-20"></i>
                             <h4 class="fw-800 mt-4">Exploring Destinations...</h4>
                             <p class="text-muted">New curated adventures are being uploaded. Check back shortly!</p>
@@ -643,7 +704,9 @@
                     <a href="/" class="footer-logo">
                         <i class="bi bi-airplane-engines-fill text-primary"></i> Tourliz.
                     </a>
-                    <p class="text-white opacity-60 mb-4 leading-relaxed">Redefining luxury travel for the modern explorer. Our mission is to transform your travel dreams into reality with uncompromised comfort and authentic experiences.</p>
+                    <p class="text-white opacity-60 mb-4 leading-relaxed">Redefining luxury travel for the modern
+                        explorer. Our mission is to transform your travel dreams into reality with uncompromised comfort
+                        and authentic experiences.</p>
                     <div class="d-flex">
                         <a href="#" class="social-circle"><i class="bi bi-instagram"></i></a>
                         <a href="#" class="social-circle"><i class="bi bi-tiktok"></i></a>
@@ -667,16 +730,19 @@
                 </div>
                 <div class="col-lg-3">
                     <h5 class="footer-title">Stay Inspired</h5>
-                    <p class="small opacity-60 mb-4">Subscribe to our newsletter for exclusive travel tips and secret offers.</p>
+                    <p class="small opacity-60 mb-4">Subscribe to our newsletter for exclusive travel tips and secret
+                        offers.</p>
                     <div class="input-group">
-                        <input type="text" class="form-control bg-white/5 border-0 text-white rounded-start-pill px-4" placeholder="Your email here" style="background: rgba(255,255,255,0.05);">
+                        <input type="text" class="form-control bg-white/5 border-0 text-white rounded-start-pill px-4"
+                            placeholder="Your email here" style="background: rgba(255,255,255,0.05);">
                         <button class="btn btn-primary rounded-end-pill px-4">Join</button>
                     </div>
                 </div>
             </div>
             <hr class="my-5 opacity-10">
             <div class="text-center">
-                <p class="small opacity-40">&copy; 2026 Tourliz CMS. Inspired by High-End Travel Design. All rights reserved.</p>
+                <p class="small opacity-40">&copy; 2026 Tourliz CMS. Inspired by High-End Travel Design. All rights
+                    reserved.</p>
             </div>
         </div>
     </footer>
@@ -688,7 +754,7 @@
     <script>
         AOS.init({ once: true });
 
-        $(window).scroll(function() {
+        $(window).scroll(function () {
             if ($(this).scrollTop() > 50) {
                 $('.navbar').addClass('scrolled');
                 $('#navIcon').removeClass('text-white').addClass('text-dark');
@@ -699,4 +765,5 @@
         });
     </script>
 </body>
+
 </html>

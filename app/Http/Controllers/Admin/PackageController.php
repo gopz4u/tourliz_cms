@@ -79,11 +79,11 @@ class PackageController extends Controller
     public function create()
     {
         $countries = \App\Models\Country::where('status', true)->orderBy('name')->get();
-        $suppliers = \App\Models\Supplier::where('is_active', true)->orderBy('name')->get();
-        $hotels = \App\Models\Hotel::with(['roomTypes', 'supplier'])->where('is_active', true)->orderBy('name')->get();
-        $activities = \App\Models\Activity::with('supplier')->where('is_active', true)->orderBy('name')->get();
+        $suppliers = \App\Models\Supplier::with('destination')->where('is_active', true)->orderBy('name')->get();
+        $hotels = \App\Models\Hotel::with(['roomTypes', 'supplier.destination'])->where('is_active', true)->orderBy('name')->get();
+        $activities = \App\Models\Activity::with('supplier.destination')->where('is_active', true)->orderBy('name')->get();
         $destinations = \App\Models\Destination::orderBy('name')->get();
-        $transportRoutes = \App\Models\Transport::with('supplier')->get();
+        $transportRoutes = \App\Models\Transport::with('supplier.destination')->get();
         $entryTickets = \App\Models\EntryTicket::with('supplier')->get();
         $meals = \App\Models\Meal::with('supplier')->get();
         $touristSpots = \App\Models\TouristSpot::with(['supplier', 'destination'])->where('is_active', true)->orderBy('name')->get();
@@ -485,12 +485,12 @@ class PackageController extends Controller
         $package = Package::withTrashed()->with(['days.hotels', 'days.transports', 'days.activities', 'days.attractions', 'days.meals_list.meal'])->findOrFail($id);
         $countries = \App\Models\Country::where('status', true)->orderBy('name')->get();
         $destinations = \App\Models\Destination::orderBy('name')->get();
-        $hotels = \App\Models\Hotel::with(['roomTypes', 'supplier'])->orderBy('name')->get();
-        $transportRoutes = \App\Models\Transport::with('supplier')->orderBy('name')->get();
-        $activities = \App\Models\Activity::with('supplier')->orderBy('name')->get();
+        $hotels = \App\Models\Hotel::with(['roomTypes', 'supplier.destination'])->orderBy('name')->get();
+        $transportRoutes = \App\Models\Transport::with('supplier.destination')->orderBy('name')->get();
+        $activities = \App\Models\Activity::with('supplier.destination')->orderBy('name')->get();
         $entryTickets = \App\Models\EntryTicket::with('supplier')->orderBy('attraction_name')->get();
         $meals = \App\Models\Meal::with('supplier')->orderBy('name')->get();
-        $suppliers = \App\Models\Supplier::where('is_active', true)->orderBy('name')->get();
+        $suppliers = \App\Models\Supplier::with('destination')->where('is_active', true)->orderBy('name')->get();
         $touristSpots = \App\Models\TouristSpot::with(['supplier', 'destination'])->where('is_active', true)->orderBy('name')->get();
 
         return view('admin.packages.edit', [

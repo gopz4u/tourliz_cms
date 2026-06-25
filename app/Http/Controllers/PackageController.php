@@ -17,9 +17,9 @@ class PackageController extends Controller
         // Search by name or destination
         if ($request->filled('q')) {
             $q = $request->q;
-            $query->where(function($sub) use ($q) {
+            $query->where(function ($sub) use ($q) {
                 $sub->where('name', 'like', "%$q%")
-                    ->orWhereHas('destination', function($d) use ($q) {
+                    ->orWhereHas('destination', function ($d) use ($q) {
                         $d->where('name', 'like', "%$q%");
                     });
             });
@@ -35,6 +35,11 @@ class PackageController extends Controller
             }
         }
 
+        // Filter by Country
+        if ($request->filled('country')) {
+            $query->where('country_id', $request->country);
+        }
+
         // Filter by Category
         if ($request->filled('category')) {
             $query->where('category', $request->category);
@@ -42,16 +47,20 @@ class PackageController extends Controller
 
         // Sorting
         $sort = $request->get('sort', 'latest');
-        if ($sort == 'price_low') $query->orderBy('price', 'asc');
-        elseif ($sort == 'price_high') $query->orderBy('price', 'desc');
-        else $query->latest();
+        if ($sort == 'price_low')
+            $query->orderBy('price', 'asc');
+        elseif ($sort == 'price_high')
+            $query->orderBy('price', 'desc');
+        else
+            $query->latest();
 
         $packages = $query->paginate(12)->withQueryString();
-        
+
         $destinations = \App\Models\Destination::where('status', 'active')->orderBy('name')->get();
         $categories = Package::whereNotNull('category')->distinct()->pluck('category');
+        $countries = \App\Models\Country::where('status', true)->orderBy('name')->get();
 
-        return view('packages.index', compact('packages', 'destinations', 'categories'));
+        return view('packages.index', compact('packages', 'destinations', 'categories', 'countries'));
     }
 
     /**
@@ -66,12 +75,12 @@ class PackageController extends Controller
             ->where('slug', $slug)
             ->where('status', 'active')
             ->firstOrFail();
-        
+
         // Get related packages (same place or category, excluding current)
         $relatedPackages = Package::with('destination')
             ->where('status', 'active')
             ->where('id', '!=', $package->id)
-            ->where(function($query) use ($package) {
+            ->where(function ($query) use ($package) {
                 if ($package->destination_id) {
                     $query->where('destination_id', $package->destination_id);
                 }
@@ -81,7 +90,7 @@ class PackageController extends Controller
             })
             ->limit(3)
             ->get();
-        
+
         return view('packages.show', compact('package', 'relatedPackages'));
     }
 }
