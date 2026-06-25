@@ -545,10 +545,11 @@
             @if($hasLogo)
                 <img src="{{ asset($logoPath) }}" alt="Tourliz" style="height:32px;">
             @else
-                    <div class="logo-icon me-2" style="width:28px; height:28px; font-size:1rem;">
+                <div class="logo-icon me-2" style="width:28px; height:28px; font-size:1rem;">
                     <i class="bi bi-airplane-fill"></i>
                 </div>
-                <span class="fs-5 fw-bold" style="color: var(--text-main); letter-spacing:-0.5px;">{{ $brand['name'] ?? 'Tourliz' }}</span>
+                <span class="fs-5 fw-bold"
+                    style="color: var(--text-main); letter-spacing:-0.5px;">{{ $brand['name'] ?? 'Tourliz' }}</span>
             @endif
         </div>
         <div class="user-avatar" style="width:36px; height:36px; font-size:0.8rem;">
@@ -1027,6 +1028,7 @@
             flex-direction: column-reverse;
             align-items: flex-end;
             gap: 15px;
+            pointer-events: none;
         }
 
         .fab-main {
@@ -1044,6 +1046,7 @@
             border: none;
             transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             outline: none;
+            pointer-events: auto;
         }
 
         .fab-main:hover {
@@ -1072,6 +1075,7 @@
             visibility: visible;
             opacity: 1;
             transform: translateY(0);
+            pointer-events: auto;
         }
 
         .fab-item {
@@ -1079,6 +1083,7 @@
             align-items: center;
             gap: 10px;
             text-decoration: none !important;
+            pointer-events: auto;
         }
 
         .fab-label {
@@ -1127,9 +1132,11 @@
         .fab-icon-btn.b2b {
             background: #06b6d4;
         }
+
         .fab-icon-btn.b2c {
             background: #10b981;
         }
+
         .fab-icon-btn.group {
             background: #f59e0b;
         }
@@ -1139,6 +1146,7 @@
                 bottom: 20px;
                 right: 20px;
             }
+
             .fab-label {
                 opacity: 1;
                 transform: translateX(0);
@@ -1257,7 +1265,7 @@
                 $(this).toggleClass('active');
                 $('#fabMenu').toggleClass('show');
             });
-            
+
             $(document).on('click', function (e) {
                 if (!$(e.target).closest('#quickCreateFab').length) {
                     $('#fabMainBtn').removeClass('active');
