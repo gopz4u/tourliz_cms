@@ -142,7 +142,6 @@ class B2BItineraryController extends Controller
             'notes' => 'nullable|string',
             'client_name' => 'nullable|string',
             'title' => 'required|string',
-            'country_ids' => 'nullable|array',
             'supplier_id' => 'nullable|exists:suppliers,id',
             'adults' => 'required|integer|min:1',
             'children_2_6' => 'nullable|integer|min:0',

@@ -98,7 +98,6 @@ class GroupItineraryController extends Controller
             'title' => 'required|string',
             'client_name' => 'required|string',
             'adults' => 'required|integer|min:1',
-            'country_ids' => 'nullable|array',
             'supplier_id' => 'nullable|exists:suppliers,id',
             'user_id' => 'nullable|exists:admins,id',
         ]);
