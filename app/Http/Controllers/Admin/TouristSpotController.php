@@ -28,7 +28,7 @@ class TouristSpotController extends Controller
     {
         $request->validate([
             'name' => 'required|string|max:255',
-            'country_id' => 'nullable|exists:countries,id',
+            'country_id' => 'required|exists:countries,id',
             'destination_id' => 'nullable|exists:destinations,id',
         ]);
 
@@ -49,7 +49,7 @@ class TouristSpotController extends Controller
     {
         $request->validate([
             'name' => 'required|string|max:255',
-            'country_id' => 'nullable|exists:countries,id',
+            'country_id' => 'required|exists:countries,id',
             'destination_id' => 'nullable|exists:destinations,id',
         ]);
 

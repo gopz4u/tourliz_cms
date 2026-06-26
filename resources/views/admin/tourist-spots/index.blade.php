@@ -23,6 +23,7 @@
                         <tr>
                             <th width="50">#</th>
                             <th>Spot Name</th>
+                            <th>Country</th>
                             <th>Destination</th>
                             <th>Description</th>
                             <th>Status</th>
@@ -34,7 +35,8 @@
                             <tr>
                                 <td>{{ $loop->iteration }}</td>
                                 <td><strong>{{ $spot->name }}</strong></td>
-                                <td>{{ $spot->destination->name ?? 'N/A' }}</td>
+                                <td><span class="badge bg-primary">{{ $spot->country->name ?? '—' }}</span></td>
+                                <td>{{ $spot->destination->name ?? 'Country-level' }}</td>
                                 <td><small class="text-muted">{{ Str::limit($spot->description, 50) }}</small></td>
                                 <td>
                                     @if($spot->is_active)
@@ -60,7 +62,7 @@
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="6" class="text-center py-5 text-muted">No tourist spots found.</td>
+                                <td colspan="7" class="text-center py-5 text-muted">No tourist spots found.</td>
                             </tr>
                         @endforelse
                     </tbody>

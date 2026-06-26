@@ -652,6 +652,14 @@
                         </a>
                     </li>
                     <li>
+                        <a href="{{ route('admin.tourist-spots.index') }}"
+                            class="{{ request()->routeIs('admin.tourist-spots.*') ? 'active' : '' }}">
+                            <i class="bi bi-pin-map-fill main-icon"></i>
+                            <span>Tourist Spots</span>
+                            <i class="bi bi-arrow-right nav-arrow"></i>
+                        </a>
+                    </li>
+                    <li>
                         <a href="{{ route('admin.website.index') }}"
                             class="{{ request()->routeIs('admin.website.*') ? 'active' : '' }}">
                             <i class="bi bi-layout-text-window-reverse main-icon"></i>

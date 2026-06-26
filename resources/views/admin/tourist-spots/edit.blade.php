@@ -28,10 +28,10 @@
                             <input type="text" name="name" class="form-control" value="{{ $touristSpot->name }}" required>
                         </div>
                         <div class="mb-3">
-                            <label class="form-label">Country</label>
-                            <select name="country_id" id="countrySelect" class="form-select"
+                            <label class="form-label">Country <span class="text-danger">*</span></label>
+                            <select name="country_id" id="countrySelect" class="form-select" required
                                 onchange="filterDestinations()">
-                                <option value="">-- Select Country (Optional) --</option>
+                                <option value="">-- Select Country --</option>
                                 @foreach($countries as $country)
                                     <option value="{{ $country->id }}" data-country-name="{{ $country->name }}" {{ $touristSpot->country_id == $country->id ? 'selected' : '' }}>{{ $country->name }}
                                     </option>
