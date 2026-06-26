@@ -606,9 +606,16 @@
                         <i class="bi bi-chevron-left me-2"></i> Previous
                     </button>
                     <div class="ms-auto d-flex align-items-center gap-4">
-                        <div class="price-tag d-none d-lg-flex">
-                            <span class="small fw-bold text-muted">LIVE QUOTE:</span>
-                            <span class="fw-black text-primary fs-5" id="foot-price">RM 0</span>
+                        <div class="price-tag d-none d-lg-flex align-items-center gap-3">
+                            <div>
+                                <span class="small fw-bold text-muted">LIVE QUOTE:</span>
+                                <span class="fw-black text-primary fs-5" id="foot-price">RM 0</span>
+                            </div>
+                            <div class="vr"></div>
+                            <div id="profit-display" style="display:none;">
+                                <span class="small fw-bold text-muted">PROFIT:</span>
+                                <span class="fw-black fs-6" id="foot-profit" style="color:#198754;">—</span>
+                            </div>
                         </div>
                         <button type="button" class="btn btn-success rounded-pill px-5 py-3 fw-bold" id="btn-save-immediate"
                             onclick="submitPackage()">
@@ -656,7 +663,8 @@
                     <select class="form-select select2-spots-multi" multiple
                         data-placeholder="Select multiple tourist spots for Day {N}..." style="width: 100%;">
                         @foreach($touristSpots as $spot)
-                            <option value="{{ $spot->id }}" data-country="{{ $spot->country->name ?? $spot->destination->country ?? '' }}">
+                            <option value="{{ $spot->id }}"
+                                data-country="{{ $spot->country->name ?? $spot->destination->country ?? '' }}">
                                 {{ $spot->name }}
                             </option>
                         @endforeach
@@ -1071,6 +1079,17 @@
 
             $('#selling-in').val(Math.round(final));
             $('#foot-price').text(`RM ${Math.round(final).toLocaleString()}`);
+
+            // Show profit margin
+            if (total > 0) {
+                let profit = final - total;
+                let profitPct = (profit / total) * 100;
+                $('#profit-display').show();
+                let color = profit >= 0 ? '#198754' : '#dc3545';
+                $('#foot-profit').css('color', color).text(`RM ${Math.round(profit).toLocaleString()} (${profitPct.toFixed(1)}%)`);
+            } else {
+                $('#profit-display').hide();
+            }
 
             // Add hidden fields for submission if not already there or update them
             if ($('#net-price-hidden').length === 0) {

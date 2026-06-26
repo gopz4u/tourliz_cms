@@ -549,9 +549,20 @@
                     <i class="bi bi-chevron-left me-2"></i> Previous
                 </button>
                 <div class="ms-auto d-flex align-items-center gap-4">
-                    <div class="price-tag d-none d-lg-flex">
-                        <span class="small fw-bold text-muted">LIVE QUOTE:</span>
-                        <span class="fw-black text-primary fs-5" id="foot-price">RM {{ number_format($package->price) }}</span>
+                    <div class="price-tag d-none d-lg-flex align-items-center gap-3">
+                        <div>
+                            <span class="small fw-bold text-muted">LIVE QUOTE:</span>
+                            <span class="fw-black text-primary fs-5" id="foot-price">RM {{ number_format($package->price) }}</span>
+                        </div>
+                        <div class="vr"></div>
+                        <div id="profit-display" style="display:{{ ($package->net_price ?? 0) > 0 ? 'block' : 'none' }};">
+                            <span class="small fw-bold text-muted">PROFIT:</span>
+                            @php
+                                $editProfit = ($package->net_price ?? 0) > 0 ? $package->price - $package->net_price : 0;
+                                $editProfitPct = ($package->net_price ?? 0) > 0 ? ($editProfit / $package->net_price) * 100 : 0;
+                            @endphp
+                            <span class="fw-black fs-6" id="foot-profit" style="color:{{ $editProfit >= 0 ? '#198754' : '#dc3545' }};">RM {{ number_format($editProfit) }} ({{ number_format($editProfitPct, 1) }}%)</span>
+                        </div>
                     </div>
                     <button type="button" class="btn btn-success rounded-pill px-5 py-3 fw-bold" id="btn-save-immediate" onclick="submitPackage()">
                         Save Package <i class="bi bi-check-circle ms-2"></i>
@@ -698,6 +709,14 @@
 
     $(document).ready(function() {
         $('.select2').select2({ theme: 'bootstrap-5' });
+
+        // Auto-detect direct price mode from saved data
+        @if(empty($package->net_price) || $package->net_price == 0)
+            $('#direct-price-toggle').prop('checked', true).trigger('change');
+            $('#direct-price-in').val('{{ $package->price }}');
+            $('#direct-price-in').addClass('border-warning bg-warning bg-opacity-10');
+            onDirectPriceChange();
+        @endif
         
         // Country to Destination Cascading
         $('#country_id').on('change', function() {
@@ -1079,6 +1098,17 @@
         
         $('#selling-in').val(Math.round(final));
         $('#foot-price').text(`RM ${Math.round(final).toLocaleString()}`);
+
+        // Show profit margin
+        if (total > 0) {
+            let profit = final - total;
+            let profitPct = (profit / total) * 100;
+            $('#profit-display').show();
+            let color = profit >= 0 ? '#198754' : '#dc3545';
+            $('#foot-profit').css('color', color).text(`RM ${Math.round(profit).toLocaleString()} (${profitPct.toFixed(1)}%)`);
+        } else {
+            $('#profit-display').hide();
+        }
         
         // Add hidden fields for submission if not already there or update them
         if($('#net-price-hidden').length === 0) {
