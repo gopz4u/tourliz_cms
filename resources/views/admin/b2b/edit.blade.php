@@ -257,7 +257,7 @@
                                     <span id="preview-base-total">0.00</span>
                                 </div>
                                 <div class="d-flex justify-content-between mb-1 small text-info">
-                                    <span>Per Pax Estimate:</span>
+                                    <span id="preview-perpax-label">Per Pax Estimate:</span>
                                     <span id="preview-perpax-total">0.00</span>
                                 </div>
                                 <div class="d-flex justify-content-between mb-1 small text-primary">
@@ -718,7 +718,17 @@
                 const c1 = safeFloat(document.getElementById('pax-child-small')?.value);
                 const c2 = safeFloat(document.getElementById('pax-child-large')?.value);
                 const totalPax = adults + c1 + c2;
-                const perPax = totalPax > 0 ? (grandTotal / totalPax) : 0;
+                
+                const paxLabel = document.getElementById('preview-perpax-label');
+                let perPax = 0;
+                if (c1 > 0 || c2 > 0) {
+                    const weightedPax = (adults * 1.0) + (c1 * 0.25) + (c2 * 0.50);
+                    perPax = weightedPax > 0 ? (grandTotal / weightedPax) : 0;
+                    if (paxLabel) paxLabel.innerText = "Per Adult Estimate:";
+                } else {
+                    perPax = totalPax > 0 ? (grandTotal / totalPax) : 0;
+                    if (paxLabel) paxLabel.innerText = "Per Pax Estimate:";
+                }
                 safeSet('preview-perpax-total', perPax);
                 const summaryQuotedEl = document.getElementById('summary-quoted-total');
                 if (summaryQuotedEl) summaryQuotedEl.innerText = currency + ' ' + grandTotal.toFixed(2);
@@ -1516,12 +1526,24 @@
                 const c1 = document.getElementById('pax-child-small').value;
                 const c2 = document.getElementById('pax-child-large').value;
                 const totalPrice = document.getElementById('preview-grand-total').innerText;
-                const perPax = document.getElementById('preview-perpax-total').innerText;
-                const perPaxVal = parseFloat(perPax.replace(/[^0-9.]/g, '') || 0);
+                const totalPriceVal = parseFloat(totalPrice.replace(/[^0-9.]/g, '') || 0);
+                const adultsCount = parseInt(adults || 0);
+                const c1Count = parseInt(c1 || 0);
+                const c2Count = parseInt(c2 || 0);
                 const currency = "{{ $itinerary['currency'] ?? 'INR' }}";
 
-                const childRateS = (perPaxVal * 0.25).toFixed(2);
-                const childRateL = (perPaxVal * 0.50).toFixed(2);
+                let adultRate = 0;
+                let childRateS = 0;
+                let childRateL = 0;
+                
+                if (c1Count > 0 || c2Count > 0) {
+                    const weightedPax = (adultsCount * 1.0) + (c1Count * 0.25) + (c2Count * 0.50);
+                    adultRate = weightedPax > 0 ? (totalPriceVal / weightedPax) : 0;
+                    childRateS = adultRate * 0.25;
+                    childRateL = adultRate * 0.50;
+                } else {
+                    adultRate = adultsCount > 0 ? (totalPriceVal / adultsCount) : 0;
+                }
 
                 let text = `*📋 BOOKING PROPOSAL: ${title.toUpperCase()}*\n`;
                 text += `Guest: ${clientName}\n`;
@@ -1544,9 +1566,9 @@
 
                 text += `*Pricing Details:*\n`;
                 text += `Total Final Quote: ${totalPrice}\n`;
-                text += `Rate Per Adult: ${perPax}\n`;
-                if (c1 > 0) text += `Rate Child (2-6y): ${currency} ${childRateS}\n`;
-                if (c2 > 0) text += `Rate Child (6-11y): ${currency} ${childRateL}\n`;
+                text += `Rate Per Adult: ${currency} ${adultRate.toFixed(2)}\n`;
+                if (c1 > 0) text += `Rate Child (2-6y): ${currency} ${childRateS.toFixed(2)}\n`;
+                if (c2 > 0) text += `Rate Child (6-11y): ${currency} ${childRateL.toFixed(2)}\n`;
 
                 text += `\nLink: {{ route('admin.b2b-itineraries.pdf', $itinerary['id']) }}?public=1\n`;
 
@@ -1650,13 +1672,24 @@
                 const c2 = document.getElementById('pax-child-large').value;
 
                 const total = document.getElementById('preview-grand-total').innerText;
-                const perPax = document.getElementById('preview-perpax-total').innerText;
-                const perPaxVal = parseFloat(perPax.replace(/[^0-9.]/g, '') || 0);
+                const totalVal = parseFloat(total.replace(/[^0-9.]/g, '') || 0);
+                const adultsCount = parseInt(adults || 0);
+                const c1Count = parseInt(c1 || 0);
+                const c2Count = parseInt(c2 || 0);
                 const currencyStr = "{{ $itinerary['currency'] ?? 'INR' }}";
 
-                // Child Rates (25% and 50% of adult rate)
-                const childRateSmall = (perPaxVal * 0.25).toFixed(2);
-                const childRateLarge = (perPaxVal * 0.50).toFixed(2);
+                let adultRate = 0;
+                let childRateSmall = 0;
+                let childRateLarge = 0;
+                
+                if (c1Count > 0 || c2Count > 0) {
+                    const weightedPax = (adultsCount * 1.0) + (c1Count * 0.25) + (c2Count * 0.50);
+                    adultRate = weightedPax > 0 ? (totalVal / weightedPax) : 0;
+                    childRateSmall = adultRate * 0.25;
+                    childRateLarge = adultRate * 0.50;
+                } else {
+                    adultRate = adultsCount > 0 ? (totalVal / adultsCount) : 0;
+                }
 
                 let text = `*📋 BOOKING PROPOSAL: ${title.toUpperCase()}*\n`;
                 text += `🏢 *Company:* Tourliz\n`;
@@ -1681,9 +1714,9 @@
 
                 text += `*Pricing Details:*\n`;
                 text += `Total Final Quote: ${total}\n`;
-                text += `Rate Per Adult: ${perPax}\n`;
-                if (c1 > 0) text += `Rate Child (2-6y): ${currencyStr} ${childRateSmall}\n`;
-                if (c2 > 0) text += `Rate Child (6-11y): ${currencyStr} ${childRateLarge}\n`;
+                text += `Rate Per Adult: ${currencyStr} ${adultRate.toFixed(2)}\n`;
+                if (c1 > 0) text += `Rate Child (2-6y): ${currencyStr} ${childRateSmall.toFixed(2)}\n`;
+                if (c2 > 0) text += `Rate Child (6-11y): ${currencyStr} ${childRateLarge.toFixed(2)}\n`;
 
                 text += `\n🔗 *Full Itinerary Link:* {{ route('admin.b2b-itineraries.pdf', $itinerary['id']) }}?public=1\n`;
                 text += `\n_Thank you for choosing Tourliz Team!_ 🙏✨\n`;
