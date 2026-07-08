@@ -269,18 +269,26 @@ class B2CItineraryController extends Controller
 
         $text .= "*Total Final Quote:* " . $itinerary->currency . " " . number_format($itinerary->total_price, 2) . "\n";
 
-        $text .= "--- PRICING BREAKDOWN ---\n";
-        $perpax = $itinerary->base_cost + $itinerary->markup_amount;
-        $text .= "• Adult: " . $itinerary->currency . " " . number_format($perpax, 2) . " x " . $itinerary->adults . " = " . $itinerary->currency . " " . number_format($perpax * $itinerary->adults, 2) . "\n";
+        $adults = (int) $itinerary->adults;
+        $c1 = (int) $itinerary->children_2_6;
+        $c2 = (int) $itinerary->children_6_11;
+        $hasChildren = ($c1 > 0 || $c2 > 0);
 
-        if ($itinerary->children_2_6 > 0) {
-            $cRate = $perpax * 0.40;
-            $text .= "• Child (2-6y): " . $itinerary->currency . " " . number_format($cRate, 2) . " x " . $itinerary->children_2_6 . " = " . $itinerary->currency . " " . number_format($cRate * $itinerary->children_2_6, 2) . "\n";
-        }
+        if ($hasChildren) {
+            $weightedPax = ($adults * 1.0) + ($c1 * 0.25) + ($c2 * 0.50);
+            $adultCost = $weightedPax > 0 ? ($itinerary->total_price / $weightedPax) : 0;
+            $child26Cost = $adultCost * 0.25;
+            $child611Cost = $adultCost * 0.50;
 
-        if ($itinerary->children_6_11 > 0) {
-            $cRate = $perpax * 0.25;
-            $text .= "• Child (6-11y): " . $itinerary->currency . " " . number_format($cRate, 2) . " x " . $itinerary->children_6_11 . " = " . $itinerary->currency . " " . number_format($cRate * $itinerary->children_6_11, 2) . "\n";
+            $text .= "--- PRICING BREAKDOWN ---\n";
+            $text .= "• Adult: " . $itinerary->currency . " " . number_format($adultCost, 2) . " x " . $adults . " = " . $itinerary->currency . " " . number_format($adultCost * $adults, 2) . "\n";
+            if ($c1 > 0) {
+                $text .= "• Child (2-6y): " . $itinerary->currency . " " . number_format($child26Cost, 2) . " x " . $c1 . " = " . $itinerary->currency . " " . number_format($child26Cost * $c1, 2) . "\n";
+            }
+            if ($c2 > 0) {
+                $text .= "• Child (6-11y): " . $itinerary->currency . " " . number_format($child611Cost, 2) . " x " . $c2 . " = " . $itinerary->currency . " " . number_format($child611Cost * $c2, 2) . "\n";
+            }
+            $text .= "\n";
         }
 
         $text .= "Payment Status: " . strtoupper($itinerary->payment_status) . "\n\n";

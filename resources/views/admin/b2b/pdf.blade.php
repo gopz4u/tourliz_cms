@@ -605,7 +605,16 @@
         $c1 = (int) data_get($itinerary, 'children_2_6', 0);
         $c2 = (int) data_get($itinerary, 'children_6_11', 0);
         $totalPax = $adults + $c1 + $c2;
-        $perPaxCost = $totalPax > 0 ? ($totalPrice / $totalPax) : 0;
+        
+        $hasChildren = ($c1 > 0 || $c2 > 0);
+        if ($hasChildren) {
+            $weightedPax = ($adults * 1.0) + ($c1 * 0.25) + ($c2 * 0.50);
+            $adultCost = $weightedPax > 0 ? ($totalPrice / $weightedPax) : 0;
+            $child26Cost = $adultCost * 0.25;
+            $child611Cost = $adultCost * 0.50;
+        } else {
+            $perPaxCost = $totalPax > 0 ? ($totalPrice / $totalPax) : 0;
+        }
     @endphp
 
     @if(count($allHotels) > 0 || count($allTransport) > 0 || count($allActivities) > 0 || count($allTickets) > 0 || count($allMeals) > 0)
@@ -738,13 +747,41 @@
                     <div class="grand-divider"></div>
                 </td>
             </tr>
-            <tr>
-                <td class="grand-label" style="font-size:8pt;">Per Person Estimate</td>
-                <td class="grand-perpax">
-                    {{ data_get($itinerary, 'currency', 'MYR') }} {{ number_format($perPaxCost, 2) }}
-                    <small>(based on {{ $totalPax }} pax)</small>
-                </td>
-            </tr>
+            @if($hasChildren)
+                <tr>
+                    <td class="grand-label" style="font-size:8pt;">Per Adult Estimate</td>
+                    <td class="grand-perpax">
+                        {{ data_get($itinerary, 'currency', 'MYR') }} {{ number_format($adultCost, 2) }}
+                        <small>(based on {{ $adults }} adults)</small>
+                    </td>
+                </tr>
+                @if($c1 > 0)
+                    <tr>
+                        <td class="grand-label" style="font-size:8pt;">Per Child (2-6y) Estimate</td>
+                        <td class="grand-perpax">
+                            {{ data_get($itinerary, 'currency', 'MYR') }} {{ number_format($child26Cost, 2) }}
+                            <small>(based on {{ $c1 }} child)</small>
+                        </td>
+                    </tr>
+                @endif
+                @if($c2 > 0)
+                    <tr>
+                        <td class="grand-label" style="font-size:8pt;">Per Child (6-11y) Estimate</td>
+                        <td class="grand-perpax">
+                            {{ data_get($itinerary, 'currency', 'MYR') }} {{ number_format($child611Cost, 2) }}
+                            <small>(based on {{ $c2 }} child)</small>
+                        </td>
+                    </tr>
+                @endif
+            @else
+                <tr>
+                    <td class="grand-label" style="font-size:8pt;">Per Person Estimate</td>
+                    <td class="grand-perpax">
+                        {{ data_get($itinerary, 'currency', 'MYR') }} {{ number_format($perPaxCost, 2) }}
+                        <small>(based on {{ $totalPax }} pax)</small>
+                    </td>
+                </tr>
+            @endif
         </table>
     </div>
 

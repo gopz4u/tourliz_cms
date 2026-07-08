@@ -244,11 +244,13 @@ class InventoryApiController extends Controller
         if ($countryId) {
             $query->where('country_id', $countryId);
         } elseif ($country) {
-            // Fallback: match by country name string
-            $query->whereHas('country', function ($q) use ($country) {
-                $q->where('name', $country);
-            })->orWhereHas('destination', function ($q) use ($country) {
-                $q->where('country', $country);
+            // Fallback: match by country name string (wrapped to preserve is_active)
+            $query->where(function ($q) use ($country) {
+                $q->whereHas('country', function ($sub) use ($country) {
+                    $sub->where('name', $country);
+                })->orWhereHas('destination', function ($sub) use ($country) {
+                    $sub->where('country', $country);
+                });
             });
         }
 
