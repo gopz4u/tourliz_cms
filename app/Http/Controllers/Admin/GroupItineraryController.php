@@ -255,6 +255,12 @@ class GroupItineraryController extends Controller
         }
 
         $text .= "Payment Status: " . strtoupper($itinerary->payment_status) . "\n\n";
+        $text .= "*Contact Tourliz:*\n";
+        $text .= "📞 WhatsApp:\n";
+        $text .= "  - Malaysia: +60102339314 / +60189836532\n";
+        $text .= "  - India: +91 96338 50694\n";
+        $text .= "🌐 Website: www.tourliz.com\n";
+        $text .= "📸 Socials: @tourliz\n\n";
         $text .= "Thank you for choosing Tourliz!";
 
         return response()->json(['text' => $text]);

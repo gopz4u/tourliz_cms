@@ -371,12 +371,20 @@
                     <div class="logo-text">TOUR<span>LIZ</span></div>
                 @endif
             </td>
-            <td class="company-info">
-                <strong>{{ data_get($agency, 'company_name', 'Tourliz') }}</strong><br>
-                @if(data_get($agency, 'whatsapp_number'))
-                    {{ data_get($agency, 'whatsapp_number') }}<br>
-                @endif
-                {{ !empty($generated_at) ? 'Generated: ' . $generated_at : '' }}
+            <td class="company-info" style="font-size: 8.5pt; line-height: 1.45; color: #2d3436;">
+                <strong style="font-size: 12pt; color: #1a73e8; display: block; margin-bottom: 4px;">{{ data_get($agency, 'company_name', 'Tourliz') }}</strong>
+                <div style="margin-bottom: 3px;">
+                    <span style="color: #27ae60; font-weight: bold;">WhatsApp:</span><br>
+                    Malaysia: +60102339314 / +60189836532<br>
+                    India: +91 96338 50694
+                </div>
+                <div style="margin-top: 3px; font-weight: 500;">
+                    <span style="color: #1a73e8; text-decoration: none;">www.tourliz.com</span><br>
+                    <span style="color: #e84393;">@tourliz</span>
+                </div>
+                <div style="margin-top: 4px; font-size: 7.5pt; color: #95a5a6; font-style: italic;">
+                    {{ !empty($generated_at) ? 'Generated: ' . $generated_at : '' }}
+                </div>
             </td>
         </tr>
     </table>
@@ -817,9 +825,8 @@
     {{-- ═══════════════════════════════════════════ --}}
     <div class="footer">
         <div class="brand">{{ data_get($agency, 'company_name', 'Tourliz') }}</div>
-        <div>
-            @if(data_get($agency, 'whatsapp_number')) {{ data_get($agency, 'whatsapp_number') }} &nbsp;|&nbsp; @endif
-            We craft unforgettable travel experiences
+        <div style="font-size: 8.5pt; color: #636e72;">
+            www.tourliz.com &nbsp;|&nbsp; @tourliz &nbsp;|&nbsp; We craft unforgettable travel experiences
         </div>
         <div style="margin-top:2px;font-size:7.5pt;">Thank you for the opportunity to serve you!</div>
     </div>
