@@ -135,8 +135,8 @@
         }
 
         .day-section {
-            padding: 6px 0 6px 12px;
-            margin-bottom: 8px;
+            padding: 6px 0 6px 16px;
+            margin-bottom: 12px;
             border-left: 3px solid #dfe6e9;
         }
 
@@ -438,7 +438,7 @@
                 {{-- Places / Attractions --}}
                 @if(!empty($day['places']))
                     <div class="day-section">
-                        <div class="day-section-label">&#9733; Places to Visit</div>
+                        <div class="day-section-label">• Places to Visit</div>
                         <div class="day-section-content">
                             @foreach($day['places'] as $p)
                                 {{ $p['attraction_name'] ?? ($p['name'] ?? ($p['place_name'] ?? '')) }}
@@ -454,7 +454,7 @@
                 {{-- Activities --}}
                 @if(!empty($day['activities']))
                     <div class="day-section">
-                        <div class="day-section-label">&#9874; Activities</div>
+                        <div class="day-section-label">• Activities</div>
                         <div class="day-section-content">
                             @foreach($day['activities'] as $act)
                                 <strong>{{ $act['name'] ?? 'Activity' }}</strong>
@@ -470,7 +470,7 @@
                 {{-- Tourist Spots / Points of Interest --}}
                 @if(!empty($day['spots']))
                     <div class="day-section">
-                        <div class="day-section-label">&#9673; Points of Interest</div>
+                        <div class="day-section-label">• Points of Interest</div>
                         <div class="day-section-content">
                             @foreach($day['spots'] as $spot)
                                 <strong>{{ $spot['name'] ?? 'Spot' }}</strong>
@@ -484,21 +484,32 @@
                 @endif
 
                 {{-- Meals --}}
-                @if(!empty($day['meals']))
-                    <div class="day-section">
-                        <div class="day-section-label">&#9749; Meals</div>
-                        <div class="day-section-content">
-                            @foreach($day['meals'] as $m)
-                                {{ $m['name'] ?? 'Meal' }}@if(!$loop->last), @endif
-                            @endforeach
-                        </div>
+                @php
+                    $mealNames = [];
+                    if (!empty($day['meals'])) {
+                        foreach ($day['meals'] as $m) {
+                            $name = trim($m['name'] ?? '');
+                            if ($name !== '') {
+                                $mealNames[] = $name;
+                            }
+                        }
+                    }
+                @endphp
+                <div class="day-section">
+                    <div class="day-section-label">• Meals</div>
+                    <div class="day-section-content">
+                        @if(count($mealNames) > 0)
+                            {{ implode(', ', $mealNames) }}
+                        @else
+                            No Meals
+                        @endif
                     </div>
-                @endif
+                </div>
 
                 {{-- Hotel --}}
                 @if(!empty($day['hotel']['name']))
                     <div class="day-section">
-                        <div class="day-section-label">&#9730; Overnight Stay</div>
+                        <div class="day-section-label">• Overnight Stay</div>
                         <div class="day-section-content">
                             <strong style="background-color: #fff2a3; padding: 2px 4px; border-radius: 2px; color: #2d3436;">{{ $day['hotel']['name'] }}</strong>
                             @if(!empty($day['hotel']['type']))
@@ -511,7 +522,7 @@
                     @foreach($day['hotels'] as $h)
                         @if(!empty($h['name']))
                             <div class="day-section">
-                                <div class="day-section-label">&#9730; Overnight Stay</div>
+                                <div class="day-section-label">• Overnight Stay</div>
                                 <div class="day-section-content">
                                     <strong style="background-color: #fff2a3; padding: 2px 4px; border-radius: 2px; color: #2d3436;">{{ $h['name'] }}</strong>
                                     @if(!empty($h['type']))
@@ -526,7 +537,7 @@
                 {{-- Transport --}}
                 @if(!empty($day['transport']))
                     <div class="day-section">
-                        <div class="day-section-label">&#9992; Transport</div>
+                        <div class="day-section-label">• Transport</div>
                         <div class="day-section-content">
                             @foreach($day['transport'] as $t)
                                 {{ $t['name'] ?? 'Transport' }}@if(!$loop->last), @endif
@@ -538,7 +549,7 @@
                 {{-- Day Notes --}}
                 @if(!empty($day['notes']))
                     <div
-                        style="margin-top:8px; padding:8px 10px; background:#fef9e7; border-left:3px solid #f39c12; font-size:9pt; color:#7d6608; font-style:italic;">
+                        style="margin-top:8px; padding:8px 10px 8px 16px; background:#fef9e7; border-left:3px solid #f39c12; font-size:9pt; color:#7d6608; font-style:italic;">
                         "{{ $day['notes'] }}"
                     </div>
                 @endif
