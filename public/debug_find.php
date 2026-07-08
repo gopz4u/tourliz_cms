@@ -3,7 +3,7 @@ require __DIR__.'/../vendor/autoload.php';
 $app = require_once __DIR__.'/../bootstrap/app.php';
 $app->make('Illuminate\Contracts\Console\Kernel')->bootstrap();
 
-$id = 16;
+$id = 25;
 $itinerary = \App\Models\B2CItinerary::withTrashed()->find($id);
 
 header('Content-Type: text/plain');
