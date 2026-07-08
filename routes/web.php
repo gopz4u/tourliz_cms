@@ -373,3 +373,20 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:admin'])->grou
     Route::post('reviews/{id}/status', [ReviewController::class, 'updateStatus'])->name('reviews.updateStatus');
     Route::resource('reviews', ReviewController::class);
 });
+
+// PWA asset routes to handle root-level requests in subdirectory environments
+Route::get('/manifest.json', function () {
+    return response()->file(public_path('manifest.json'), [
+        'Content-Type' => 'application/json'
+    ]);
+});
+
+Route::get('/service-worker.js', function () {
+    return response()->file(public_path('service-worker.js'), [
+        'Content-Type' => 'application/javascript'
+    ]);
+});
+
+Route::get('/offline.html', function () {
+    return response()->file(public_path('offline.html'));
+});
