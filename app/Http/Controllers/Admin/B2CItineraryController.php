@@ -228,12 +228,12 @@ class B2CItineraryController extends Controller
             $text .= "*Day " . ($day['day'] ?? '?') . ": " . ($day['title'] ?? 'Untitled') . "*\n";
 
             if (!empty($day['hotel']['name'])) {
-                $text .= "🏨 Hotel: " . $day['hotel']['name'] . " (" . ($day['hotel']['type'] ?? 'Standard') . ")\n";
+                $text .= "🏨 Hotel: *" . $day['hotel']['name'] . "* (" . ($day['hotel']['type'] ?? 'Standard') . ")\n";
             }
             if (!empty($day['hotels'])) {
                 foreach ($day['hotels'] as $h) {
                     if (!empty($h['name'])) {
-                        $text .= "🏨 Hotel: " . $h['name'] . " (" . ($h['type'] ?? 'Standard') . ")\n";
+                        $text .= "🏨 Hotel: *" . $h['name'] . "* (" . ($h['type'] ?? 'Standard') . ")\n";
                     }
                 }
             }

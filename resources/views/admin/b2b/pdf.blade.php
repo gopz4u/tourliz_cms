@@ -500,7 +500,7 @@
                     <div class="day-section">
                         <div class="day-section-label">&#9730; Overnight Stay</div>
                         <div class="day-section-content">
-                            <strong>{{ $day['hotel']['name'] }}</strong>
+                            <strong style="background-color: #fff2a3; padding: 2px 4px; border-radius: 2px; color: #2d3436;">{{ $day['hotel']['name'] }}</strong>
                             @if(!empty($day['hotel']['type']))
                                 <span style="color:#636e72;">({{ $day['hotel']['type'] }})</span>
                             @endif
@@ -513,7 +513,7 @@
                             <div class="day-section">
                                 <div class="day-section-label">&#9730; Overnight Stay</div>
                                 <div class="day-section-content">
-                                    <strong>{{ $h['name'] }}</strong>
+                                    <strong style="background-color: #fff2a3; padding: 2px 4px; border-radius: 2px; color: #2d3436;">{{ $h['name'] }}</strong>
                                     @if(!empty($h['type']))
                                         <span style="color:#636e72;">({{ $h['type'] }})</span>
                                     @endif
