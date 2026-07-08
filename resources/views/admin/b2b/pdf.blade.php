@@ -16,22 +16,23 @@
 
         body {
             font-family: 'DejaVu Sans', sans-serif;
-            color: #2d3436;
-            font-size: 10.5pt;
+            color: #334155;
+            font-size: 10pt;
             line-height: 1.6;
         }
 
         /* ── HEADER ── */
         .header-table {
             width: 100%;
-            margin-bottom: 22px;
-            border-bottom: 3px solid #1a73e8;
-            padding-bottom: 14px;
+            margin-bottom: 25px;
+            border-bottom: 2px solid #cbd5e1;
+            padding-bottom: 18px;
         }
 
         .logo-cell {
-            width: 55%;
+            width: 45%;
             text-align: left;
+            vertical-align: top;
         }
 
         .logo-img {
@@ -39,9 +40,10 @@
         }
 
         .logo-text {
-            font-size: 22pt;
+            font-size: 24pt;
             font-weight: 900;
-            color: #1a73e8;
+            color: #0f172a;
+            letter-spacing: -1px;
         }
 
         .logo-text span {
@@ -49,46 +51,52 @@
         }
 
         .company-info {
-            width: 45%;
+            width: 55%;
             text-align: right;
-            font-size: 9pt;
-            color: #636e72;
+            font-size: 8.5pt;
+            color: #475569;
             line-height: 1.5;
+            vertical-align: top;
         }
 
         /* ── TITLE SECTION ── */
         .proposal-title {
-            font-size: 20pt;
+            font-size: 22pt;
             font-weight: 800;
-            color: #1a1a2e;
+            color: #0f172a;
+            letter-spacing: -0.5px;
             margin-bottom: 4px;
         }
 
         .proposal-subtitle {
-            font-size: 10pt;
-            color: #636e72;
-            margin-bottom: 6px;
+            font-size: 10.5pt;
+            color: #475569;
+            margin-bottom: 8px;
         }
 
         .ref-badge {
-            background: #e8f0fe;
-            color: #1a73e8;
-            padding: 3px 10px;
-            font-size: 9pt;
-            font-weight: 600;
+            background: #f1f5f9;
+            color: #475569;
+            padding: 4px 12px;
+            font-size: 8.5pt;
+            font-weight: 700;
+            border-radius: 4px;
+            border: 1px solid #cbd5e1;
+            display: inline-block;
         }
 
         /* ── TRIP SUMMARY BAR ── */
         .summary-bar {
             width: 100%;
-            margin: 16px 0 20px 0;
+            margin: 20px 0 24px 0;
             border-collapse: collapse;
+            border: 1px solid #cbd5e1;
         }
 
         .summary-bar td {
-            background: #f8f9fb;
-            padding: 10px 14px;
-            border-right: 1px solid #e0e0e0;
+            background: #f8fafc;
+            padding: 12px 14px;
+            border-right: 1px solid #cbd5e1;
             text-align: center;
             font-size: 9.5pt;
         }
@@ -98,73 +106,86 @@
         }
 
         .summary-label {
-            color: #636e72;
-            font-size: 8pt;
+            color: #64748b;
+            font-size: 7.5pt;
+            text-transform: uppercase;
+            font-weight: 600;
+            letter-spacing: 0.5px;
             display: block;
-            margin-bottom: 2px;
+            margin-bottom: 3px;
         }
 
         .summary-value {
             font-weight: 700;
-            color: #1a1a2e;
+            color: #0f172a;
+            font-size: 10.5pt;
         }
 
         /* ── DAY BLOCK ── */
         .day-block {
-            margin-bottom: 16px;
-            border: 1px solid #d0d7de;
+            margin-bottom: 20px;
+            border: 1px solid #e2e8f0;
+            border-radius: 4px;
         }
 
         .day-head {
-            background: #1a73e8;
-            color: #fff;
-            padding: 9px 14px;
+            background: #0f172a;
+            color: #ffffff;
+            padding: 10px 16px;
             font-weight: 700;
-            font-size: 11pt;
+            font-size: 11.5pt;
+            letter-spacing: 0.5px;
         }
 
         .day-head .day-num {
-            border: 1px solid rgba(255, 255, 255, 0.35);
-            padding: 2px 9px;
-            margin-right: 8px;
-            font-size: 9pt;
+            border: 1px solid rgba(255, 255, 255, 0.4);
+            padding: 3px 10px;
+            margin-right: 10px;
+            font-size: 8.5pt;
+            font-weight: 700;
+            text-transform: uppercase;
+            border-radius: 3px;
         }
 
         .day-body {
-            padding: 12px 14px;
+            padding: 14px 16px;
         }
 
         .day-section {
             padding: 6px 0 6px 16px;
-            margin-bottom: 12px;
-            border-left: 3px solid #dfe6e9;
+            margin-bottom: 14px;
+            border-left: 3px solid #0284c7;
         }
 
         .day-section-label {
             font-size: 8pt;
             font-weight: 700;
-            color: #636e72;
-            margin-bottom: 3px;
+            color: #0284c7;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 4px;
         }
 
         .day-section-content {
             font-size: 10pt;
-            color: #2d3436;
+            color: #334155;
         }
 
         /* ── PRICING TABLE ── */
         .pricing-section {
-            margin-top: 24px;
+            margin-top: 28px;
             page-break-inside: avoid;
         }
 
         .section-heading {
             font-size: 13pt;
             font-weight: 800;
-            color: #1a1a2e;
-            margin-bottom: 12px;
+            color: #0f172a;
+            margin-bottom: 14px;
             padding-bottom: 6px;
-            border-bottom: 2px solid #1a73e8;
+            border-bottom: 2px solid #0f172a;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
         }
 
         .pricing-table {
@@ -175,43 +196,45 @@
         }
 
         .pricing-table thead th {
-            background: #1a73e8;
+            background: #0f172a;
             color: #fff;
-            padding: 8px 12px;
+            padding: 10px 14px;
             text-align: left;
             font-weight: 600;
             font-size: 9pt;
+            border-bottom: 2px solid #334155;
         }
 
         .pricing-table tbody td {
-            padding: 7px 12px;
-            border-bottom: 1px solid #e8ecf1;
+            padding: 8px 14px;
+            border-bottom: 1px solid #e2e8f0;
             vertical-align: top;
         }
 
         .pricing-table tbody tr:nth-child(even) td {
-            background: #fafbfc;
+            background: #f8fafc;
         }
 
         .price-amount {
-            color: #e67e22;
+            color: #0f172a;
             font-weight: 700;
             white-space: nowrap;
         }
 
         .price-sub {
             font-size: 8pt;
-            color: #999;
+            color: #64748b;
             font-weight: normal;
         }
 
         /* ── GRAND TOTAL BOX ── */
         .grand-total-box {
-            background: #1a1a2e;
+            background: #0f172a;
             color: #fff;
-            padding: 20px 24px;
-            margin-top: 20px;
+            padding: 22px 26px;
+            margin-top: 24px;
             page-break-inside: avoid;
+            border-radius: 4px;
         }
 
         .grand-total-table {
@@ -224,53 +247,63 @@
         }
 
         .grand-label {
-            font-size: 10pt;
+            font-size: 10.5pt;
+            font-weight: 500;
+            color: #cbd5e1;
         }
 
         .grand-amount {
-            font-size: 20pt;
+            font-size: 22pt;
             font-weight: 900;
             text-align: right;
+            color: #ffffff;
         }
 
         .grand-perpax {
-            font-size: 9pt;
-            opacity: 0.7;
+            font-size: 9.5pt;
+            color: #e2e8f0;
             text-align: right;
             padding-top: 4px;
         }
 
+        .grand-perpax small {
+            color: #94a3b8;
+            font-size: 8pt;
+        }
+
         .grand-divider {
             border-top: 1px solid rgba(255, 255, 255, 0.15);
-            margin: 6px 0;
+            margin: 8px 0;
         }
 
         /* ── FOOTER ── */
         .footer {
-            margin-top: 30px;
-            padding-top: 14px;
-            border-top: 1px solid #dfe6e9;
+            margin-top: 40px;
+            padding-top: 16px;
+            border-top: 1px solid #e2e8f0;
             text-align: center;
             font-size: 8.5pt;
-            color: #999;
+            color: #64748b;
             line-height: 1.6;
         }
 
         .footer .brand {
             font-weight: 700;
-            color: #1a73e8;
-            font-size: 9pt;
+            color: #0f172a;
+            font-size: 9.5pt;
+            margin-bottom: 2px;
         }
 
         /* ── INTERNAL PAGE ── */
         .internal-stamp {
-            background: #e74c3c;
+            background: #ef4444;
             color: #fff;
             padding: 8px 16px;
             text-align: center;
             font-weight: 700;
             font-size: 10pt;
             margin-bottom: 18px;
+            border-radius: 3px;
         }
 
         .internal-table {
@@ -280,43 +313,44 @@
         }
 
         .internal-table th {
-            background: #f1f2f6;
+            background: #f1f5f9;
             padding: 8px 12px;
             text-align: left;
             font-weight: 600;
-            border: 1px solid #dfe6e9;
+            border: 1px solid #cbd5e1;
+            color: #334155;
         }
 
         .internal-table td {
             padding: 8px 12px;
-            border: 1px solid #dfe6e9;
+            border: 1px solid #cbd5e1;
         }
 
         .internal-table .highlight-row td {
-            background: #fff3e0;
+            background: #fef3c7;
             font-weight: 700;
-            color: #d35400;
+            color: #b45309;
         }
 
         /* ── TERMS BOX ── */
         .terms-box {
-            margin-top: 20px;
+            margin-top: 24px;
             page-break-inside: avoid;
         }
 
         .terms-box .section-heading {
-            font-size: 11pt;
+            font-size: 11.5pt;
         }
 
         .terms-list {
             font-size: 9pt;
-            color: #636e72;
+            color: #475569;
             padding-left: 18px;
             line-height: 1.8;
         }
 
         .terms-list li {
-            margin-bottom: 3px;
+            margin-bottom: 4px;
         }
     </style>
 </head>
@@ -371,18 +405,27 @@
                     <div class="logo-text">TOUR<span>LIZ</span></div>
                 @endif
             </td>
-            <td class="company-info" style="font-size: 8.5pt; line-height: 1.45; color: #2d3436;">
-                <strong style="font-size: 12pt; color: #1a73e8; display: block; margin-bottom: 4px;">{{ data_get($agency, 'company_name', 'Tourliz') }}</strong>
-                <div style="margin-bottom: 3px;">
-                    <span style="color: #27ae60; font-weight: bold;">WhatsApp:</span><br>
-                    Malaysia: +60102339314 / +60189836532<br>
-                    India: +91 96338 50694
-                </div>
-                <div style="margin-top: 3px; font-weight: 500;">
-                    <span style="color: #1a73e8; text-decoration: none;">www.tourliz.com</span><br>
-                    <span style="color: #e84393;">@tourliz</span>
-                </div>
-                <div style="margin-top: 4px; font-size: 7.5pt; color: #95a5a6; font-style: italic;">
+            <td class="company-info">
+                <div style="font-size: 14pt; font-weight: 800; color: #0f172a; letter-spacing: -0.5px; margin-bottom: 3px;">{{ data_get($agency, 'company_name', 'Tourliz') }}</div>
+                <table style="border-collapse: collapse; margin-left: auto; text-align: right; font-size: 8.5pt; color: #334155;">
+                    <tr>
+                        <td style="padding: 1px 0; color: #64748b; font-weight: 600; vertical-align: top; padding-right: 8px;">WhatsApp (MY):</td>
+                        <td style="padding: 1px 0; font-weight: 500; color: #0f172a;">+60102339314 / +60189836532</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 1px 0; color: #64748b; font-weight: 600; vertical-align: top; padding-right: 8px;">WhatsApp (IN):</td>
+                        <td style="padding: 1px 0; font-weight: 500; color: #0f172a;">+91 96338 50694</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 1px 0; color: #64748b; font-weight: 600; padding-right: 8px;">Website:</td>
+                        <td style="padding: 1px 0; color: #0284c7; font-weight: 600; text-decoration: none;">www.tourliz.com</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 1px 0; color: #64748b; font-weight: 600; padding-right: 8px;">Socials:</td>
+                        <td style="padding: 1px 0; color: #0f172a; font-weight: 500;">@tourliz</td>
+                    </tr>
+                </table>
+                <div style="margin-top: 5px; font-size: 7.5pt; color: #94a3b8; font-style: italic;">
                     {{ !empty($generated_at) ? 'Generated: ' . $generated_at : '' }}
                 </div>
             </td>
