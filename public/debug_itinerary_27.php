@@ -1,7 +1,7 @@
 <?php
 try {
-    require 'c:/xampp/htdocs/tourliz_cms/vendor/autoload.php';
-    $app = require_once 'c:/xampp/htdocs/tourliz_cms/bootstrap/app.php';
+    require __DIR__ . '/../vendor/autoload.php';
+    $app = require_once __DIR__ . '/../bootstrap/app.php';
     $kernel = $app->make(Illuminate\Contracts\Console\Kernel::class);
     $kernel->bootstrap();
 
