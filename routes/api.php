@@ -47,7 +47,7 @@ Route::get('/diagnostic', function () {
 // ============================================
 Route::prefix('auth')->group(function () {
     // Public routes
-    Route::post('/register', [AuthController::class, 'register']);
+    // Route::post('/register', [AuthController::class, 'register']);
     Route::post('/login', [AuthController::class, 'login']);
 
     // Protected routes (require authentication)

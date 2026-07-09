@@ -309,10 +309,6 @@
                     <i class="bi bi-box-arrow-in-right"></i> Login
                 </button>
             </form>
-            
-            <div class="switch-auth">
-                Don't have an account? <a href="{{ route('register') }}">Register here</a>
-            </div>
         </div>
     </div>
     
