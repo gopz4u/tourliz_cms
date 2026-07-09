@@ -45,7 +45,7 @@
                         <div class="row g-2 px-3">
                             <div class="col-6">
                                 <a href="{{ route('admin.b2c-itineraries.pdf', data_get($itinerary, 'id')) }}?public=1"
-                                    class="btn btn-primary btn-sm w-100 py-2">
+                                    class="btn btn-primary btn-sm w-100 py-2" onclick="return confirmPdfDownload(event)">
                                     <i class="bi bi-file-person me-1"></i> Customer Copy
                                 </a>
                             </div>
@@ -57,7 +57,7 @@
                             @if(auth()->user()->isSuperAdmin())
                                 <div class="col-12 mt-2">
                                     <a href="{{ route('admin.b2c-itineraries.pdf', data_get($itinerary, 'id')) }}"
-                                        class="btn btn-outline-dark btn-sm w-100">
+                                        class="btn btn-outline-dark btn-sm w-100" onclick="return confirmPdfDownload(event)">
                                         <i class="bi bi-shield-lock me-1"></i> Download Internal Copy (Admin Only)
                                     </a>
                                 </div>
@@ -1649,8 +1649,31 @@
         window.addDay = () => { itinerary.push({ day: itinerary.length + 1, title: 'Day ' + (itinerary.length + 1), activities: [], spots: [], transport: [], meals: [], hotels: [] }); renderBuilder(); };
         window.removeDay = (idx) => { if (confirm('Delete day?')) { itinerary.splice(idx, 1); renderBuilder(); } };
 
-        window.copyPdfLink = () => { navigator.clipboard.writeText("{{ route('admin.b2c-itineraries.pdf', data_get($itinerary, 'id')) }}?public=1").then(() => alert('Customer PDF Link copied!')); };
+        let isDirty = false;
+        window.confirmPdfDownload = (e) => {
+            if (isDirty) {
+                if (!confirm("Warning: You have unsaved changes. The PDF will generate using the saved database values, which doesn't include your current changes. Please click 'Save Proposal' to apply your changes first. Download anyway?")) {
+                    e.preventDefault();
+                    return false;
+                }
+            }
+            return true;
+        };
+
+        window.copyPdfLink = () => {
+            if (isDirty) {
+                if (!confirm("Warning: You have unsaved changes. The copied link will generate a PDF based on the saved database values, which doesn't include your current changes. Copy anyway?")) {
+                    return;
+                }
+            }
+            navigator.clipboard.writeText("{{ route('admin.b2c-itineraries.pdf', data_get($itinerary, 'id')) }}?public=1").then(() => alert('Customer PDF Link copied!'));
+        };
         window.shareCustomerQuote = () => {
+            if (isDirty) {
+                if (!confirm("Warning: You have unsaved changes. The WhatsApp summary text will reflect your current screen inputs, but the itinerary PDF link in the message will download the old saved proposal. We highly recommend clicking 'Save Proposal' first. Share anyway?")) {
+                    return;
+                }
+            }
             const title = document.getElementById('proposal-title').value;
             const clientName = document.getElementById('client-name').value;
             const adults = document.getElementById('pax-adults').value;
@@ -1844,6 +1867,8 @@
             document.getElementById('formArrivalDate').value = document.getElementById('arrival-date').value;
             document.getElementById('formDuration').value = document.getElementById('trip-duration').value;
             document.getElementById('formNotes').value = document.getElementById('proposal-notes').value;
+            
+            isDirty = false; // Reset dirty flag before submission
             document.getElementById('saveForm').submit();
         });
 
@@ -1855,6 +1880,23 @@
             $(document).on('change', '#expense-category', function() {
                 filterSuppliersByCategory(this.value);
             });
+
+            // Set up automatic dirty checking
+            setTimeout(() => {
+                isDirty = false; // Reset after initial programmatic renders
+                $(document).on('change input', 'input, select, textarea', function() {
+                    isDirty = true;
+                });
+                
+                // Wrap renderBuilder to flag structure edits
+                const originalRender = window.renderBuilder;
+                if (originalRender) {
+                    window.renderBuilder = function(...args) {
+                        isDirty = true;
+                        return originalRender.apply(this, args);
+                    };
+                }
+            }, 1000);
         });
 
         function loadSuppliers() {

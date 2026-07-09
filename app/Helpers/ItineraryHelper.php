@@ -116,7 +116,7 @@ class ItineraryHelper
                     // Check for entry ticket per pax: (adult * qty) + (child * qty)
                     if (isset($act['entry_ticket'])) {
                         $et = $act['entry_ticket'];
-                        $adult_price = (float) ($et['price'] ?? $et['adult_price'] ?? 0);
+                        $adult_price = (float) ($et['adult_price'] ?? $et['price'] ?? 0);
                         $child_2_6_price = (float) ($et['child_2_6_price'] ?? 0);
                         $child_6_11_price = (float) ($et['child_6_11_price'] ?? 0);
 
@@ -146,7 +146,7 @@ class ItineraryHelper
                 foreach ($day['places'] as $place) {
                     if (isset($place['entry_ticket'])) {
                         $et = $place['entry_ticket'];
-                        $adult_price = (float) ($et['price'] ?? $et['adult_price'] ?? 0);
+                        $adult_price = (float) ($et['adult_price'] ?? $et['price'] ?? 0);
                         $child_2_6_price = (float) ($et['child_2_6_price'] ?? 0);
                         $child_6_11_price = (float) ($et['child_6_11_price'] ?? 0);
 

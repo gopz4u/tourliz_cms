@@ -45,7 +45,7 @@
                         <div class="row g-2 px-3">
                             <div class="col-6">
                                 <a href="{{ route('admin.b2b-itineraries.pdf', $itinerary['id']) }}?public=1"
-                                    class="btn btn-primary btn-sm w-100 py-2">
+                                    class="btn btn-primary btn-sm w-100 py-2" onclick="return confirmPdfDownload(event)">
                                     <i class="bi bi-file-person me-1"></i> Customer Copy
                                 </a>
                             </div>
@@ -57,7 +57,7 @@
                             @if(auth()->user()->isSuperAdmin())
                                 <div class="col-12 mt-2">
                                     <a href="{{ route('admin.b2b-itineraries.pdf', $itinerary['id']) }}"
-                                        class="btn btn-outline-dark btn-sm w-100">
+                                        class="btn btn-outline-dark btn-sm w-100" onclick="return confirmPdfDownload(event)">
                                         <i class="bi bi-shield-lock me-1"></i> Download Internal Copy (Admin Only)
                                     </a>
                                 </div>
@@ -1512,67 +1512,15 @@
             };
 
             // --- Sharing Logic ---
-            window.copyPdfLink = () => {
-                const url = "{{ route('admin.b2b-itineraries.pdf', $itinerary['id']) }}?public=1";
-                navigator.clipboard.writeText(url).then(() => {
-                    alert('Customer PDF Link copied to clipboard!');
-                });
-            };
-
-            window.shareCustomerQuote = () => {
-                const title = document.getElementById('proposal-title').value;
-                const clientName = document.getElementById('client-name').value;
-                const adults = document.getElementById('pax-adults').value;
-                const c1 = document.getElementById('pax-child-small').value;
-                const c2 = document.getElementById('pax-child-large').value;
-                const totalPrice = document.getElementById('preview-grand-total').innerText;
-                const totalPriceVal = parseFloat(totalPrice.replace(/[^0-9.]/g, '') || 0);
-                const adultsCount = parseInt(adults || 0);
-                const c1Count = parseInt(c1 || 0);
-                const c2Count = parseInt(c2 || 0);
-                const currency = "{{ $itinerary['currency'] ?? 'INR' }}";
-
-                let adultRate = 0;
-                let childRateS = 0;
-                let childRateL = 0;
-                
-                if (c1Count > 0 || c2Count > 0) {
-                    const weightedPax = (adultsCount * 1.0) + (c1Count * 0.25) + (c2Count * 0.50);
-                    adultRate = weightedPax > 0 ? (totalPriceVal / weightedPax) : 0;
-                    childRateS = adultRate * 0.25;
-                    childRateL = adultRate * 0.50;
-                } else {
-                    adultRate = adultsCount > 0 ? (totalPriceVal / adultsCount) : 0;
-                }
-
-                let text = `*📋 BOOKING PROPOSAL: ${title.toUpperCase()}*\n`;
-                text += `Guest: ${clientName}\n`;
-                text += `Pax: ${adults} Adults`;
-                if (c1 > 0) text += `, ${c1} Child(2-6y)`;
-                if (c2 > 0) text += `, ${c2} Child(6-11y)`;
-                text += `\n\n`;
-
-                text += `*Full Itinerary Summary:*\n`;
-                itinerary.forEach(day => {
-                    text += `*Day ${day.day}: ${day.title || ''}*\n`;
-                    const spots = [...ensureArray(day.spots), ...ensureArray(day.activities)];
-                    if (spots.length > 0) {
-                        spots.forEach(s => {
-                            if (s.name) text += `📍 ${s.name}\n`;
-                        });
+            let isDirty = false;
+            window.confirmPdfDownload = (e) => {
+                if (isDirty) {
+                    if (!confirm("Warning: You have unsaved changes. The PDF will generate using the saved database values, which doesn't include your current changes. Please click 'Save Proposal' to apply your changes first. Download anyway?")) {
+                        e.preventDefault();
+                        return false;
                     }
-                    text += `\n`;
-                });
-
-                text += `*Pricing Details:*\n`;
-                text += `Total Final Quote: ${totalPrice}\n`;
-                text += `Rate Per Adult: ${currency} ${adultRate.toFixed(2)}\n`;
-                if (c1 > 0) text += `Rate Child (2-6y): ${currency} ${childRateS.toFixed(2)}\n`;
-                if (c2 > 0) text += `Rate Child (6-11y): ${currency} ${childRateL.toFixed(2)}\n`;
-
-                text += `\nLink: {{ route('admin.b2b-itineraries.pdf', $itinerary['id']) }}?public=1\n`;
-
-                window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank');
+                }
+                return true;
             };
 
             // --- Day-Wise Driver Share ---
@@ -1660,11 +1608,21 @@
                 if (number) {
                     window.open(`https://api.whatsapp.com/send?phone=${number}&text=${encodeURIComponent(text)}`, '_blank');
                 }
+               window.copyPdfLink = () => {
+                if (isDirty) {
+                    if (!confirm("Warning: You have unsaved changes. The copied link will generate a PDF based on the saved database values, which doesn't include your current changes. Copy anyway?")) {
+                        return;
+                    }
+                }
+                navigator.clipboard.writeText("{{ route('admin.b2b-itineraries.pdf', $itinerary['id']) }}?public=1").then(() => alert('Customer PDF Link copied!'));
             };
 
-            window.copyPdfLink = () => { navigator.clipboard.writeText("{{ route('admin.b2b-itineraries.pdf', $itinerary['id']) }}?public=1").then(() => alert('Customer PDF Link copied!')); };
-
             window.shareCustomerQuote = () => {
+                if (isDirty) {
+                    if (!confirm("Warning: You have unsaved changes. The WhatsApp summary text will reflect your current screen inputs, but the itinerary PDF link in the message will download the old saved proposal. We highly recommend clicking 'Save Proposal' first. Share anyway?")) {
+                        return;
+                    }
+                }
                 const title = document.getElementById('proposal-title').value;
                 const clientName = document.getElementById('client-name').value;
                 const adults = document.getElementById('pax-adults').value;
@@ -1972,6 +1930,7 @@
                         document.getElementById('formArrivalDate').value = document.getElementById('arrival-date').value;
                         document.getElementById('formDuration').value = document.getElementById('trip-duration').value;
 
+                        isDirty = false; // Reset dirty flag before submission
                         document.getElementById('saveForm').submit();
                     });
 
@@ -2706,6 +2665,23 @@
         $(document).ready(function () {
             if (typeof loadExpenses === 'function') loadExpenses();
             if (typeof loadSuppliers === 'function') loadSuppliers();
+
+            // Set up automatic dirty checking
+            setTimeout(() => {
+                isDirty = false; // Reset after initial programmatic renders
+                $(document).on('change input', 'input, select, textarea', function() {
+                    isDirty = true;
+                });
+                
+                // Wrap renderBuilder to flag structure edits
+                const originalRender = window.renderBuilder;
+                if (originalRender) {
+                    window.renderBuilder = function(...args) {
+                        isDirty = true;
+                        return originalRender.apply(this, args);
+                    };
+                }
+            }, 1000);
         });
     </script>
 @endpush
