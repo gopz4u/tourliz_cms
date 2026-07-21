@@ -718,7 +718,7 @@
                 const c1 = safeFloat(document.getElementById('pax-child-small')?.value);
                 const c2 = safeFloat(document.getElementById('pax-child-large')?.value);
                 const totalPax = adults + c1 + c2;
-                
+
                 const paxLabel = document.getElementById('preview-perpax-label');
                 let perPax = 0;
                 if (c1 > 0 || c2 > 0) {
@@ -783,113 +783,113 @@
                 const div = document.createElement('div');
                 div.className = 'card mb-4 border-0 shadow-sm rounded-4 overflow-hidden';
                 div.innerHTML = `
-                                            <div class="card-header bg-white d-flex flex-column flex-md-row justify-content-between align-items-md-center py-3 border-bottom gap-3">
-                                                <div class="d-flex align-items-center flex-grow-1">
-                                                    <span class="badge bg-primary rounded-pill me-3 px-3 py-2 shadow-sm" style="font-size:0.9rem;">Day ${day.day}</span>
-                                                    <div class="input-group">
-                                                        <span class="input-group-text bg-transparent border-0 text-muted px-0"><i class="bi bi-pencil-square"></i></span>
-                                                        <input type="text" class="form-control fw-bold border-0 bg-transparent fs-5 px-2" 
-                                                            value="${day.title || ''}"
-                                                            oninput="window.updateField(${index}, 'title', this.value)"
-                                                            placeholder="Enter Day Title..." style="box-shadow: none;">
-                                                    </div>
-                                                </div>
-                                                <div class="d-flex gap-2">
-                                                    <button type="button" class="btn btn-sm btn-light text-success fw-bold px-3 rounded-pill shadow-sm" onclick="window.shareDayToDriver(${index})" title="Share Job Sheet to Driver">
-                                                        <i class="bi bi-whatsapp"></i> <span class="d-none d-md-inline">Job Sheet</span>
-                                                    </button>
-                                                    <button type="button" class="btn btn-sm btn-light text-danger rounded-circle shadow-sm" style="width:32px;height:32px;padding:0;" onclick="window.removeDay(${index})">
-                                                        <i class="bi bi-trash"></i>
-                                                    </button>
-                                                </div>
-                                            </div>
-                                            <div class="card-body p-3 p-md-4 bg-light">
-                                                <div class="row g-4">
-                                                    <!-- Left: Logistics (Hotels & Transport first for logic flow) -->
-                                                    <div class="col-lg-5 col-md-12 order-2 order-lg-1">
-                                                        <!-- Hotels -->
-                                                        <div class="bg-white p-3 rounded-4 shadow-sm border-0 mb-4">
-                                                            <div class="d-flex justify-content-between align-items-center mb-3">
-                                                                <label class="text-uppercase small fw-bold mb-0" style="color:var(--bs-primary);"><i class="bi bi-building me-2"></i>Hotels</label>
-                                                                <button type="button" class="btn btn-sm btn-primary rounded-pill px-3 py-1 shadow-sm" style="font-size:0.75rem;" onclick="window.openInventoryModal(${index}, 'hotels')"><i class="bi bi-search me-1"></i> Master</button>
+                                                            <div class="card-header bg-white d-flex flex-column flex-md-row justify-content-between align-items-md-center py-3 border-bottom gap-3">
+                                                                <div class="d-flex align-items-center flex-grow-1">
+                                                                    <span class="badge bg-primary rounded-pill me-3 px-3 py-2 shadow-sm" style="font-size:0.9rem;">Day ${day.day}</span>
+                                                                    <div class="input-group">
+                                                                        <span class="input-group-text bg-transparent border-0 text-muted px-0"><i class="bi bi-pencil-square"></i></span>
+                                                                        <input type="text" class="form-control fw-bold border-0 bg-transparent fs-5 px-2" 
+                                                                            value="${day.title || ''}"
+                                                                            oninput="window.updateField(${index}, 'title', this.value)"
+                                                                            placeholder="Enter Day Title..." style="box-shadow: none;">
+                                                                    </div>
+                                                                </div>
+                                                                <div class="d-flex gap-2">
+                                                                    <button type="button" class="btn btn-sm btn-light text-success fw-bold px-3 rounded-pill shadow-sm" onclick="window.shareDayToDriver(${index})" title="Share Job Sheet to Driver">
+                                                                        <i class="bi bi-whatsapp"></i> <span class="d-none d-md-inline">Job Sheet</span>
+                                                                    </button>
+                                                                    <button type="button" class="btn btn-sm btn-light text-danger rounded-circle shadow-sm" style="width:32px;height:32px;padding:0;" onclick="window.removeDay(${index})">
+                                                                        <i class="bi bi-trash"></i>
+                                                                    </button>
+                                                                </div>
                                                             </div>
-                                                            <div id="hotels-container-${index}" class="mb-2"></div>
-                                                            <button type="button" class="btn btn-sm btn-outline-primary w-100 rounded-pill border-dashed mt-2" onclick="window.addItem(${index}, 'hotels')">
-                                                                <i class="bi bi-plus"></i> Add Manual Hotel
-                                                            </button>
-                                                        </div>
+                                                            <div class="card-body p-3 p-md-4 bg-light">
+                                                                <div class="row g-4">
+                                                                    <!-- Left: Logistics (Hotels & Transport first for logic flow) -->
+                                                                    <div class="col-lg-5 col-md-12 order-2 order-lg-1">
+                                                                        <!-- Hotels -->
+                                                                        <div class="bg-white p-3 rounded-4 shadow-sm border-0 mb-4">
+                                                                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                                                                <label class="text-uppercase small fw-bold mb-0" style="color:var(--bs-primary);"><i class="bi bi-building me-2"></i>Hotels</label>
+                                                                                <button type="button" class="btn btn-sm btn-primary rounded-pill px-3 py-1 shadow-sm" style="font-size:0.75rem;" onclick="window.openInventoryModal(${index}, 'hotels')"><i class="bi bi-search me-1"></i> Master</button>
+                                                                            </div>
+                                                                            <div id="hotels-container-${index}" class="mb-2"></div>
+                                                                            <button type="button" class="btn btn-sm btn-outline-primary w-100 rounded-pill border-dashed mt-2" onclick="window.addItem(${index}, 'hotels')">
+                                                                                <i class="bi bi-plus"></i> Add Manual Hotel
+                                                                            </button>
+                                                                        </div>
 
-                                                        <!-- Transport -->
-                                                        <div class="bg-white p-3 rounded-4 shadow-sm border-0 mb-3">
-                                                            <div class="d-flex justify-content-between align-items-center mb-3">
-                                                                <label class="text-uppercase small fw-bold mb-0 text-secondary"><i class="bi bi-car-front me-2"></i>Transport</label>
-                                                                <button type="button" class="btn btn-sm btn-secondary rounded-pill px-3 py-1 shadow-sm" style="font-size:0.75rem;" onclick="window.openInventoryModal(${index}, 'transports')"><i class="bi bi-search me-1"></i> Master</button>
-                                                            </div>
-                                                            <div id="transports-container-${index}"></div>
-                                                            <button type="button" class="btn btn-sm btn-outline-secondary w-100 rounded-pill border-dashed mt-2" onclick="window.addItem(${index}, 'transports')">
-                                                                <i class="bi bi-plus"></i> Add Manual Transport
-                                                            </button>
-                                                        </div>
-                                                    </div>
+                                                                        <!-- Transport -->
+                                                                        <div class="bg-white p-3 rounded-4 shadow-sm border-0 mb-3">
+                                                                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                                                                <label class="text-uppercase small fw-bold mb-0 text-secondary"><i class="bi bi-car-front me-2"></i>Transport</label>
+                                                                                <button type="button" class="btn btn-sm btn-secondary rounded-pill px-3 py-1 shadow-sm" style="font-size:0.75rem;" onclick="window.openInventoryModal(${index}, 'transports')"><i class="bi bi-search me-1"></i> Master</button>
+                                                                            </div>
+                                                                            <div id="transports-container-${index}"></div>
+                                                                            <button type="button" class="btn btn-sm btn-outline-secondary w-100 rounded-pill border-dashed mt-2" onclick="window.addItem(${index}, 'transports')">
+                                                                                <i class="bi bi-plus"></i> Add Manual Transport
+                                                                            </button>
+                                                                        </div>
+                                                                    </div>
 
-                                                    <!-- Right: Daily Itinerary Items -->
-                                                    <div class="col-lg-7 col-md-12 order-1 order-lg-2">
-                                                        <!-- Destinations / Spots -->
-                                                        <div class="bg-white p-3 rounded-4 shadow-sm border-0 mb-4">
-                                                            <div class="d-flex justify-content-between align-items-center mb-3">
-                                                                <label class="text-uppercase small fw-bold mb-0 text-info"><i class="bi bi-geo-alt me-2"></i>Tourist Spots</label>
-                                                                <button type="button" class="btn btn-sm btn-info text-white rounded-pill px-3 py-1 shadow-sm" style="font-size:0.75rem;" onclick="window.openInventoryModal(${index}, 'spots')"><i class="bi bi-search"></i></button>
-                                                            </div>
-                                                            <div id="spots-container-${index}" class="mb-2"></div>
-                                                            <button type="button" class="btn btn-sm btn-outline-info w-100 rounded-pill border-dashed" onclick="window.addItem(${index}, 'spots')">
-                                                                <i class="bi bi-plus"></i> Add Tourist Spot
-                                                            </button>
-                                                        </div>
+                                                                    <!-- Right: Daily Itinerary Items -->
+                                                                    <div class="col-lg-7 col-md-12 order-1 order-lg-2">
+                                                                        <!-- Destinations / Spots -->
+                                                                        <div class="bg-white p-3 rounded-4 shadow-sm border-0 mb-4">
+                                                                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                                                                <label class="text-uppercase small fw-bold mb-0 text-info"><i class="bi bi-geo-alt me-2"></i>Tourist Spots</label>
+                                                                                <button type="button" class="btn btn-sm btn-info text-white rounded-pill px-3 py-1 shadow-sm" style="font-size:0.75rem;" onclick="window.openInventoryModal(${index}, 'spots')"><i class="bi bi-search"></i></button>
+                                                                            </div>
+                                                                            <div id="spots-container-${index}" class="mb-2"></div>
+                                                                            <button type="button" class="btn btn-sm btn-outline-info w-100 rounded-pill border-dashed" onclick="window.addItem(${index}, 'spots')">
+                                                                                <i class="bi bi-plus"></i> Add Tourist Spot
+                                                                            </button>
+                                                                        </div>
 
-                                                        <!-- Activities -->
-                                                        <div class="bg-white p-3 rounded-4 shadow-sm border-0 mb-4">
-                                                            <div class="d-flex justify-content-between align-items-center mb-3">
-                                                                <label class="text-uppercase small fw-bold mb-0 text-warning"><i class="bi bi-lightning me-2"></i>Activities</label>
-                                                                <button type="button" class="btn btn-sm btn-warning text-dark rounded-pill px-3 py-1 shadow-sm" style="font-size:0.75rem;" onclick="window.openInventoryModal(${index}, 'activities')"><i class="bi bi-search"></i></button>
-                                                            </div>
-                                                            <div id="activities-container-${index}" class="mb-2"></div>
-                                                            <button type="button" class="btn btn-sm btn-outline-warning text-dark w-100 rounded-pill border-dashed" onclick="window.addItem(${index}, 'activities')">
-                                                                <i class="bi bi-plus"></i> Add Activity
-                                                            </button>
-                                                        </div>
+                                                                        <!-- Activities -->
+                                                                        <div class="bg-white p-3 rounded-4 shadow-sm border-0 mb-4">
+                                                                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                                                                <label class="text-uppercase small fw-bold mb-0 text-warning"><i class="bi bi-lightning me-2"></i>Activities</label>
+                                                                                <button type="button" class="btn btn-sm btn-warning text-dark rounded-pill px-3 py-1 shadow-sm" style="font-size:0.75rem;" onclick="window.openInventoryModal(${index}, 'activities')"><i class="bi bi-search"></i></button>
+                                                                            </div>
+                                                                            <div id="activities-container-${index}" class="mb-2"></div>
+                                                                            <button type="button" class="btn btn-sm btn-outline-warning text-dark w-100 rounded-pill border-dashed" onclick="window.addItem(${index}, 'activities')">
+                                                                                <i class="bi bi-plus"></i> Add Activity
+                                                                            </button>
+                                                                        </div>
 
-                                                        <!-- Tickets -->
-                                                        <div class="bg-white p-3 rounded-4 shadow-sm border-0 mb-4">
-                                                            <div class="d-flex justify-content-between align-items-center mb-3">
-                                                                <label class="text-uppercase small fw-bold mb-0 text-danger"><i class="bi bi-ticket-perforated me-2"></i>Entry Tickets</label>
-                                                                <button type="button" class="btn btn-sm btn-danger rounded-pill px-3 py-1 shadow-sm" style="font-size:0.75rem;" onclick="window.openInventoryModal(${index}, 'tickets')"><i class="bi bi-search"></i></button>
-                                                            </div>
-                                                            <div id="tickets-container-${index}" class="mb-2"></div>
-                                                            <button type="button" class="btn btn-sm btn-outline-danger w-100 rounded-pill border-dashed" onclick="window.addItem(${index}, 'tickets')">
-                                                                <i class="bi bi-plus"></i> Add Ticket
-                                                            </button>
-                                                        </div>
+                                                                        <!-- Tickets -->
+                                                                        <div class="bg-white p-3 rounded-4 shadow-sm border-0 mb-4">
+                                                                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                                                                <label class="text-uppercase small fw-bold mb-0 text-danger"><i class="bi bi-ticket-perforated me-2"></i>Entry Tickets</label>
+                                                                                <button type="button" class="btn btn-sm btn-danger rounded-pill px-3 py-1 shadow-sm" style="font-size:0.75rem;" onclick="window.openInventoryModal(${index}, 'tickets')"><i class="bi bi-search"></i></button>
+                                                                            </div>
+                                                                            <div id="tickets-container-${index}" class="mb-2"></div>
+                                                                            <button type="button" class="btn btn-sm btn-outline-danger w-100 rounded-pill border-dashed" onclick="window.addItem(${index}, 'tickets')">
+                                                                                <i class="bi bi-plus"></i> Add Ticket
+                                                                            </button>
+                                                                        </div>
 
-                                                        <!-- Meals -->
-                                                        <div class="bg-white p-3 rounded-4 shadow-sm border-0 mb-4">
-                                                            <div class="d-flex justify-content-between align-items-center mb-3">
-                                                                <label class="text-uppercase small fw-bold mb-0 text-success"><i class="bi bi-cup-hot me-2"></i>Meals</label>
-                                                                <button type="button" class="btn btn-sm btn-success rounded-pill px-3 py-1 shadow-sm" style="font-size:0.75rem;" onclick="window.openInventoryModal(${index}, 'meals')"><i class="bi bi-search"></i></button>
-                                                            </div>
-                                                            <div id="meals-container-${index}" class="mb-2"></div>
-                                                            <button type="button" class="btn btn-sm btn-outline-success w-100 rounded-pill border-dashed" onclick="window.addItem(${index}, 'meals')">
-                                                                <i class="bi bi-plus"></i> Add Meal
-                                                            </button>
-                                                        </div>
-                                                    </div>
-                                                </div>
+                                                                        <!-- Meals -->
+                                                                        <div class="bg-white p-3 rounded-4 shadow-sm border-0 mb-4">
+                                                                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                                                                <label class="text-uppercase small fw-bold mb-0 text-success"><i class="bi bi-cup-hot me-2"></i>Meals</label>
+                                                                                <button type="button" class="btn btn-sm btn-success rounded-pill px-3 py-1 shadow-sm" style="font-size:0.75rem;" onclick="window.openInventoryModal(${index}, 'meals')"><i class="bi bi-search"></i></button>
+                                                                            </div>
+                                                                            <div id="meals-container-${index}" class="mb-2"></div>
+                                                                            <button type="button" class="btn btn-sm btn-outline-success w-100 rounded-pill border-dashed" onclick="window.addItem(${index}, 'meals')">
+                                                                                <i class="bi bi-plus"></i> Add Meal
+                                                                            </button>
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
 
-                                                <div class="mt-4 bg-white p-3 rounded-4 shadow-sm border-0">
-                                                    <label class="small fw-bold text-muted text-uppercase mb-2"><i class="bi bi-journal-text me-1"></i> Day Flow / Notes</label>
-                                                    <textarea class="form-control bg-light border-0" placeholder="Describe the day's flow..." rows="2" style="resize:none;"
-                                                    oninput="window.updateField(${index}, 'notes', this.value)">${day.notes || ''}</textarea>
-                                                </div>
-                                            </div>`;
+                                                                <div class="mt-4 bg-white p-3 rounded-4 shadow-sm border-0">
+                                                                    <label class="small fw-bold text-muted text-uppercase mb-2"><i class="bi bi-journal-text me-1"></i> Day Flow / Notes</label>
+                                                                    <textarea class="form-control bg-light border-0" placeholder="Describe the day's flow..." rows="2" style="resize:none;"
+                                                                    oninput="window.updateField(${index}, 'notes', this.value)">${day.notes || ''}</textarea>
+                                                                </div>
+                                                            </div>`;
                 return div;
             }
 
@@ -913,9 +913,9 @@
                     placeholder.className = 'text-center p-3 border border-dashed rounded-3 text-muted mb-2';
                     placeholder.style.cssText = 'font-size: 0.8rem; background-color: #fafafa; border-color: #dee2e6 !important;';
                     placeholder.innerHTML = `
-                                                <i class="bi bi-building fs-5 d-block mb-1 text-primary"></i>
-                                                No hotels added yet — click "Master" to search inventory or "Add Manual" to enter custom details.
-                                            `;
+                                                                <i class="bi bi-building fs-5 d-block mb-1 text-primary"></i>
+                                                                No hotels added yet — click "Master" to search inventory or "Add Manual" to enter custom details.
+                                                            `;
                     container.appendChild(placeholder);
                     return;
                 }
@@ -924,41 +924,41 @@
                     const row = document.createElement('div');
                     row.className = 'mb-3 bg-light rounded-3 p-2 border position-relative';
                     row.innerHTML = `
-                                                <div class="d-flex flex-wrap flex-md-nowrap gap-2 mb-2">
-                                                    <input type="text" class="form-control fw-bold border-0 bg-transparent flex-grow-1" placeholder="Hotel Name"
-                                                        value="${hotel.name || ''}" style="box-shadow:none; font-size: 1rem;"
-                                                        oninput="window.updateListItem(${dayIndex}, 'hotels', ${hIndex}, 'name', this.value)">
+                                                                <div class="d-flex flex-wrap flex-md-nowrap gap-2 mb-2">
+                                                                    <input type="text" class="form-control fw-bold border-0 bg-transparent flex-grow-1" placeholder="Hotel Name"
+                                                                        value="${hotel.name || ''}" style="box-shadow:none; font-size: 1rem;"
+                                                                        oninput="window.updateListItem(${dayIndex}, 'hotels', ${hIndex}, 'name', this.value)">
 
-                                                    <div class="d-flex align-items-center gap-1 flex-shrink-0">
-                                                        <button type="button" class="btn btn-sm btn-outline-primary rounded-circle border-0" onclick="window.pushToExpenses(${dayIndex}, 'hotels', ${hIndex})" title="Record as Actual Cost"><i class="bi bi-cash-coin"></i></button>
-                                                        <button type="button" class="btn btn-sm btn-outline-success rounded-circle border-0" onclick="window.shareHotelRequest(${dayIndex}, ${hIndex})" title="Share WP Booking"><i class="bi bi-whatsapp"></i></button>
-                                                        <button type="button" class="btn btn-sm btn-outline-danger rounded-circle border-0" onclick="window.removeItem(${dayIndex}, 'hotels', ${hIndex})"><i class="bi bi-x-lg"></i></button>
-                                                    </div>
-                                                </div>
-                                                <input type="text" class="form-control form-control-sm border-0 mb-2 bg-white" placeholder="Room Type (e.g. Deluxe Room)"
-                                                    value="${hotel.type || ''}"
-                                                    oninput="window.updateListItem(${dayIndex}, 'hotels', ${hIndex}, 'type', this.value)">
+                                                                    <div class="d-flex align-items-center gap-1 flex-shrink-0">
+                                                                        <button type="button" class="btn btn-sm btn-outline-primary rounded-circle border-0" onclick="window.pushToExpenses(${dayIndex}, 'hotels', ${hIndex})" title="Record as Actual Cost"><i class="bi bi-cash-coin"></i></button>
+                                                                        <button type="button" class="btn btn-sm btn-outline-success rounded-circle border-0" onclick="window.shareHotelRequest(${dayIndex}, ${hIndex})" title="Share WP Booking"><i class="bi bi-whatsapp"></i></button>
+                                                                        <button type="button" class="btn btn-sm btn-outline-danger rounded-circle border-0" onclick="window.removeItem(${dayIndex}, 'hotels', ${hIndex})"><i class="bi bi-x-lg"></i></button>
+                                                                    </div>
+                                                                </div>
+                                                                <input type="text" class="form-control form-control-sm border-0 mb-2 bg-white" placeholder="Room Type (e.g. Deluxe Room)"
+                                                                    value="${hotel.type || ''}"
+                                                                    oninput="window.updateListItem(${dayIndex}, 'hotels', ${hIndex}, 'type', this.value)">
 
-                                                <div class="d-flex flex-wrap gap-2 text-nowrap">
-                                                    <div class="input-group input-group-sm flex-fill" style="min-width: 90px;">
-                                                        <span class="input-group-text bg-white border-0 text-muted px-2"><i class="bi bi-key"></i></span>
-                                                        <input type="number" class="form-control border-0 pt-1" placeholder="Qty"
-                                                            value="${hotel.quantity || 1}"
-                                                            oninput="window.updateListItem(${dayIndex}, 'hotels', ${hIndex}, 'quantity', this.value)">
-                                                    </div>
-                                                    <div class="input-group input-group-sm flex-fill" style="min-width: 120px;">
-                                                        <span class="input-group-text bg-white border-0 text-muted px-2">${currency}</span>
-                                                        <input type="number" class="form-control border-0 pt-1" placeholder="Rate/Night"
-                                                            value="${hotel.price_per_night || 0}"
-                                                            oninput="window.updateListItem(${dayIndex}, 'hotels', ${hIndex}, 'price_per_night', this.value)">
-                                                    </div>
-                                                    <div class="input-group input-group-sm flex-fill" style="min-width: 100px;">
-                                                        <span class="input-group-text bg-white border-0 text-muted px-2">+Addon</span>
-                                                        <input type="number" class="form-control border-0 pt-1" placeholder="Addon"
-                                                            value="${hotel.add_on_price || 0}"
-                                                            oninput="window.updateListItem(${dayIndex}, 'hotels', ${hIndex}, 'add_on_price', this.value)">
-                                                    </div>
-                                                </div>`;
+                                                                <div class="d-flex flex-wrap gap-2 text-nowrap">
+                                                                    <div class="input-group input-group-sm flex-fill" style="min-width: 90px;">
+                                                                        <span class="input-group-text bg-white border-0 text-muted px-2"><i class="bi bi-key"></i></span>
+                                                                        <input type="number" class="form-control border-0 pt-1" placeholder="Qty"
+                                                                            value="${hotel.quantity || 1}"
+                                                                            oninput="window.updateListItem(${dayIndex}, 'hotels', ${hIndex}, 'quantity', this.value)">
+                                                                    </div>
+                                                                    <div class="input-group input-group-sm flex-fill" style="min-width: 120px;">
+                                                                        <span class="input-group-text bg-white border-0 text-muted px-2">${currency}</span>
+                                                                        <input type="number" class="form-control border-0 pt-1" placeholder="Rate/Night"
+                                                                            value="${hotel.price_per_night || 0}"
+                                                                            oninput="window.updateListItem(${dayIndex}, 'hotels', ${hIndex}, 'price_per_night', this.value)">
+                                                                    </div>
+                                                                    <div class="input-group input-group-sm flex-fill" style="min-width: 100px;">
+                                                                        <span class="input-group-text bg-white border-0 text-muted px-2">+Addon</span>
+                                                                        <input type="number" class="form-control border-0 pt-1" placeholder="Addon"
+                                                                            value="${hotel.add_on_price || 0}"
+                                                                            oninput="window.updateListItem(${dayIndex}, 'hotels', ${hIndex}, 'add_on_price', this.value)">
+                                                                    </div>
+                                                                </div>`;
                     container.appendChild(row);
                 });
             }
@@ -1019,9 +1019,9 @@
                     }
 
                     placeholder.innerHTML = `
-                                                <i class="bi ${icon} fs-5 d-block mb-1 ${colorClass}"></i>
-                                                No ${textName} added yet — click ${searchBtn} to search inventory or ${addBtn} to enter custom details.
-                                            `;
+                                                                <i class="bi ${icon} fs-5 d-block mb-1 ${colorClass}"></i>
+                                                                No ${textName} added yet — click ${searchBtn} to search inventory or ${addBtn} to enter custom details.
+                                                            `;
                     container.appendChild(placeholder);
                     return;
                 }
@@ -1033,20 +1033,20 @@
                     const nameField = type === 'tickets' ? 'attraction_name' : 'name';
 
                     let html = `
-                                                <div class="d-flex gap-2 mb-2 align-items-center flex-wrap flex-md-nowrap">
-                                                    <input type="text" class="form-control fw-bold border-0 bg-white shadow-sm flex-grow-1" placeholder="Name" 
-                                                        value="${item[nameField] || ''}" 
-                                                        oninput="window.updateListItem(${dayIndex}, '${type}', ${itemIndex}, '${nameField}', this.value)">
+                                                                <div class="d-flex gap-2 mb-2 align-items-center flex-wrap flex-md-nowrap">
+                                                                    <input type="text" class="form-control fw-bold border-0 bg-white shadow-sm flex-grow-1" placeholder="Name" 
+                                                                        value="${item[nameField] || ''}" 
+                                                                        oninput="window.updateListItem(${dayIndex}, '${type}', ${itemIndex}, '${nameField}', this.value)">
 
-                                                    <div class="d-flex align-items-center flex-shrink-0">
-                                                        <button type="button" class="btn btn-sm btn-outline-primary border-0 rounded-circle" onclick="window.pushToExpenses(${dayIndex}, '${type}', ${itemIndex})" title="Record as Actual Cost"><i class="bi bi-cash-coin"></i></button>
-                                                        <button type="button" class="btn btn-sm btn-outline-danger border-0 rounded-circle" onclick="window.removeItem(${dayIndex}, '${type}', ${itemIndex})"><i class="bi bi-x-lg"></i></button>
-                                                    </div>
-                                                </div>
-                                                <input type="text" class="form-control form-control-sm border-0 bg-transparent mb-2" placeholder="Description... (optional)"
-                                                    value="${item.description || ''}"
-                                                    onchange="window.updateListItem(${dayIndex}, '${type}', ${itemIndex}, 'description', this.value)">
-                                            `;
+                                                                    <div class="d-flex align-items-center flex-shrink-0">
+                                                                        <button type="button" class="btn btn-sm btn-outline-primary border-0 rounded-circle" onclick="window.pushToExpenses(${dayIndex}, '${type}', ${itemIndex})" title="Record as Actual Cost"><i class="bi bi-cash-coin"></i></button>
+                                                                        <button type="button" class="btn btn-sm btn-outline-danger border-0 rounded-circle" onclick="window.removeItem(${dayIndex}, '${type}', ${itemIndex})"><i class="bi bi-x-lg"></i></button>
+                                                                    </div>
+                                                                </div>
+                                                                <input type="text" class="form-control form-control-sm border-0 bg-transparent mb-2" placeholder="Description... (optional)"
+                                                                    value="${item.description || ''}"
+                                                                    onchange="window.updateListItem(${dayIndex}, '${type}', ${itemIndex}, 'description', this.value)">
+                                                            `;
 
                     if (type !== 'spots' && type !== 'activities' && type !== 'tickets') {
                         const priceValue = (type === 'transports' || type === 'meals') ? (item.price || 0) : (item.entry_ticket?.price || 0);
@@ -1057,64 +1057,64 @@
                             : `window.updateListItemNested(${dayIndex}, '${type}', ${itemIndex}, 'entry_ticket', 'price', this.value)`;
 
                         html += `
-                                                    <div class="d-flex flex-wrap gap-2 mt-2 px-1">
-                                                        <div class="input-group input-group-sm flex-fill shadow-sm" style="min-width: 120px;">
-                                                            <span class="input-group-text bg-white border-0 text-muted px-2">${currency}</span>
-                                                            <input type="number" class="form-control border-0 pt-1" placeholder="Price" value="${priceValue}" oninput="${onPriceChange}">
-                                                        </div>
-                                                        ${type === 'meals' ? `
-                                                        <div class="input-group input-group-sm flex-fill shadow-sm" style="min-width: 80px;">
-                                                            <span class="input-group-text bg-white border-0 text-muted px-2">Qty</span>
-                                                            <input type="number" class="form-control border-0 pt-1" value="${qtyValue}" onchange="window.updateListItem(${dayIndex}, '${type}', ${itemIndex}, 'quantity', this.value)">
-                                                        </div>` : ''}
-                                                    </div>`;
+                                                                    <div class="d-flex flex-wrap gap-2 mt-2 px-1">
+                                                                        <div class="input-group input-group-sm flex-fill shadow-sm" style="min-width: 120px;">
+                                                                            <span class="input-group-text bg-white border-0 text-muted px-2">${currency}</span>
+                                                                            <input type="number" class="form-control border-0 pt-1" placeholder="Price" value="${priceValue}" oninput="${onPriceChange}">
+                                                                        </div>
+                                                                        ${type === 'meals' ? `
+                                                                        <div class="input-group input-group-sm flex-fill shadow-sm" style="min-width: 80px;">
+                                                                            <span class="input-group-text bg-white border-0 text-muted px-2">Qty</span>
+                                                                            <input type="number" class="form-control border-0 pt-1" value="${qtyValue}" onchange="window.updateListItem(${dayIndex}, '${type}', ${itemIndex}, 'quantity', this.value)">
+                                                                        </div>` : ''}
+                                                                    </div>`;
                     } else if (type === 'spots') {
                         html += `
-                                                    <div class="d-flex flex-wrap flex-md-nowrap gap-2 mt-2 px-1">
-                                                        <div class="input-group input-group-sm flex-fill shadow-sm">
-                                                            <span class="input-group-text bg-white border-0 text-muted px-2"><i class="bi bi-clock me-1"></i> Hrs</span>
-                                                            <input type="number" class="form-control border-0 pt-1" value="${item.hours || 0}" onchange="window.updateListItem(${dayIndex}, 'spots', ${itemIndex}, 'hours', this.value)">
-                                                        </div>
-                                                        <div class="input-group input-group-sm flex-fill shadow-sm">
-                                                            <span class="input-group-text bg-white border-0 text-muted px-2 text-nowrap">${currency}/hr</span>
-                                                            <input type="number" class="form-control border-0 pt-1" value="${item.price_per_hour || 0}" onchange="window.updateListItem(${dayIndex}, 'spots', ${itemIndex}, 'price_per_hour', this.value)">
-                                                        </div>
-                                                    </div>`;
+                                                                    <div class="d-flex flex-wrap flex-md-nowrap gap-2 mt-2 px-1">
+                                                                        <div class="input-group input-group-sm flex-fill shadow-sm">
+                                                                            <span class="input-group-text bg-white border-0 text-muted px-2"><i class="bi bi-clock me-1"></i> Hrs</span>
+                                                                            <input type="number" class="form-control border-0 pt-1" value="${item.hours || 0}" onchange="window.updateListItem(${dayIndex}, 'spots', ${itemIndex}, 'hours', this.value)">
+                                                                        </div>
+                                                                        <div class="input-group input-group-sm flex-fill shadow-sm">
+                                                                            <span class="input-group-text bg-white border-0 text-muted px-2 text-nowrap">${currency}/hr</span>
+                                                                            <input type="number" class="form-control border-0 pt-1" value="${item.price_per_hour || 0}" onchange="window.updateListItem(${dayIndex}, 'spots', ${itemIndex}, 'price_per_hour', this.value)">
+                                                                        </div>
+                                                                    </div>`;
                     } else if (type === 'activities' || type === 'tickets') {
                         const et = item.entry_ticket || {};
                         html += `
-                                                    <div class="mt-2 pt-2 border-top border-light border-2">
-                                                        <div class="row g-2 text-center text-muted small fw-bold mb-1">
-                                                            <div class="col-4 text-start">Pax Type</div>
-                                                            <div class="col-3">Qty</div>
-                                                            <div class="col-5">Price (${currency})</div>
-                                                        </div>
-                                                        <div class="row g-2 align-items-center mb-2">
-                                                            <div class="col-4 small text-secondary fw-semibold">Adult</div>
-                                                            <div class="col-3"><input type="number" class="form-control form-control-sm border-0 shadow-sm px-2 text-center" value="${et.adult_qty || 0}" oninput="window.updateListItemNested(${dayIndex}, '${type}', ${itemIndex}, 'entry_ticket', 'adult_qty', this.value)"></div>
-                                                            <div class="col-5"><input type="number" class="form-control form-control-sm border-0 shadow-sm px-2" value="${et.adult_price || et.price || 0}" oninput="window.updateListItemNested(${dayIndex}, '${type}', ${itemIndex}, 'entry_ticket', 'adult_price', this.value)"></div>
-                                                        </div>
-                                                        <div class="row g-2 align-items-center mb-2">
-                                                            <div class="col-4 small text-secondary fw-semibold">Child 2-6</div>
-                                                            <div class="col-3"><input type="number" class="form-control form-control-sm border-0 shadow-sm px-2 text-center" value="${et.child_2_6_qty || 0}" oninput="window.updateListItemNested(${dayIndex}, '${type}', ${itemIndex}, 'entry_ticket', 'child_2_6_qty', this.value)"></div>
-                                                            <div class="col-5"><input type="number" class="form-control form-control-sm border-0 shadow-sm px-2" value="${et.child_2_6_price || 0}" oninput="window.updateListItemNested(${dayIndex}, '${type}', ${itemIndex}, 'entry_ticket', 'child_2_6_price', this.value)"></div>
-                                                        </div>
-                                                        <div class="row g-2 align-items-center mb-2">
-                                                            <div class="col-4 small text-secondary fw-semibold">Child 6-11</div>
-                                                            <div class="col-3"><input type="number" class="form-control form-control-sm border-0 shadow-sm px-2 text-center" value="${et.child_6_11_qty || 0}" oninput="window.updateListItemNested(${dayIndex}, '${type}', ${itemIndex}, 'entry_ticket', 'child_6_11_qty', this.value)"></div>
-                                                            <div class="col-5"><input type="number" class="form-control form-control-sm border-0 shadow-sm px-2" value="${et.child_6_11_price || 0}" oninput="window.updateListItemNested(${dayIndex}, '${type}', ${itemIndex}, 'entry_ticket', 'child_6_11_price', this.value)"></div>
-                                                        </div>
-                                                        ${type === 'activities' ? `
-                                                        <div class="row g-2 mt-2 pt-2 border-top border-light border-2 align-items-center">
-                                                            <div class="col-12 col-md-4 small text-secondary fw-semibold"><i class="bi bi-stopwatch text-warning me-1"></i> Extra Hour</div>
-                                                            <div class="col-6 col-md-3">
-                                                                <div class="input-group input-group-sm shadow-sm"><span class="input-group-text bg-white border-0 text-muted px-2">Hrs</span><input type="number" class="form-control border-0 px-2" value="${item.hours || ''}" onchange="window.updateListItem(${dayIndex}, 'activities', ${itemIndex}, 'hours', this.value)"></div>
-                                                            </div>
-                                                            <div class="col-6 col-md-5">
-                                                                <div class="input-group input-group-sm shadow-sm"><span class="input-group-text bg-white border-0 text-muted px-2">Rate</span><input type="number" class="form-control border-0 px-2" value="${item.price_per_hour || ''}" onchange="window.updateListItem(${dayIndex}, 'activities', ${itemIndex}, 'price_per_hour', this.value)"></div>
-                                                            </div>
-                                                        </div>` : ''}
-                                                    </div>`;
+                                                                    <div class="mt-2 pt-2 border-top border-light border-2">
+                                                                        <div class="row g-2 text-center text-muted small fw-bold mb-1">
+                                                                            <div class="col-4 text-start">Pax Type</div>
+                                                                            <div class="col-3">Qty</div>
+                                                                            <div class="col-5">Price (${currency})</div>
+                                                                        </div>
+                                                                        <div class="row g-2 align-items-center mb-2">
+                                                                            <div class="col-4 small text-secondary fw-semibold">Adult</div>
+                                                                            <div class="col-3"><input type="number" class="form-control form-control-sm border-0 shadow-sm px-2 text-center" value="${et.adult_qty || 0}" oninput="window.updateListItemNested(${dayIndex}, '${type}', ${itemIndex}, 'entry_ticket', 'adult_qty', this.value)"></div>
+                                                                            <div class="col-5"><input type="number" class="form-control form-control-sm border-0 shadow-sm px-2" value="${et.adult_price || et.price || 0}" oninput="window.updateListItemNested(${dayIndex}, '${type}', ${itemIndex}, 'entry_ticket', 'adult_price', this.value)"></div>
+                                                                        </div>
+                                                                        <div class="row g-2 align-items-center mb-2">
+                                                                            <div class="col-4 small text-secondary fw-semibold">Child 2-6</div>
+                                                                            <div class="col-3"><input type="number" class="form-control form-control-sm border-0 shadow-sm px-2 text-center" value="${et.child_2_6_qty || 0}" oninput="window.updateListItemNested(${dayIndex}, '${type}', ${itemIndex}, 'entry_ticket', 'child_2_6_qty', this.value)"></div>
+                                                                            <div class="col-5"><input type="number" class="form-control form-control-sm border-0 shadow-sm px-2" value="${et.child_2_6_price || 0}" oninput="window.updateListItemNested(${dayIndex}, '${type}', ${itemIndex}, 'entry_ticket', 'child_2_6_price', this.value)"></div>
+                                                                        </div>
+                                                                        <div class="row g-2 align-items-center mb-2">
+                                                                            <div class="col-4 small text-secondary fw-semibold">Child 6-11</div>
+                                                                            <div class="col-3"><input type="number" class="form-control form-control-sm border-0 shadow-sm px-2 text-center" value="${et.child_6_11_qty || 0}" oninput="window.updateListItemNested(${dayIndex}, '${type}', ${itemIndex}, 'entry_ticket', 'child_6_11_qty', this.value)"></div>
+                                                                            <div class="col-5"><input type="number" class="form-control form-control-sm border-0 shadow-sm px-2" value="${et.child_6_11_price || 0}" oninput="window.updateListItemNested(${dayIndex}, '${type}', ${itemIndex}, 'entry_ticket', 'child_6_11_price', this.value)"></div>
+                                                                        </div>
+                                                                        ${type === 'activities' ? `
+                                                                        <div class="row g-2 mt-2 pt-2 border-top border-light border-2 align-items-center">
+                                                                            <div class="col-12 col-md-4 small text-secondary fw-semibold"><i class="bi bi-stopwatch text-warning me-1"></i> Extra Hour</div>
+                                                                            <div class="col-6 col-md-3">
+                                                                                <div class="input-group input-group-sm shadow-sm"><span class="input-group-text bg-white border-0 text-muted px-2">Hrs</span><input type="number" class="form-control border-0 px-2" value="${item.hours || ''}" onchange="window.updateListItem(${dayIndex}, 'activities', ${itemIndex}, 'hours', this.value)"></div>
+                                                                            </div>
+                                                                            <div class="col-6 col-md-5">
+                                                                                <div class="input-group input-group-sm shadow-sm"><span class="input-group-text bg-white border-0 text-muted px-2">Rate</span><input type="number" class="form-control border-0 px-2" value="${item.price_per_hour || ''}" onchange="window.updateListItem(${dayIndex}, 'activities', ${itemIndex}, 'price_per_hour', this.value)"></div>
+                                                                            </div>
+                                                                        </div>` : ''}
+                                                                    </div>`;
                     }
 
                     row.innerHTML = html;
@@ -1195,25 +1195,25 @@
 
                     if (currentType === 'transports') {
                         container.innerHTML = `
-                                                                                                                                                                                                                                                         <div class="p-3">
-                                                                                                                                                                                                                                                         <div class="mb-3">
-                                                                                                                                                                                                                                                         <label class="form-label small text-muted">1. Select Vendor</label>
-                                                                                                                                                                                                                                                         <select id="wiz-vendor" class="form-select form-select-sm"><option value="">Select Vendor</option></select>
-                                                                                                                                                                                                                                                         </div>
-                                                                                                                                                                                                                                                         <div class="mb-3">
-                                                                                                                                                                                                                                                         <label class="form-label small text-muted">2. Select Service / Duration</label>
-                                                                                                                                                                                                                                                         <select id="wiz-service" class="form-select form-select-sm" disabled><option value="">Select Service / Duration</option></select>
-                                                                                                                                                                                                                                                         </div>
-                                                                                                                                                                                                                                                         <div class="mb-3">
-                                                                                                                                                                                                                                                         <label class="form-label small text-muted">3. Select Vehicle</label>
-                                                                                                                                                                                                                                                         <select id="wiz-vehicle" class="form-select form-select-sm" disabled><option value="">Select Vehicle</option></select>
-                                                                                                                                                                                                                                                         </div>
-                                                                                                                                                                                                                                                         <div id="wiz-result" class="text-center mt-3" style="display:none;">
-                                                                                                                                                                                                                                                         <div class="h4 text-primary fw-bold mb-2" id="wiz-price"></div>
-                                                                                                                                                                                                                                                         <button class="btn btn-primary w-100" id="wiz-add-btn">Add to Itinerary</button>
-                                                                                                                                                                                                                                                         </div>
-                                                                                                                                                                                                                                                         </div>
-                                                                                                                                                                                                                                                         `;
+                                                                                                                                                                                                                                                                         <div class="p-3">
+                                                                                                                                                                                                                                                                         <div class="mb-3">
+                                                                                                                                                                                                                                                                         <label class="form-label small text-muted">1. Select Vendor</label>
+                                                                                                                                                                                                                                                                         <select id="wiz-vendor" class="form-select form-select-sm"><option value="">Select Vendor</option></select>
+                                                                                                                                                                                                                                                                         </div>
+                                                                                                                                                                                                                                                                         <div class="mb-3">
+                                                                                                                                                                                                                                                                         <label class="form-label small text-muted">2. Select Service / Duration</label>
+                                                                                                                                                                                                                                                                         <select id="wiz-service" class="form-select form-select-sm" disabled><option value="">Select Service / Duration</option></select>
+                                                                                                                                                                                                                                                                         </div>
+                                                                                                                                                                                                                                                                         <div class="mb-3">
+                                                                                                                                                                                                                                                                         <label class="form-label small text-muted">3. Select Vehicle</label>
+                                                                                                                                                                                                                                                                         <select id="wiz-vehicle" class="form-select form-select-sm" disabled><option value="">Select Vehicle</option></select>
+                                                                                                                                                                                                                                                                         </div>
+                                                                                                                                                                                                                                                                         <div id="wiz-result" class="text-center mt-3" style="display:none;">
+                                                                                                                                                                                                                                                                         <div class="h4 text-primary fw-bold mb-2" id="wiz-price"></div>
+                                                                                                                                                                                                                                                                         <button class="btn btn-primary w-100" id="wiz-add-btn">Add to Itinerary</button>
+                                                                                                                                                                                                                                                                         </div>
+                                                                                                                                                                                                                                                                         </div>
+                                                                                                                                                                                                                                                                         `;
 
                         const allTransports = data;
                         const vendors = [...new Set(data.map(d => d.supplier ? d.supplier.name : (d.supplier_id ? 'Vendor #' + d.supplier_id : 'General')))].sort();
@@ -1285,11 +1285,11 @@
 
                         if (currentType === 'hotels') {
                             btn.innerHTML = `
-                                                                                                                                                                                                                                                         <div class="d-flex justify-content-between align-items-center mb-2">
-                                                                                                                                                                                                                                                         <h6 class="mb-0 fw-bold text-dark">${item.name}</h6>
-                                                                                                                                                                                                                                                         <span class="badge bg-warning text-dark">${item.star_rating} <i class="bi bi-star-fill small"></i></span>
-                                                                                                                                                                                                                                                         </div>
-                                                                                                                                                                                                                                                         <div class="room-options d-grid gap-1 mt-2"></div>`;
+                                                                                                                                                                                                                                                                         <div class="d-flex justify-content-between align-items-center mb-2">
+                                                                                                                                                                                                                                                                         <h6 class="mb-0 fw-bold text-dark">${item.name}</h6>
+                                                                                                                                                                                                                                                                         <span class="badge bg-warning text-dark">${item.star_rating} <i class="bi bi-star-fill small"></i></span>
+                                                                                                                                                                                                                                                                         </div>
+                                                                                                                                                                                                                                                                         <div class="room-options d-grid gap-1 mt-2"></div>`;
                             const roomContainer = btn.querySelector('.room-options');
                             if (item.rooms && item.rooms.length > 0) {
                                 item.rooms.forEach(room => {
@@ -1608,337 +1608,337 @@
                 if (number) {
                     window.open(`https://api.whatsapp.com/send?phone=${number}&text=${encodeURIComponent(text)}`, '_blank');
                 }
-               window.copyPdfLink = () => {
-                if (isDirty) {
-                    if (!confirm("Warning: You have unsaved changes. The copied link will generate a PDF based on the saved database values, which doesn't include your current changes. Copy anyway?")) {
-                        return;
+                window.copyPdfLink = () => {
+                    if (isDirty) {
+                        if (!confirm("Warning: You have unsaved changes. The copied link will generate a PDF based on the saved database values, which doesn't include your current changes. Copy anyway?")) {
+                            return;
+                        }
                     }
-                }
-                navigator.clipboard.writeText("{{ route('admin.b2b-itineraries.pdf', $itinerary['id']) }}?public=1").then(() => alert('Customer PDF Link copied!'));
-            };
+                    navigator.clipboard.writeText("{{ route('admin.b2b-itineraries.pdf', $itinerary['id']) }}?public=1").then(() => alert('Customer PDF Link copied!'));
+                };
 
-            window.shareCustomerQuote = () => {
-                if (isDirty) {
-                    if (!confirm("Warning: You have unsaved changes. The WhatsApp summary text will reflect your current screen inputs, but the itinerary PDF link in the message will download the old saved proposal. We highly recommend clicking 'Save Proposal' first. Share anyway?")) {
-                        return;
+                window.shareCustomerQuote = () => {
+                    if (isDirty) {
+                        if (!confirm("Warning: You have unsaved changes. The WhatsApp summary text will reflect your current screen inputs, but the itinerary PDF link in the message will download the old saved proposal. We highly recommend clicking 'Save Proposal' first. Share anyway?")) {
+                            return;
+                        }
                     }
-                }
-                const title = document.getElementById('proposal-title').value;
-                const clientName = document.getElementById('client-name').value;
-                const adults = document.getElementById('pax-adults').value;
-                const c1 = document.getElementById('pax-child-small').value;
-                const c2 = document.getElementById('pax-child-large').value;
+                    const title = document.getElementById('proposal-title').value;
+                    const clientName = document.getElementById('client-name').value;
+                    const adults = document.getElementById('pax-adults').value;
+                    const c1 = document.getElementById('pax-child-small').value;
+                    const c2 = document.getElementById('pax-child-large').value;
 
-                const total = document.getElementById('preview-grand-total').innerText;
-                const totalVal = parseFloat(total.replace(/[^0-9.]/g, '') || 0);
-                const adultsCount = parseInt(adults || 0);
-                const c1Count = parseInt(c1 || 0);
-                const c2Count = parseInt(c2 || 0);
-                const currencyStr = "{{ $itinerary['currency'] ?? 'INR' }}";
+                    const total = document.getElementById('preview-grand-total').innerText;
+                    const totalVal = parseFloat(total.replace(/[^0-9.]/g, '') || 0);
+                    const adultsCount = parseInt(adults || 0);
+                    const c1Count = parseInt(c1 || 0);
+                    const c2Count = parseInt(c2 || 0);
+                    const currencyStr = "{{ $itinerary['currency'] ?? 'INR' }}";
 
-                let adultRate = 0;
-                let childRateSmall = 0;
-                let childRateLarge = 0;
-                
-                if (c1Count > 0 || c2Count > 0) {
-                    const weightedPax = (adultsCount * 1.0) + (c1Count * 0.25) + (c2Count * 0.50);
-                    adultRate = weightedPax > 0 ? (totalVal / weightedPax) : 0;
-                    childRateSmall = adultRate * 0.25;
-                    childRateLarge = adultRate * 0.50;
-                } else {
-                    adultRate = adultsCount > 0 ? (totalVal / adultsCount) : 0;
-                }
+                    let adultRate = 0;
+                    let childRateSmall = 0;
+                    let childRateLarge = 0;
 
-                let text = `*📋 BOOKING PROPOSAL: ${title.toUpperCase()}*\n`;
-                text += `🏢 *Company:* Tourliz\n`;
-                text += `👤 *Guest:* ${clientName}\n`;
-                text += `👥 *Pax:* ${adults} Adults`;
-                if (c1 > 0) text += `, ${c1} Child(2-6y)`;
-                if (c2 > 0) text += `, ${c2} Child(6-11y)`;
-                text += `\n\n`;
+                    if (c1Count > 0 || c2Count > 0) {
+                        const weightedPax = (adultsCount * 1.0) + (c1Count * 0.25) + (c2Count * 0.50);
+                        adultRate = weightedPax > 0 ? (totalVal / weightedPax) : 0;
+                        childRateSmall = adultRate * 0.25;
+                        childRateLarge = adultRate * 0.50;
+                    } else {
+                        adultRate = adultsCount > 0 ? (totalVal / adultsCount) : 0;
+                    }
 
-                text += `*Full Itinerary Summary:*\n`;
-                itinerary.forEach(day => {
-                    text += `*Day ${day.day}: ${day.title || ''}*\n`;
+                    let text = `*📋 BOOKING PROPOSAL: ${title.toUpperCase()}*\n`;
+                    text += `🏢 *Company:* Tourliz\n`;
+                    text += `👤 *Guest:* ${clientName}\n`;
+                    text += `👥 *Pax:* ${adults} Adults`;
+                    if (c1 > 0) text += `, ${c1} Child(2-6y)`;
+                    if (c2 > 0) text += `, ${c2} Child(6-11y)`;
+                    text += `\n\n`;
+
+                    text += `*Full Itinerary Summary:*\n`;
+                    itinerary.forEach(day => {
+                        text += `*Day ${day.day}: ${day.title || ''}*\n`;
+                        const spots = [...ensureArray(day.spots), ...ensureArray(day.activities), ...ensureArray(day.places)];
+                        if (spots.length > 0) {
+                            spots.forEach(s => {
+                                const name = s.name || s.attraction_name;
+                                if (name) text += `📍 ${name}\n`;
+                            });
+                        }
+                        text += `\n`;
+                    });
+
+                    text += `*Pricing Details:*\n`;
+                    text += `Total Final Quote: ${total}\n`;
+                    text += `Rate Per Adult: ${currencyStr} ${adultRate.toFixed(2)}\n`;
+                    if (c1 > 0) text += `Rate Child (2-6y): ${currencyStr} ${childRateSmall.toFixed(2)}\n`;
+                    if (c2 > 0) text += `Rate Child (6-11y): ${currencyStr} ${childRateLarge.toFixed(2)}\n`;
+
+                    text += `\n🔗 *Full Itinerary Link:* {{ route('admin.b2b-itineraries.pdf', $itinerary['id']) }}?public=1\n`;
+                    text += `\n_Thank you for choosing Tourliz Team!_ 🙏✨\n`;
+
+                    window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank');
+                };
+
+                window.shareDayToDriver = (dayIndex) => {
+                    const day = itinerary[dayIndex];
+                    if (!day) return;
+
+                    const clientName = document.getElementById('client-name').value || 'Guest';
+                    const arrivalDateStr = document.getElementById('arrival-date').value;
+                    let dateStr = 'TBA';
+
+                    if (arrivalDateStr) {
+                        const date = new Date(arrivalDateStr);
+                        date.setDate(date.getDate() + (day.day - 1));
+                        dateStr = date.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
+                    }
+
+                    // Pickup Point Logic (Previous day's hotel or current day's hotel)
+                    const pickup = (dayIndex > 0 && ensureArray(itinerary[dayIndex - 1].hotels).length > 0)
+                        ? itinerary[dayIndex - 1].hotels[0].name
+                        : (ensureArray(day.hotels).length > 0 ? day.hotels[0].name : 'Hotel/Location');
+
+                    let text = `*🚖 Tourliz DRIVER JOB SHEET*\n`;
+                    text += `📅 *Date:* ${dateStr}\n`;
+                    text += `👤 *Guest:* ${clientName}\n`;
+                    text += `📍 *Program:* ${day.title || 'Day ' + day.day}\n`;
+                    text += `🏨 *Pickup Point:* ${pickup}\n\n`;
+
+                    // Transport Info
+                    const transports = ensureArray(day.transport || day.transports);
+                    if (transports.length > 0) {
+                        text += `*Vehicle:* ${transports.map(t => t.type || t.name).join(', ')}\n`;
+                    }
+
+                    text += `\n*Day Program:*\n`;
+                    // Spots & Activities
                     const spots = [...ensureArray(day.spots), ...ensureArray(day.activities), ...ensureArray(day.places)];
                     if (spots.length > 0) {
                         spots.forEach(s => {
                             const name = s.name || s.attraction_name;
                             if (name) text += `📍 ${name}\n`;
                         });
-                    }
-                    text += `\n`;
-                });
-
-                text += `*Pricing Details:*\n`;
-                text += `Total Final Quote: ${total}\n`;
-                text += `Rate Per Adult: ${currencyStr} ${adultRate.toFixed(2)}\n`;
-                if (c1 > 0) text += `Rate Child (2-6y): ${currencyStr} ${childRateSmall.toFixed(2)}\n`;
-                if (c2 > 0) text += `Rate Child (6-11y): ${currencyStr} ${childRateLarge.toFixed(2)}\n`;
-
-                text += `\n🔗 *Full Itinerary Link:* {{ route('admin.b2b-itineraries.pdf', $itinerary['id']) }}?public=1\n`;
-                text += `\n_Thank you for choosing Tourliz Team!_ 🙏✨\n`;
-
-                window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank');
-            };
-
-            window.shareDayToDriver = (dayIndex) => {
-                const day = itinerary[dayIndex];
-                if (!day) return;
-
-                const clientName = document.getElementById('client-name').value || 'Guest';
-                const arrivalDateStr = document.getElementById('arrival-date').value;
-                let dateStr = 'TBA';
-
-                if (arrivalDateStr) {
-                    const date = new Date(arrivalDateStr);
-                    date.setDate(date.getDate() + (day.day - 1));
-                    dateStr = date.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
-                }
-
-                // Pickup Point Logic (Previous day's hotel or current day's hotel)
-                const pickup = (dayIndex > 0 && ensureArray(itinerary[dayIndex - 1].hotels).length > 0)
-                    ? itinerary[dayIndex - 1].hotels[0].name
-                    : (ensureArray(day.hotels).length > 0 ? day.hotels[0].name : 'Hotel/Location');
-
-                let text = `*🚖 Tourliz DRIVER JOB SHEET*\n`;
-                text += `📅 *Date:* ${dateStr}\n`;
-                text += `👤 *Guest:* ${clientName}\n`;
-                text += `📍 *Program:* ${day.title || 'Day ' + day.day}\n`;
-                text += `🏨 *Pickup Point:* ${pickup}\n\n`;
-
-                // Transport Info
-                const transports = ensureArray(day.transport || day.transports);
-                if (transports.length > 0) {
-                    text += `*Vehicle:* ${transports.map(t => t.type || t.name).join(', ')}\n`;
-                }
-
-                text += `\n*Day Program:*\n`;
-                // Spots & Activities
-                const spots = [...ensureArray(day.spots), ...ensureArray(day.activities), ...ensureArray(day.places)];
-                if (spots.length > 0) {
-                    spots.forEach(s => {
-                        const name = s.name || s.attraction_name;
-                        if (name) text += `📍 ${name}\n`;
-                    });
-                } else {
-                    text += "As per guest instructions.\n";
-                }
-
-                text += `\n_Generated by Tourliz Team_ 🚀\n`;
-
-                window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank');
-            };
-
-            // --- General Vendor Share (Expenses) ---
-            // --- General Vendor Share (Expenses) ---
-            window.shareVendorWhatsapp = (expenseId, supplierId) => {
-                // 1. If Expense ID exists, use backend logic
-                if (expenseId && expenseId > 0) {
-                    fetch(`/admin/expenses/${expenseId}/whatsapp-vendor`)
-                        .then(async res => {
-                            const data = await res.json();
-                            if (!res.ok) {
-                                throw new Error(data.error || "Failed to generate message");
-                            }
-                            return data;
-                        })
-                        .then(data => {
-                            if (data.text) {
-                                window.open(`https://wa.me/?text=${encodeURIComponent(data.text)}`, '_blank');
-                            } else {
-                                alert("Error: Empty message received.");
-                            }
-                        })
-                        .catch(err => alert(err.message));
-                    return;
-                }
-
-                // 2. Role-Based Template Logic for Suppliers
-                if (supplierId) {
-                    const vendor = allSuppliers.find(s => s.id == supplierId);
-                    const vendorType = vendor ? (vendor.type || 'General') : 'General';
-
-                    const clientName = document.getElementById('client-name').value || 'Guest';
-                    const arrivalDate = document.getElementById('arrival-date').value;
-                    const duration = parseInt(document.getElementById('trip-duration').value || 1);
-                    const nights = Math.max(1, duration - 1);
-
-                    const adults = document.getElementById('pax-adults').value || 1;
-                    const c1 = document.getElementById('pax-child-small').value || 0;
-                    const c2 = document.getElementById('pax-child-large').value || 0;
-                    const refId = "{{ $itinerary['itinerary_id'] ?? $itinerary['id'] }}";
-
-                    if (vendorType.toLowerCase().includes('hotel') || vendorType.toLowerCase().includes('accommodation')) {
-                        // Template A: Hotel Vendor (STRICT PRIVACY - ISOLATION MODE)
-                        let text = `*AVAILABILITY CHECK* - *Tourliz*\n`;
-                        text += `*Ref ID:* #${refId}\n`;
-                        text += `👤 *Guest:* ${clientName}\n`;
-                        text += `📅 *Arrival:* ${arrivalDate}\n`;
-                        text += `🌙 *Stay:* ${nights} Nights\n`;
-
-                        let rQty = 0, rType = [];
-                        let totalCost = 0;
-                        itinerary.forEach(d => {
-                            if (d.hotels) d.hotels.forEach(h => {
-                                rQty += parseInt(h.quantity || 0);
-                                if (h.type && !rType.includes(h.type)) rType.push(h.type);
-                                // Calculate total cost strictly for this vendor
-                                if (vendor && h.name && h.name.toLowerCase().includes(vendor.name.toLowerCase())) {
-                                    totalCost += (safeFloat(h.price_per_night) + safeFloat(h.add_on_price)) * safeFloat(h.quantity || 1);
-                                }
-                            });
-                        });
-
-                        text += `*Rooms:* ${rQty} ${rType.join(', ') || 'Standard'}\n`;
-                        text += `*Total Pax:* ${adults} Adults`;
-                        if (parseInt(c1) + parseInt(c2) > 0) text += `, ${parseInt(c1) + parseInt(c2)} Kids`;
-                        text += `\n`;
-
-                        if (totalCost > 0) {
-                            text += `*Total Amount:* {{ $itinerary['currency'] ?? 'INR' }} ${totalCost.toFixed(2)}\n`;
-                        }
-
-                        text += `*Auth by:* {{ Auth::user()->name }} (Tourliz)\n`;
-                        text += `\n_Thank you, Tourliz Team_ 🙏\n`;
-
-                        window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank');
-                    } else if (vendorType.toLowerCase().includes('transport') || vendorType.toLowerCase().includes('driver') || vendorType.toLowerCase().includes('taxi')) {
-                        // Template C: Transport/Driver
-                        let text = `*TRANSPORT REQUEST*\n`;
-                        text += `*Ref ID:* #${refId}\n`;
-                        text += `*Total Pax:* ${adults} Adults`;
-                        if (parseInt(c1) + parseInt(c2) > 0) text += `, ${parseInt(c1) + parseInt(c2)} Kids`;
-                        text += `\n\n*ITINERARY DETAILS:*\n`;
-
-                        itinerary.forEach((d) => {
-                            text += `*Day ${d.day}:* ${d.program || 'Itinerary flow'}\n`;
-                            let hName = 'Own Arrangement';
-                            if (d.hotels && d.hotels.length > 0 && d.hotels[0].name) {
-                                hName = d.hotels[0].name;
-                            }
-                            text += `📍 *Stay:* ${hName}\n\n`;
-                        });
-
-                        text += `*Auth by:* {{ Auth::user()->name }}\n`;
-                        window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank');
-                    } else if (vendorType.toLowerCase().includes('activity') || vendorType.toLowerCase().includes('ticket') || vendorType.toLowerCase().includes('attraction') || vendorType.toLowerCase().includes('entry') || vendorType.toLowerCase().includes('sightseeing')) {
-                        // Template: Activity/Ticket (Hotel Style)
-                        // Try to find specific expense for "Individual" share
-                        let specificExp = null;
-                        if (currentExpenses && expenseId) {
-                            specificExp = currentExpenses.find(e => e.id == expenseId);
-                        }
-
-                        let text = `Hi, checking availability for this proposal:\n`;
-                        text += `*Ref ID:* #${refId}\n`;
-                        text += `*Guest:* ${clientName}\n`;
-                        text += `*Arrival:* ${arrivalDate}\n`;
-                        text += `*Total Pax:* ${adults} Adults`;
-                        if (parseInt(c1) + parseInt(c2) > 0) text += `, ${parseInt(c1) + parseInt(c2)} Kids`;
-                        text += `\n`;
-
-                        if (specificExp) {
-                            // Individual Share Mode
-                            text += `*Activity:* ${specificExp.description}\n`;
-                            // Professional Date Format
-                            const expDate = specificExp.expense_date ? (new Date(specificExp.expense_date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })) : '';
-                            if (expDate && expDate !== 'Invalid Date') text += `*Date:* ${expDate}\n`;
-
-                            text += `*Total Amount:* {{ $itinerary['currency'] ?? 'INR' }} ${parseFloat(specificExp.amount || 0).toFixed(2)}\n`;
-                        } else {
-                            // Aggregate Mode (Fallback)
-                            let actList = [];
-                            let totalCost = 0;
-                            itinerary.forEach((d) => {
-                                if (d.activities) d.activities.forEach(a => {
-                                    if (a.name) {
-                                        actList.push(a.name);
-                                        if (vendor && a.name.toLowerCase().includes(vendor.name.toLowerCase())) {
-                                            totalCost += safeFloat(a.price || 0) * (parseInt(adults) + parseInt(c1) + parseInt(c2));
-                                        }
-                                    }
-                                });
-                                if (d.spots) d.spots.forEach(s => {
-                                    if (s.name) actList.push(s.name);
-                                    if (vendor && s.name && s.name.toLowerCase().includes(vendor.name.toLowerCase())) {
-                                        totalCost += safeFloat(s.price || 0);
-                                    }
-                                });
-                            });
-
-                            if (actList.length > 0) text += `*Activity:* ${actList.join(', ')}\n`;
-                            if (totalCost > 0) text += `*Total Amount:* {{ $itinerary['currency'] ?? 'INR' }} ${totalCost.toFixed(2)}\n`;
-                        }
-
-                        text += `*Auth by:* {{ Auth::user()->name }}\n`;
-                        window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank');
                     } else {
-                        // General Vendor Share
-                        let text = `*AVAILABILITY CHECK*\n`;
-                        text += `Ref ID: #${refId}\n`;
-                        text += `Guest: ${clientName}\n`;
-                        text += `Arrival: ${arrivalDate}\n`;
-                        text += `Pax: ${adults} Adults + ${parseInt(c1) + parseInt(c2)} Kids\n`;
-                        text += `\nRep: {{ Auth::user()->name }}`;
-                        window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank');
+                        text += "As per guest instructions.\n";
                     }
-                }
-            };
 
-            // Save Logic
-            document.getElementById('saveBtn').addEventListener('click', function () {
-                // Collect involved vendors
-                const selectedVendors = [];
-                $('.vendor-cb:checked').each(function () {
-                    selectedVendors.push($(this).val());
-                });
+                    text += `\n_Generated by Tourliz Team_ 🚀\n`;
 
-                // Collect country IDs
-                        const selectedCountries = [];
-                        $('.country-ck:checked').each(function () {
-                            selectedCountries.push($(this).val());
-                        });
-                        document.getElementById('formCountryIds').value = JSON.stringify(selectedCountries);
+                    window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank');
+                };
 
-                        // Set primary vendor
-                        const primaryVendorId = selectedVendors.length > 0 ? selectedVendors[0] : '';
-                        document.getElementById('formSupplier').value = primaryVendorId;
+                // --- General Vendor Share (Expenses) ---
+                // --- General Vendor Share (Expenses) ---
+                window.shareVendorWhatsapp = (expenseId, supplierId) => {
+                    // 1. If Expense ID exists, use backend logic
+                    if (expenseId && expenseId > 0) {
+                        fetch(`/admin/expenses/${expenseId}/whatsapp-vendor`)
+                            .then(async res => {
+                                const data = await res.json();
+                                if (!res.ok) {
+                                    throw new Error(data.error || "Failed to generate message");
+                                }
+                                return data;
+                            })
+                            .then(data => {
+                                if (data.text) {
+                                    window.open(`https://wa.me/?text=${encodeURIComponent(data.text)}`, '_blank');
+                                } else {
+                                    alert("Error: Empty message received.");
+                                }
+                            })
+                            .catch(err => alert(err.message));
+                        return;
+                    }
 
-                        // Set Involved Vendors JSON
-                        document.getElementById('formInvolvedVendors').value = JSON.stringify(selectedVendors);
+                    // 2. Role-Based Template Logic for Suppliers
+                    if (supplierId) {
+                        const vendor = allSuppliers.find(s => s.id == supplierId);
+                        const vendorType = vendor ? (vendor.type || 'General') : 'General';
 
-                        document.getElementById('itineraryData').value = JSON.stringify(itinerary);
-                        document.getElementById('formMarkup').value = document.getElementById('markup-percentage').value;
-                        document.getElementById('formTitle').value = document.getElementById('proposal-title').value;
-                        document.getElementById('formClient').value = document.getElementById('client-name').value;
-                        document.getElementById('formNotes').value = document.getElementById('proposal-notes').value;
+                        const clientName = document.getElementById('client-name').value || 'Guest';
+                        const arrivalDate = document.getElementById('arrival-date').value;
+                        const duration = parseInt(document.getElementById('trip-duration').value || 1);
+                        const nights = Math.max(1, duration - 1);
 
-                        // Sync Pax & Payment
-                        document.getElementById('formAdults').value = document.getElementById('pax-adults').value;
-                        document.getElementById('formChildSmall').value = document.getElementById('pax-child-small').value;
-                        document.getElementById('formChildLarge').value = document.getElementById('pax-child-large').value;
-                        document.getElementById('formPaymentStatus').value = document.getElementById('payment-status').value;
-                        document.getElementById('formPaymentReceived').value = document.getElementById('payment-received').value;
-                        document.getElementById('formPaymentDetails').value = document.getElementById('payment-details').value;
+                        const adults = document.getElementById('pax-adults').value || 1;
+                        const c1 = document.getElementById('pax-child-small').value || 0;
+                        const c2 = document.getElementById('pax-child-large').value || 0;
+                        const refId = "{{ $itinerary['itinerary_id'] ?? $itinerary['id'] }}";
 
-                        // Sync Followup & Lifecycle
-                        document.getElementById('formFollowupStatus').value = document.getElementById('followup-status').value;
-                        document.getElementById('formNextFollowup').value = document.getElementById('next-followup').value;
-                        document.getElementById('formLifecycle').value = document.getElementById('proposal-lifecycle').value;
+                        if (vendorType.toLowerCase().includes('hotel') || vendorType.toLowerCase().includes('accommodation')) {
+                            // Template A: Hotel Vendor (STRICT PRIVACY - ISOLATION MODE)
+                            let text = `*AVAILABILITY CHECK* - *Tourliz*\n`;
+                            text += `*Ref ID:* #${refId}\n`;
+                            text += `👤 *Guest:* ${clientName}\n`;
+                            text += `📅 *Arrival:* ${arrivalDate}\n`;
+                            text += `🌙 *Stay:* ${nights} Nights\n`;
 
-                        document.getElementById('formArrivalDate').value = document.getElementById('arrival-date').value;
-                        document.getElementById('formDuration').value = document.getElementById('trip-duration').value;
+                            let rQty = 0, rType = [];
+                            let totalCost = 0;
+                            itinerary.forEach(d => {
+                                if (d.hotels) d.hotels.forEach(h => {
+                                    rQty += parseInt(h.quantity || 0);
+                                    if (h.type && !rType.includes(h.type)) rType.push(h.type);
+                                    // Calculate total cost strictly for this vendor
+                                    if (vendor && h.name && h.name.toLowerCase().includes(vendor.name.toLowerCase())) {
+                                        totalCost += (safeFloat(h.price_per_night) + safeFloat(h.add_on_price)) * safeFloat(h.quantity || 1);
+                                    }
+                                });
+                            });
 
-                        isDirty = false; // Reset dirty flag before submission
-                        document.getElementById('saveForm').submit();
+                            text += `*Rooms:* ${rQty} ${rType.join(', ') || 'Standard'}\n`;
+                            text += `*Total Pax:* ${adults} Adults`;
+                            if (parseInt(c1) + parseInt(c2) > 0) text += `, ${parseInt(c1) + parseInt(c2)} Kids`;
+                            text += `\n`;
+
+                            if (totalCost > 0) {
+                                text += `*Total Amount:* {{ $itinerary['currency'] ?? 'INR' }} ${totalCost.toFixed(2)}\n`;
+                            }
+
+                            text += `*Auth by:* {{ Auth::user()->name }} (Tourliz)\n`;
+                            text += `\n_Thank you, Tourliz Team_ 🙏\n`;
+
+                            window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank');
+                        } else if (vendorType.toLowerCase().includes('transport') || vendorType.toLowerCase().includes('driver') || vendorType.toLowerCase().includes('taxi')) {
+                            // Template C: Transport/Driver
+                            let text = `*TRANSPORT REQUEST*\n`;
+                            text += `*Ref ID:* #${refId}\n`;
+                            text += `*Total Pax:* ${adults} Adults`;
+                            if (parseInt(c1) + parseInt(c2) > 0) text += `, ${parseInt(c1) + parseInt(c2)} Kids`;
+                            text += `\n\n*ITINERARY DETAILS:*\n`;
+
+                            itinerary.forEach((d) => {
+                                text += `*Day ${d.day}:* ${d.program || 'Itinerary flow'}\n`;
+                                let hName = 'Own Arrangement';
+                                if (d.hotels && d.hotels.length > 0 && d.hotels[0].name) {
+                                    hName = d.hotels[0].name;
+                                }
+                                text += `📍 *Stay:* ${hName}\n\n`;
+                            });
+
+                            text += `*Auth by:* {{ Auth::user()->name }}\n`;
+                            window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank');
+                        } else if (vendorType.toLowerCase().includes('activity') || vendorType.toLowerCase().includes('ticket') || vendorType.toLowerCase().includes('attraction') || vendorType.toLowerCase().includes('entry') || vendorType.toLowerCase().includes('sightseeing')) {
+                            // Template: Activity/Ticket (Hotel Style)
+                            // Try to find specific expense for "Individual" share
+                            let specificExp = null;
+                            if (currentExpenses && expenseId) {
+                                specificExp = currentExpenses.find(e => e.id == expenseId);
+                            }
+
+                            let text = `Hi, checking availability for this proposal:\n`;
+                            text += `*Ref ID:* #${refId}\n`;
+                            text += `*Guest:* ${clientName}\n`;
+                            text += `*Arrival:* ${arrivalDate}\n`;
+                            text += `*Total Pax:* ${adults} Adults`;
+                            if (parseInt(c1) + parseInt(c2) > 0) text += `, ${parseInt(c1) + parseInt(c2)} Kids`;
+                            text += `\n`;
+
+                            if (specificExp) {
+                                // Individual Share Mode
+                                text += `*Activity:* ${specificExp.description}\n`;
+                                // Professional Date Format
+                                const expDate = specificExp.expense_date ? (new Date(specificExp.expense_date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })) : '';
+                                if (expDate && expDate !== 'Invalid Date') text += `*Date:* ${expDate}\n`;
+
+                                text += `*Total Amount:* {{ $itinerary['currency'] ?? 'INR' }} ${parseFloat(specificExp.amount || 0).toFixed(2)}\n`;
+                            } else {
+                                // Aggregate Mode (Fallback)
+                                let actList = [];
+                                let totalCost = 0;
+                                itinerary.forEach((d) => {
+                                    if (d.activities) d.activities.forEach(a => {
+                                        if (a.name) {
+                                            actList.push(a.name);
+                                            if (vendor && a.name.toLowerCase().includes(vendor.name.toLowerCase())) {
+                                                totalCost += safeFloat(a.price || 0) * (parseInt(adults) + parseInt(c1) + parseInt(c2));
+                                            }
+                                        }
+                                    });
+                                    if (d.spots) d.spots.forEach(s => {
+                                        if (s.name) actList.push(s.name);
+                                        if (vendor && s.name && s.name.toLowerCase().includes(vendor.name.toLowerCase())) {
+                                            totalCost += safeFloat(s.price || 0);
+                                        }
+                                    });
+                                });
+
+                                if (actList.length > 0) text += `*Activity:* ${actList.join(', ')}\n`;
+                                if (totalCost > 0) text += `*Total Amount:* {{ $itinerary['currency'] ?? 'INR' }} ${totalCost.toFixed(2)}\n`;
+                            }
+
+                            text += `*Auth by:* {{ Auth::user()->name }}\n`;
+                            window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank');
+                        } else {
+                            // General Vendor Share
+                            let text = `*AVAILABILITY CHECK*\n`;
+                            text += `Ref ID: #${refId}\n`;
+                            text += `Guest: ${clientName}\n`;
+                            text += `Arrival: ${arrivalDate}\n`;
+                            text += `Pax: ${adults} Adults + ${parseInt(c1) + parseInt(c2)} Kids\n`;
+                            text += `\nRep: {{ Auth::user()->name }}`;
+                            window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank');
+                        }
+                    }
+                };
+
+                // Save Logic
+                document.getElementById('saveBtn').addEventListener('click', function () {
+                    // Collect involved vendors
+                    const selectedVendors = [];
+                    $('.vendor-cb:checked').each(function () {
+                        selectedVendors.push($(this).val());
                     });
 
-                    // Initialize display
-                    renderBuilder();
-                    // loadExpenses(); // Moved to end of file
-                    // loadSuppliers(); // Moved to end of file
-                </script>
+                    // Collect country IDs
+                    const selectedCountries = [];
+                    $('.country-ck:checked').each(function () {
+                        selectedCountries.push($(this).val());
+                    });
+                    document.getElementById('formCountryIds').value = JSON.stringify(selectedCountries);
+
+                    // Set primary vendor
+                    const primaryVendorId = selectedVendors.length > 0 ? selectedVendors[0] : '';
+                    document.getElementById('formSupplier').value = primaryVendorId;
+
+                    // Set Involved Vendors JSON
+                    document.getElementById('formInvolvedVendors').value = JSON.stringify(selectedVendors);
+
+                    document.getElementById('itineraryData').value = JSON.stringify(itinerary);
+                    document.getElementById('formMarkup').value = document.getElementById('markup-percentage').value;
+                    document.getElementById('formTitle').value = document.getElementById('proposal-title').value;
+                    document.getElementById('formClient').value = document.getElementById('client-name').value;
+                    document.getElementById('formNotes').value = document.getElementById('proposal-notes').value;
+
+                    // Sync Pax & Payment
+                    document.getElementById('formAdults').value = document.getElementById('pax-adults').value;
+                    document.getElementById('formChildSmall').value = document.getElementById('pax-child-small').value;
+                    document.getElementById('formChildLarge').value = document.getElementById('pax-child-large').value;
+                    document.getElementById('formPaymentStatus').value = document.getElementById('payment-status').value;
+                    document.getElementById('formPaymentReceived').value = document.getElementById('payment-received').value;
+                    document.getElementById('formPaymentDetails').value = document.getElementById('payment-details').value;
+
+                    // Sync Followup & Lifecycle
+                    document.getElementById('formFollowupStatus').value = document.getElementById('followup-status').value;
+                    document.getElementById('formNextFollowup').value = document.getElementById('next-followup').value;
+                    document.getElementById('formLifecycle').value = document.getElementById('proposal-lifecycle').value;
+
+                    document.getElementById('formArrivalDate').value = document.getElementById('arrival-date').value;
+                    document.getElementById('formDuration').value = document.getElementById('trip-duration').value;
+
+                    isDirty = false; // Reset dirty flag before submission
+                    document.getElementById('saveForm').submit();
+                });
+
+                // Initialize display
+                renderBuilder();
+                // loadExpenses(); // Moved to end of file
+                // loadSuppliers(); // Moved to end of file
+            }</script>
     @endpush
 
         <!-- Expense Modal -->
@@ -2187,19 +2187,19 @@
                         const item = document.createElement('div');
                         item.className = 'list-group-item p-3 d-flex justify-content-between align-items-center';
                         item.innerHTML = `
-                                                                                                                             <div style="flex:1">
-                                                                                                                             <div class="fw-bold">${vendor.name} <span class="badge bg-light text-dark border ms-1">${vendor.category || vendor.type}</span>${statusBadge}</div>
-                                                                                                                             <div class="text-muted small">${vendor.description || ''}</div>
-                                                                                                                             </div>
-                                                                                                                             <div class="d-flex gap-2">
-                                                                                                                             <button class="btn btn-danger btn-sm" onclick="downloadVendorPdf(${vendor.expenseId})" title="PDF Voucher" ${!vendor.expenseId ? 'disabled' : ''}>
-                                                                                                                             <i class="bi bi-file-earmark-pdf"></i>
-                                                                                                                             </button>
-                                                                                                                             <button class="btn btn-success btn-sm" onclick="shareVendorWhatsapp(${vendor.expenseId || 0}, ${vendor.id})" title="WhatsApp">
-                                                                                                                             <i class="bi bi-whatsapp"></i>
-                                                                                                                             </button>
-                                                                                                                             </div>
-                                                                                                                             `;
+                                                                                                                                     <div style="flex:1">
+                                                                                                                                     <div class="fw-bold">${vendor.name} <span class="badge bg-light text-dark border ms-1">${vendor.category || vendor.type}</span>${statusBadge}</div>
+                                                                                                                                     <div class="text-muted small">${vendor.description || ''}</div>
+                                                                                                                                     </div>
+                                                                                                                                     <div class="d-flex gap-2">
+                                                                                                                                     <button class="btn btn-danger btn-sm" onclick="downloadVendorPdf(${vendor.expenseId})" title="PDF Voucher" ${!vendor.expenseId ? 'disabled' : ''}>
+                                                                                                                                     <i class="bi bi-file-earmark-pdf"></i>
+                                                                                                                                     </button>
+                                                                                                                                     <button class="btn btn-success btn-sm" onclick="shareVendorWhatsapp(${vendor.expenseId || 0}, ${vendor.id})" title="WhatsApp">
+                                                                                                                                     <i class="bi bi-whatsapp"></i>
+                                                                                                                                     </button>
+                                                                                                                                     </div>
+                                                                                                                                     `;
                         container.appendChild(item);
                     });
                 }
@@ -2314,13 +2314,13 @@
                 data.forEach(s => {
                     const isChecked = ((s.id == currentVendorId) || (currentExpenses && currentExpenses.some(e => e.supplier_id == s.id))) ? 'checked' : '';
                     const cbHtml = `
-                                                                                                         <div class="form-check small mb-1">
-                                                                                                         <input class="form-check-input vendor-cb" type="checkbox" value="${s.id}" id="vcb-${s.id}" ${isChecked}>
-                                                                                                         <label class="form-check-label text-truncate d-block" for="vcb-${s.id}" title="${s.name}">
-                                                                                                         ${s.name} <span class="text-muted" style="font-size: 0.6rem;">(${s.type})</span>
-                                                                                                         </label>
-                                                                                                         </div>
-                                                                                                         `;
+                                                                                                             <div class="form-check small mb-1">
+                                                                                                             <input class="form-check-input vendor-cb" type="checkbox" value="${s.id}" id="vcb-${s.id}" ${isChecked}>
+                                                                                                             <label class="form-check-label text-truncate d-block" for="vcb-${s.id}" title="${s.name}">
+                                                                                                             ${s.name} <span class="text-muted" style="font-size: 0.6rem;">(${s.type})</span>
+                                                                                                             </label>
+                                                                                                             </div>
+                                                                                                             `;
                     checkboxContainer.append(cbHtml);
                 });
 
@@ -2479,46 +2479,46 @@
                     let actions = '';
                     if (exp.supplier) {
                         actions = `
-                                                                                                         <button class="btn btn-link text-success p-0 me-2" onclick="shareVendorWhatsapp(${exp.id})" title="WhatsApp Vendor">
-                                                                                                         <i class="bi bi-whatsapp"></i>
-                                                                                                         </button>
-                                                                                                         <button class="btn btn-link text-danger p-0 me-2" onclick="downloadVendorPdf(${exp.id})" title="PDF Voucher">
-                                                                                                         <i class="bi bi-file-pdf"></i>
-                                                                                                         </button>
-                                                                                                         `;
+                                                                                                             <button class="btn btn-link text-success p-0 me-2" onclick="shareVendorWhatsapp(${exp.id})" title="WhatsApp Vendor">
+                                                                                                             <i class="bi bi-whatsapp"></i>
+                                                                                                             </button>
+                                                                                                             <button class="btn btn-link text-danger p-0 me-2" onclick="downloadVendorPdf(${exp.id})" title="PDF Voucher">
+                                                                                                             <i class="bi bi-file-pdf"></i>
+                                                                                                             </button>
+                                                                                                             `;
                     }
 
                     tbody.append(`
-                                                                                                         <tr>
-                                                                                                         <td>
-                                                                                                         <div class="fw-bold" style="font-size: 0.75rem;">${exp.category}${vendorName}</div>
-                                                                                                         <div class="text-muted" style="font-size: 0.65rem;">${exp.description || ''}</div>
-                                                                                                         </td>
-                                                                                                         <td class="text-end fw-bold text-danger" style="white-space: nowrap;">
-                                                                                                          <div>-${currency} ${parseFloat(exp.amount).toFixed(2)}
-                                                                                                              <button class="btn btn-link btn-sm p-0 text-muted opacity-50" onclick="window.editExpenseInline(${exp.id}, ${exp.amount})" title="Edit Amount">
-                                                                                                                  <i class="bi bi-pencil-square" style="font-size: 0.7rem;"></i>
-                                                                                                              </button>
-                                                                                                           </div>
-                                                                                                           <div class="text-success small opacity-75 mt-1" style="font-size: 0.7rem;">
-                                                                                                              Paid: ${currency} ${parseFloat(exp.paid_amount || 0).toFixed(2)}
-                                                                                                          <span class="text-muted" style="font-size: 0.6rem;">${exp.paid_by ? '(' + exp.paid_by + ')' : ''}</span>
-                                                                                                              <button class="btn btn-link btn-sm p-0 text-success opacity-50" onclick="window.editPaidAmount(${exp.id}, ${exp.paid_amount || 0}, '${exp.paid_by || ''}')" title="Record Payment">
-                                                                                                                  <i class="bi bi-pencil-square" style="font-size: 0.6rem;"></i>
-                                                                                                              </button>
-                                                                                                           </div>
-                                                                                                           <div class="text-danger small fw-bold mt-1" style="font-size: 0.7rem;">
-                                                                                                              To Pay: ${currency} ${(parseFloat(exp.amount) - parseFloat(exp.paid_amount || 0)).toFixed(2)}
-                                                                                                           </div>
-                                                                                                       </td>
-                                                                                                         <td class="text-end">
-                                                                                                         ${actions}
-                                                                                                         <button class="btn btn-link text-muted p-0" onclick="deleteExpense(${exp.id})" title="Remove Cost">
-                                                                                                         <i class="bi bi-trash"></i>
-                                                                                                         </button>
-                                                                                                         </td>
-                                                                                                         </tr>
-                                                                                                         `);
+                                                                                                             <tr>
+                                                                                                             <td>
+                                                                                                             <div class="fw-bold" style="font-size: 0.75rem;">${exp.category}${vendorName}</div>
+                                                                                                             <div class="text-muted" style="font-size: 0.65rem;">${exp.description || ''}</div>
+                                                                                                             </td>
+                                                                                                             <td class="text-end fw-bold text-danger" style="white-space: nowrap;">
+                                                                                                              <div>-${currency} ${parseFloat(exp.amount).toFixed(2)}
+                                                                                                                  <button class="btn btn-link btn-sm p-0 text-muted opacity-50" onclick="window.editExpenseInline(${exp.id}, ${exp.amount})" title="Edit Amount">
+                                                                                                                      <i class="bi bi-pencil-square" style="font-size: 0.7rem;"></i>
+                                                                                                                  </button>
+                                                                                                               </div>
+                                                                                                               <div class="text-success small opacity-75 mt-1" style="font-size: 0.7rem;">
+                                                                                                                  Paid: ${currency} ${parseFloat(exp.paid_amount || 0).toFixed(2)}
+                                                                                                              <span class="text-muted" style="font-size: 0.6rem;">${exp.paid_by ? '(' + exp.paid_by + ')' : ''}</span>
+                                                                                                                  <button class="btn btn-link btn-sm p-0 text-success opacity-50" onclick="window.editPaidAmount(${exp.id}, ${exp.paid_amount || 0}, '${exp.paid_by || ''}')" title="Record Payment">
+                                                                                                                      <i class="bi bi-pencil-square" style="font-size: 0.6rem;"></i>
+                                                                                                                  </button>
+                                                                                                               </div>
+                                                                                                               <div class="text-danger small fw-bold mt-1" style="font-size: 0.7rem;">
+                                                                                                                  To Pay: ${currency} ${(parseFloat(exp.amount) - parseFloat(exp.paid_amount || 0)).toFixed(2)}
+                                                                                                               </div>
+                                                                                                           </td>
+                                                                                                             <td class="text-end">
+                                                                                                             ${actions}
+                                                                                                             <button class="btn btn-link text-muted p-0" onclick="deleteExpense(${exp.id})" title="Remove Cost">
+                                                                                                             <i class="bi bi-trash"></i>
+                                                                                                             </button>
+                                                                                                             </td>
+                                                                                                             </tr>
+                                                                                                             `);
                 });
 
                 if (data.length === 0) {
@@ -2669,14 +2669,14 @@
             // Set up automatic dirty checking
             setTimeout(() => {
                 isDirty = false; // Reset after initial programmatic renders
-                $(document).on('change input', 'input, select, textarea', function() {
+                $(document).on('change input', 'input, select, textarea', function () {
                     isDirty = true;
                 });
-                
+
                 // Wrap renderBuilder to flag structure edits
                 const originalRender = window.renderBuilder;
                 if (originalRender) {
-                    window.renderBuilder = function(...args) {
+                    window.renderBuilder = function (...args) {
                         isDirty = true;
                         return originalRender.apply(this, args);
                     };
