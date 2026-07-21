@@ -4,14 +4,24 @@
 
 @section('content')
     <div class="page-header">
-        <div class="d-flex justify-content-between align-items-center">
+        <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
             <div>
                 <h2><i class="bi bi-file-earmark-text me-2"></i>B2B Itineraries</h2>
                 <p class="text-muted mb-0">Manage custom proposals for agencies</p>
             </div>
-            <a href="{{ route('admin.b2b-itineraries.create') }}" class="btn btn-primary">
-                <i class="bi bi-plus-lg me-2"></i>Create Proposal
-            </a>
+            <div class="d-flex gap-2 align-items-center">
+                <div class="btn-group" role="group">
+                    <a href="{{ route('admin.b2b-itineraries.index') }}" class="btn btn-sm btn-primary">
+                        <i class="bi bi-table me-1"></i>Table
+                    </a>
+                    <a href="{{ route('admin.b2b-itineraries.kanban') }}" class="btn btn-sm btn-outline-secondary">
+                        <i class="bi bi-kanban me-1"></i>Kanban
+                    </a>
+                </div>
+                <a href="{{ route('admin.b2b-itineraries.create') }}" class="btn btn-primary">
+                    <i class="bi bi-plus-lg me-2"></i>Create Proposal
+                </a>
+            </div>
         </div>
     </div>
 

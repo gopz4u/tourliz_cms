@@ -310,6 +310,8 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:admin'])->grou
     Route::resource('agencies', \App\Http\Controllers\Admin\AgencyController::class);
 
     // B2B Itineraries (Admin creates for Agency)
+    Route::get('b2b-itineraries-kanban', [\App\Http\Controllers\Admin\B2BItineraryController::class, 'kanban'])->name('b2b-itineraries.kanban');
+    Route::patch('b2b-itineraries/{id}/status', [\App\Http\Controllers\Admin\B2BItineraryController::class, 'updateStatus'])->name('b2b-itineraries.updateStatus');
     Route::resource('b2b-itineraries', \App\Http\Controllers\Admin\B2BItineraryController::class);
     Route::get('b2b-itineraries/{id}/pdf', [\App\Http\Controllers\Admin\B2BItineraryController::class, 'pdf'])->name('b2b-itineraries.pdf');
 

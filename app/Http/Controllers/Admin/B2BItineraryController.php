@@ -525,4 +525,34 @@ class B2BItineraryController extends Controller
             return redirect()->back()->with('error', 'Cannot delete: ' . $e->getMessage());
         }
     }
+
+    public function kanban(Request $request)
+    {
+        $stages = ['leads', 'waiting', 'interested', 'converted', 'not_interested', 'dead'];
+
+        $allLeads = CustomItinerary::with(['agency', 'destination', 'user'])
+            ->orderBy('updated_at', 'desc')
+            ->get();
+
+        $columns = [];
+        foreach ($stages as $stage) {
+            $columns[$stage] = $allLeads->filter(fn($i) => ($i->followup_status ?? 'leads') === $stage)->values();
+        }
+
+        return view('admin.b2b.kanban', compact('columns', 'stages'));
+    }
+
+    public function updateStatus(Request $request, $id)
+    {
+        $request->validate([
+            'status' => 'required|in:leads,waiting,interested,converted,not_interested,dead',
+        ]);
+
+        $itinerary = CustomItinerary::findOrFail($id);
+        $itinerary->followup_status = $request->status;
+        $itinerary->followed_up_at = now();
+        $itinerary->save();
+
+        return response()->json(['success' => true, 'status' => $itinerary->followup_status]);
+    }
 }
