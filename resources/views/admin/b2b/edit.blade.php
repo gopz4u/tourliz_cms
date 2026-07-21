@@ -783,113 +783,113 @@
                 const div = document.createElement('div');
                 div.className = 'card mb-4 border-0 shadow-sm rounded-4 overflow-hidden';
                 div.innerHTML = `
-                                                            <div class="card-header bg-white d-flex flex-column flex-md-row justify-content-between align-items-md-center py-3 border-bottom gap-3">
-                                                                <div class="d-flex align-items-center flex-grow-1">
-                                                                    <span class="badge bg-primary rounded-pill me-3 px-3 py-2 shadow-sm" style="font-size:0.9rem;">Day ${day.day}</span>
-                                                                    <div class="input-group">
-                                                                        <span class="input-group-text bg-transparent border-0 text-muted px-0"><i class="bi bi-pencil-square"></i></span>
-                                                                        <input type="text" class="form-control fw-bold border-0 bg-transparent fs-5 px-2" 
-                                                                            value="${day.title || ''}"
-                                                                            oninput="window.updateField(${index}, 'title', this.value)"
-                                                                            placeholder="Enter Day Title..." style="box-shadow: none;">
-                                                                    </div>
-                                                                </div>
-                                                                <div class="d-flex gap-2">
-                                                                    <button type="button" class="btn btn-sm btn-light text-success fw-bold px-3 rounded-pill shadow-sm" onclick="window.shareDayToDriver(${index})" title="Share Job Sheet to Driver">
-                                                                        <i class="bi bi-whatsapp"></i> <span class="d-none d-md-inline">Job Sheet</span>
-                                                                    </button>
-                                                                    <button type="button" class="btn btn-sm btn-light text-danger rounded-circle shadow-sm" style="width:32px;height:32px;padding:0;" onclick="window.removeDay(${index})">
-                                                                        <i class="bi bi-trash"></i>
-                                                                    </button>
-                                                                </div>
-                                                            </div>
-                                                            <div class="card-body p-3 p-md-4 bg-light">
-                                                                <div class="row g-4">
-                                                                    <!-- Left: Logistics (Hotels & Transport first for logic flow) -->
-                                                                    <div class="col-lg-5 col-md-12 order-2 order-lg-1">
-                                                                        <!-- Hotels -->
-                                                                        <div class="bg-white p-3 rounded-4 shadow-sm border-0 mb-4">
-                                                                            <div class="d-flex justify-content-between align-items-center mb-3">
-                                                                                <label class="text-uppercase small fw-bold mb-0" style="color:var(--bs-primary);"><i class="bi bi-building me-2"></i>Hotels</label>
-                                                                                <button type="button" class="btn btn-sm btn-primary rounded-pill px-3 py-1 shadow-sm" style="font-size:0.75rem;" onclick="window.openInventoryModal(${index}, 'hotels')"><i class="bi bi-search me-1"></i> Master</button>
+                                                                    <div class="card-header bg-white d-flex flex-column flex-md-row justify-content-between align-items-md-center py-3 border-bottom gap-3">
+                                                                        <div class="d-flex align-items-center flex-grow-1">
+                                                                            <span class="badge bg-primary rounded-pill me-3 px-3 py-2 shadow-sm" style="font-size:0.9rem;">Day ${day.day}</span>
+                                                                            <div class="input-group">
+                                                                                <span class="input-group-text bg-transparent border-0 text-muted px-0"><i class="bi bi-pencil-square"></i></span>
+                                                                                <input type="text" class="form-control fw-bold border-0 bg-transparent fs-5 px-2" 
+                                                                                    value="${day.title || ''}"
+                                                                                    oninput="window.updateField(${index}, 'title', this.value)"
+                                                                                    placeholder="Enter Day Title..." style="box-shadow: none;">
                                                                             </div>
-                                                                            <div id="hotels-container-${index}" class="mb-2"></div>
-                                                                            <button type="button" class="btn btn-sm btn-outline-primary w-100 rounded-pill border-dashed mt-2" onclick="window.addItem(${index}, 'hotels')">
-                                                                                <i class="bi bi-plus"></i> Add Manual Hotel
-                                                                            </button>
                                                                         </div>
-
-                                                                        <!-- Transport -->
-                                                                        <div class="bg-white p-3 rounded-4 shadow-sm border-0 mb-3">
-                                                                            <div class="d-flex justify-content-between align-items-center mb-3">
-                                                                                <label class="text-uppercase small fw-bold mb-0 text-secondary"><i class="bi bi-car-front me-2"></i>Transport</label>
-                                                                                <button type="button" class="btn btn-sm btn-secondary rounded-pill px-3 py-1 shadow-sm" style="font-size:0.75rem;" onclick="window.openInventoryModal(${index}, 'transports')"><i class="bi bi-search me-1"></i> Master</button>
-                                                                            </div>
-                                                                            <div id="transports-container-${index}"></div>
-                                                                            <button type="button" class="btn btn-sm btn-outline-secondary w-100 rounded-pill border-dashed mt-2" onclick="window.addItem(${index}, 'transports')">
-                                                                                <i class="bi bi-plus"></i> Add Manual Transport
+                                                                        <div class="d-flex gap-2">
+                                                                            <button type="button" class="btn btn-sm btn-light text-success fw-bold px-3 rounded-pill shadow-sm" onclick="window.shareDayToDriver(${index})" title="Share Job Sheet to Driver">
+                                                                                <i class="bi bi-whatsapp"></i> <span class="d-none d-md-inline">Job Sheet</span>
+                                                                            </button>
+                                                                            <button type="button" class="btn btn-sm btn-light text-danger rounded-circle shadow-sm" style="width:32px;height:32px;padding:0;" onclick="window.removeDay(${index})">
+                                                                                <i class="bi bi-trash"></i>
                                                                             </button>
                                                                         </div>
                                                                     </div>
+                                                                    <div class="card-body p-3 p-md-4 bg-light">
+                                                                        <div class="row g-4">
+                                                                            <!-- Left: Logistics (Hotels & Transport first for logic flow) -->
+                                                                            <div class="col-lg-5 col-md-12 order-2 order-lg-1">
+                                                                                <!-- Hotels -->
+                                                                                <div class="bg-white p-3 rounded-4 shadow-sm border-0 mb-4">
+                                                                                    <div class="d-flex justify-content-between align-items-center mb-3">
+                                                                                        <label class="text-uppercase small fw-bold mb-0" style="color:var(--bs-primary);"><i class="bi bi-building me-2"></i>Hotels</label>
+                                                                                        <button type="button" class="btn btn-sm btn-primary rounded-pill px-3 py-1 shadow-sm" style="font-size:0.75rem;" onclick="window.openInventoryModal(${index}, 'hotels')"><i class="bi bi-search me-1"></i> Master</button>
+                                                                                    </div>
+                                                                                    <div id="hotels-container-${index}" class="mb-2"></div>
+                                                                                    <button type="button" class="btn btn-sm btn-outline-primary w-100 rounded-pill border-dashed mt-2" onclick="window.addItem(${index}, 'hotels')">
+                                                                                        <i class="bi bi-plus"></i> Add Manual Hotel
+                                                                                    </button>
+                                                                                </div>
 
-                                                                    <!-- Right: Daily Itinerary Items -->
-                                                                    <div class="col-lg-7 col-md-12 order-1 order-lg-2">
-                                                                        <!-- Destinations / Spots -->
-                                                                        <div class="bg-white p-3 rounded-4 shadow-sm border-0 mb-4">
-                                                                            <div class="d-flex justify-content-between align-items-center mb-3">
-                                                                                <label class="text-uppercase small fw-bold mb-0 text-info"><i class="bi bi-geo-alt me-2"></i>Tourist Spots</label>
-                                                                                <button type="button" class="btn btn-sm btn-info text-white rounded-pill px-3 py-1 shadow-sm" style="font-size:0.75rem;" onclick="window.openInventoryModal(${index}, 'spots')"><i class="bi bi-search"></i></button>
+                                                                                <!-- Transport -->
+                                                                                <div class="bg-white p-3 rounded-4 shadow-sm border-0 mb-3">
+                                                                                    <div class="d-flex justify-content-between align-items-center mb-3">
+                                                                                        <label class="text-uppercase small fw-bold mb-0 text-secondary"><i class="bi bi-car-front me-2"></i>Transport</label>
+                                                                                        <button type="button" class="btn btn-sm btn-secondary rounded-pill px-3 py-1 shadow-sm" style="font-size:0.75rem;" onclick="window.openInventoryModal(${index}, 'transports')"><i class="bi bi-search me-1"></i> Master</button>
+                                                                                    </div>
+                                                                                    <div id="transports-container-${index}"></div>
+                                                                                    <button type="button" class="btn btn-sm btn-outline-secondary w-100 rounded-pill border-dashed mt-2" onclick="window.addItem(${index}, 'transports')">
+                                                                                        <i class="bi bi-plus"></i> Add Manual Transport
+                                                                                    </button>
+                                                                                </div>
                                                                             </div>
-                                                                            <div id="spots-container-${index}" class="mb-2"></div>
-                                                                            <button type="button" class="btn btn-sm btn-outline-info w-100 rounded-pill border-dashed" onclick="window.addItem(${index}, 'spots')">
-                                                                                <i class="bi bi-plus"></i> Add Tourist Spot
-                                                                            </button>
+
+                                                                            <!-- Right: Daily Itinerary Items -->
+                                                                            <div class="col-lg-7 col-md-12 order-1 order-lg-2">
+                                                                                <!-- Destinations / Spots -->
+                                                                                <div class="bg-white p-3 rounded-4 shadow-sm border-0 mb-4">
+                                                                                    <div class="d-flex justify-content-between align-items-center mb-3">
+                                                                                        <label class="text-uppercase small fw-bold mb-0 text-info"><i class="bi bi-geo-alt me-2"></i>Tourist Spots</label>
+                                                                                        <button type="button" class="btn btn-sm btn-info text-white rounded-pill px-3 py-1 shadow-sm" style="font-size:0.75rem;" onclick="window.openInventoryModal(${index}, 'spots')"><i class="bi bi-search"></i></button>
+                                                                                    </div>
+                                                                                    <div id="spots-container-${index}" class="mb-2"></div>
+                                                                                    <button type="button" class="btn btn-sm btn-outline-info w-100 rounded-pill border-dashed" onclick="window.addItem(${index}, 'spots')">
+                                                                                        <i class="bi bi-plus"></i> Add Tourist Spot
+                                                                                    </button>
+                                                                                </div>
+
+                                                                                <!-- Activities -->
+                                                                                <div class="bg-white p-3 rounded-4 shadow-sm border-0 mb-4">
+                                                                                    <div class="d-flex justify-content-between align-items-center mb-3">
+                                                                                        <label class="text-uppercase small fw-bold mb-0 text-warning"><i class="bi bi-lightning me-2"></i>Activities</label>
+                                                                                        <button type="button" class="btn btn-sm btn-warning text-dark rounded-pill px-3 py-1 shadow-sm" style="font-size:0.75rem;" onclick="window.openInventoryModal(${index}, 'activities')"><i class="bi bi-search"></i></button>
+                                                                                    </div>
+                                                                                    <div id="activities-container-${index}" class="mb-2"></div>
+                                                                                    <button type="button" class="btn btn-sm btn-outline-warning text-dark w-100 rounded-pill border-dashed" onclick="window.addItem(${index}, 'activities')">
+                                                                                        <i class="bi bi-plus"></i> Add Activity
+                                                                                    </button>
+                                                                                </div>
+
+                                                                                <!-- Tickets -->
+                                                                                <div class="bg-white p-3 rounded-4 shadow-sm border-0 mb-4">
+                                                                                    <div class="d-flex justify-content-between align-items-center mb-3">
+                                                                                        <label class="text-uppercase small fw-bold mb-0 text-danger"><i class="bi bi-ticket-perforated me-2"></i>Entry Tickets</label>
+                                                                                        <button type="button" class="btn btn-sm btn-danger rounded-pill px-3 py-1 shadow-sm" style="font-size:0.75rem;" onclick="window.openInventoryModal(${index}, 'tickets')"><i class="bi bi-search"></i></button>
+                                                                                    </div>
+                                                                                    <div id="tickets-container-${index}" class="mb-2"></div>
+                                                                                    <button type="button" class="btn btn-sm btn-outline-danger w-100 rounded-pill border-dashed" onclick="window.addItem(${index}, 'tickets')">
+                                                                                        <i class="bi bi-plus"></i> Add Ticket
+                                                                                    </button>
+                                                                                </div>
+
+                                                                                <!-- Meals -->
+                                                                                <div class="bg-white p-3 rounded-4 shadow-sm border-0 mb-4">
+                                                                                    <div class="d-flex justify-content-between align-items-center mb-3">
+                                                                                        <label class="text-uppercase small fw-bold mb-0 text-success"><i class="bi bi-cup-hot me-2"></i>Meals</label>
+                                                                                        <button type="button" class="btn btn-sm btn-success rounded-pill px-3 py-1 shadow-sm" style="font-size:0.75rem;" onclick="window.openInventoryModal(${index}, 'meals')"><i class="bi bi-search"></i></button>
+                                                                                    </div>
+                                                                                    <div id="meals-container-${index}" class="mb-2"></div>
+                                                                                    <button type="button" class="btn btn-sm btn-outline-success w-100 rounded-pill border-dashed" onclick="window.addItem(${index}, 'meals')">
+                                                                                        <i class="bi bi-plus"></i> Add Meal
+                                                                                    </button>
+                                                                                </div>
+                                                                            </div>
                                                                         </div>
 
-                                                                        <!-- Activities -->
-                                                                        <div class="bg-white p-3 rounded-4 shadow-sm border-0 mb-4">
-                                                                            <div class="d-flex justify-content-between align-items-center mb-3">
-                                                                                <label class="text-uppercase small fw-bold mb-0 text-warning"><i class="bi bi-lightning me-2"></i>Activities</label>
-                                                                                <button type="button" class="btn btn-sm btn-warning text-dark rounded-pill px-3 py-1 shadow-sm" style="font-size:0.75rem;" onclick="window.openInventoryModal(${index}, 'activities')"><i class="bi bi-search"></i></button>
-                                                                            </div>
-                                                                            <div id="activities-container-${index}" class="mb-2"></div>
-                                                                            <button type="button" class="btn btn-sm btn-outline-warning text-dark w-100 rounded-pill border-dashed" onclick="window.addItem(${index}, 'activities')">
-                                                                                <i class="bi bi-plus"></i> Add Activity
-                                                                            </button>
+                                                                        <div class="mt-4 bg-white p-3 rounded-4 shadow-sm border-0">
+                                                                            <label class="small fw-bold text-muted text-uppercase mb-2"><i class="bi bi-journal-text me-1"></i> Day Flow / Notes</label>
+                                                                            <textarea class="form-control bg-light border-0" placeholder="Describe the day's flow..." rows="2" style="resize:none;"
+                                                                            oninput="window.updateField(${index}, 'notes', this.value)">${day.notes || ''}</textarea>
                                                                         </div>
-
-                                                                        <!-- Tickets -->
-                                                                        <div class="bg-white p-3 rounded-4 shadow-sm border-0 mb-4">
-                                                                            <div class="d-flex justify-content-between align-items-center mb-3">
-                                                                                <label class="text-uppercase small fw-bold mb-0 text-danger"><i class="bi bi-ticket-perforated me-2"></i>Entry Tickets</label>
-                                                                                <button type="button" class="btn btn-sm btn-danger rounded-pill px-3 py-1 shadow-sm" style="font-size:0.75rem;" onclick="window.openInventoryModal(${index}, 'tickets')"><i class="bi bi-search"></i></button>
-                                                                            </div>
-                                                                            <div id="tickets-container-${index}" class="mb-2"></div>
-                                                                            <button type="button" class="btn btn-sm btn-outline-danger w-100 rounded-pill border-dashed" onclick="window.addItem(${index}, 'tickets')">
-                                                                                <i class="bi bi-plus"></i> Add Ticket
-                                                                            </button>
-                                                                        </div>
-
-                                                                        <!-- Meals -->
-                                                                        <div class="bg-white p-3 rounded-4 shadow-sm border-0 mb-4">
-                                                                            <div class="d-flex justify-content-between align-items-center mb-3">
-                                                                                <label class="text-uppercase small fw-bold mb-0 text-success"><i class="bi bi-cup-hot me-2"></i>Meals</label>
-                                                                                <button type="button" class="btn btn-sm btn-success rounded-pill px-3 py-1 shadow-sm" style="font-size:0.75rem;" onclick="window.openInventoryModal(${index}, 'meals')"><i class="bi bi-search"></i></button>
-                                                                            </div>
-                                                                            <div id="meals-container-${index}" class="mb-2"></div>
-                                                                            <button type="button" class="btn btn-sm btn-outline-success w-100 rounded-pill border-dashed" onclick="window.addItem(${index}, 'meals')">
-                                                                                <i class="bi bi-plus"></i> Add Meal
-                                                                            </button>
-                                                                        </div>
-                                                                    </div>
-                                                                </div>
-
-                                                                <div class="mt-4 bg-white p-3 rounded-4 shadow-sm border-0">
-                                                                    <label class="small fw-bold text-muted text-uppercase mb-2"><i class="bi bi-journal-text me-1"></i> Day Flow / Notes</label>
-                                                                    <textarea class="form-control bg-light border-0" placeholder="Describe the day's flow..." rows="2" style="resize:none;"
-                                                                    oninput="window.updateField(${index}, 'notes', this.value)">${day.notes || ''}</textarea>
-                                                                </div>
-                                                            </div>`;
+                                                                    </div>`;
                 return div;
             }
 
@@ -913,9 +913,9 @@
                     placeholder.className = 'text-center p-3 border border-dashed rounded-3 text-muted mb-2';
                     placeholder.style.cssText = 'font-size: 0.8rem; background-color: #fafafa; border-color: #dee2e6 !important;';
                     placeholder.innerHTML = `
-                                                                <i class="bi bi-building fs-5 d-block mb-1 text-primary"></i>
-                                                                No hotels added yet — click "Master" to search inventory or "Add Manual" to enter custom details.
-                                                            `;
+                                                                        <i class="bi bi-building fs-5 d-block mb-1 text-primary"></i>
+                                                                        No hotels added yet — click "Master" to search inventory or "Add Manual" to enter custom details.
+                                                                    `;
                     container.appendChild(placeholder);
                     return;
                 }
@@ -924,41 +924,41 @@
                     const row = document.createElement('div');
                     row.className = 'mb-3 bg-light rounded-3 p-2 border position-relative';
                     row.innerHTML = `
-                                                                <div class="d-flex flex-wrap flex-md-nowrap gap-2 mb-2">
-                                                                    <input type="text" class="form-control fw-bold border-0 bg-transparent flex-grow-1" placeholder="Hotel Name"
-                                                                        value="${hotel.name || ''}" style="box-shadow:none; font-size: 1rem;"
-                                                                        oninput="window.updateListItem(${dayIndex}, 'hotels', ${hIndex}, 'name', this.value)">
+                                                                        <div class="d-flex flex-wrap flex-md-nowrap gap-2 mb-2">
+                                                                            <input type="text" class="form-control fw-bold border-0 bg-transparent flex-grow-1" placeholder="Hotel Name"
+                                                                                value="${hotel.name || ''}" style="box-shadow:none; font-size: 1rem;"
+                                                                                oninput="window.updateListItem(${dayIndex}, 'hotels', ${hIndex}, 'name', this.value)">
 
-                                                                    <div class="d-flex align-items-center gap-1 flex-shrink-0">
-                                                                        <button type="button" class="btn btn-sm btn-outline-primary rounded-circle border-0" onclick="window.pushToExpenses(${dayIndex}, 'hotels', ${hIndex})" title="Record as Actual Cost"><i class="bi bi-cash-coin"></i></button>
-                                                                        <button type="button" class="btn btn-sm btn-outline-success rounded-circle border-0" onclick="window.shareHotelRequest(${dayIndex}, ${hIndex})" title="Share WP Booking"><i class="bi bi-whatsapp"></i></button>
-                                                                        <button type="button" class="btn btn-sm btn-outline-danger rounded-circle border-0" onclick="window.removeItem(${dayIndex}, 'hotels', ${hIndex})"><i class="bi bi-x-lg"></i></button>
-                                                                    </div>
-                                                                </div>
-                                                                <input type="text" class="form-control form-control-sm border-0 mb-2 bg-white" placeholder="Room Type (e.g. Deluxe Room)"
-                                                                    value="${hotel.type || ''}"
-                                                                    oninput="window.updateListItem(${dayIndex}, 'hotels', ${hIndex}, 'type', this.value)">
+                                                                            <div class="d-flex align-items-center gap-1 flex-shrink-0">
+                                                                                <button type="button" class="btn btn-sm btn-outline-primary rounded-circle border-0" onclick="window.pushToExpenses(${dayIndex}, 'hotels', ${hIndex})" title="Record as Actual Cost"><i class="bi bi-cash-coin"></i></button>
+                                                                                <button type="button" class="btn btn-sm btn-outline-success rounded-circle border-0" onclick="window.shareHotelRequest(${dayIndex}, ${hIndex})" title="Share WP Booking"><i class="bi bi-whatsapp"></i></button>
+                                                                                <button type="button" class="btn btn-sm btn-outline-danger rounded-circle border-0" onclick="window.removeItem(${dayIndex}, 'hotels', ${hIndex})"><i class="bi bi-x-lg"></i></button>
+                                                                            </div>
+                                                                        </div>
+                                                                        <input type="text" class="form-control form-control-sm border-0 mb-2 bg-white" placeholder="Room Type (e.g. Deluxe Room)"
+                                                                            value="${hotel.type || ''}"
+                                                                            oninput="window.updateListItem(${dayIndex}, 'hotels', ${hIndex}, 'type', this.value)">
 
-                                                                <div class="d-flex flex-wrap gap-2 text-nowrap">
-                                                                    <div class="input-group input-group-sm flex-fill" style="min-width: 90px;">
-                                                                        <span class="input-group-text bg-white border-0 text-muted px-2"><i class="bi bi-key"></i></span>
-                                                                        <input type="number" class="form-control border-0 pt-1" placeholder="Qty"
-                                                                            value="${hotel.quantity || 1}"
-                                                                            oninput="window.updateListItem(${dayIndex}, 'hotels', ${hIndex}, 'quantity', this.value)">
-                                                                    </div>
-                                                                    <div class="input-group input-group-sm flex-fill" style="min-width: 120px;">
-                                                                        <span class="input-group-text bg-white border-0 text-muted px-2">${currency}</span>
-                                                                        <input type="number" class="form-control border-0 pt-1" placeholder="Rate/Night"
-                                                                            value="${hotel.price_per_night || 0}"
-                                                                            oninput="window.updateListItem(${dayIndex}, 'hotels', ${hIndex}, 'price_per_night', this.value)">
-                                                                    </div>
-                                                                    <div class="input-group input-group-sm flex-fill" style="min-width: 100px;">
-                                                                        <span class="input-group-text bg-white border-0 text-muted px-2">+Addon</span>
-                                                                        <input type="number" class="form-control border-0 pt-1" placeholder="Addon"
-                                                                            value="${hotel.add_on_price || 0}"
-                                                                            oninput="window.updateListItem(${dayIndex}, 'hotels', ${hIndex}, 'add_on_price', this.value)">
-                                                                    </div>
-                                                                </div>`;
+                                                                        <div class="d-flex flex-wrap gap-2 text-nowrap">
+                                                                            <div class="input-group input-group-sm flex-fill" style="min-width: 90px;">
+                                                                                <span class="input-group-text bg-white border-0 text-muted px-2"><i class="bi bi-key"></i></span>
+                                                                                <input type="number" class="form-control border-0 pt-1" placeholder="Qty"
+                                                                                    value="${hotel.quantity || 1}"
+                                                                                    oninput="window.updateListItem(${dayIndex}, 'hotels', ${hIndex}, 'quantity', this.value)">
+                                                                            </div>
+                                                                            <div class="input-group input-group-sm flex-fill" style="min-width: 120px;">
+                                                                                <span class="input-group-text bg-white border-0 text-muted px-2">${currency}</span>
+                                                                                <input type="number" class="form-control border-0 pt-1" placeholder="Rate/Night"
+                                                                                    value="${hotel.price_per_night || 0}"
+                                                                                    oninput="window.updateListItem(${dayIndex}, 'hotels', ${hIndex}, 'price_per_night', this.value)">
+                                                                            </div>
+                                                                            <div class="input-group input-group-sm flex-fill" style="min-width: 100px;">
+                                                                                <span class="input-group-text bg-white border-0 text-muted px-2">+Addon</span>
+                                                                                <input type="number" class="form-control border-0 pt-1" placeholder="Addon"
+                                                                                    value="${hotel.add_on_price || 0}"
+                                                                                    oninput="window.updateListItem(${dayIndex}, 'hotels', ${hIndex}, 'add_on_price', this.value)">
+                                                                            </div>
+                                                                        </div>`;
                     container.appendChild(row);
                 });
             }
@@ -1019,9 +1019,9 @@
                     }
 
                     placeholder.innerHTML = `
-                                                                <i class="bi ${icon} fs-5 d-block mb-1 ${colorClass}"></i>
-                                                                No ${textName} added yet — click ${searchBtn} to search inventory or ${addBtn} to enter custom details.
-                                                            `;
+                                                                        <i class="bi ${icon} fs-5 d-block mb-1 ${colorClass}"></i>
+                                                                        No ${textName} added yet — click ${searchBtn} to search inventory or ${addBtn} to enter custom details.
+                                                                    `;
                     container.appendChild(placeholder);
                     return;
                 }
@@ -1033,20 +1033,20 @@
                     const nameField = type === 'tickets' ? 'attraction_name' : 'name';
 
                     let html = `
-                                                                <div class="d-flex gap-2 mb-2 align-items-center flex-wrap flex-md-nowrap">
-                                                                    <input type="text" class="form-control fw-bold border-0 bg-white shadow-sm flex-grow-1" placeholder="Name" 
-                                                                        value="${item[nameField] || ''}" 
-                                                                        oninput="window.updateListItem(${dayIndex}, '${type}', ${itemIndex}, '${nameField}', this.value)">
+                                                                        <div class="d-flex gap-2 mb-2 align-items-center flex-wrap flex-md-nowrap">
+                                                                            <input type="text" class="form-control fw-bold border-0 bg-white shadow-sm flex-grow-1" placeholder="Name" 
+                                                                                value="${item[nameField] || ''}" 
+                                                                                oninput="window.updateListItem(${dayIndex}, '${type}', ${itemIndex}, '${nameField}', this.value)">
 
-                                                                    <div class="d-flex align-items-center flex-shrink-0">
-                                                                        <button type="button" class="btn btn-sm btn-outline-primary border-0 rounded-circle" onclick="window.pushToExpenses(${dayIndex}, '${type}', ${itemIndex})" title="Record as Actual Cost"><i class="bi bi-cash-coin"></i></button>
-                                                                        <button type="button" class="btn btn-sm btn-outline-danger border-0 rounded-circle" onclick="window.removeItem(${dayIndex}, '${type}', ${itemIndex})"><i class="bi bi-x-lg"></i></button>
-                                                                    </div>
-                                                                </div>
-                                                                <input type="text" class="form-control form-control-sm border-0 bg-transparent mb-2" placeholder="Description... (optional)"
-                                                                    value="${item.description || ''}"
-                                                                    onchange="window.updateListItem(${dayIndex}, '${type}', ${itemIndex}, 'description', this.value)">
-                                                            `;
+                                                                            <div class="d-flex align-items-center flex-shrink-0">
+                                                                                <button type="button" class="btn btn-sm btn-outline-primary border-0 rounded-circle" onclick="window.pushToExpenses(${dayIndex}, '${type}', ${itemIndex})" title="Record as Actual Cost"><i class="bi bi-cash-coin"></i></button>
+                                                                                <button type="button" class="btn btn-sm btn-outline-danger border-0 rounded-circle" onclick="window.removeItem(${dayIndex}, '${type}', ${itemIndex})"><i class="bi bi-x-lg"></i></button>
+                                                                            </div>
+                                                                        </div>
+                                                                        <input type="text" class="form-control form-control-sm border-0 bg-transparent mb-2" placeholder="Description... (optional)"
+                                                                            value="${item.description || ''}"
+                                                                            onchange="window.updateListItem(${dayIndex}, '${type}', ${itemIndex}, 'description', this.value)">
+                                                                    `;
 
                     if (type !== 'spots' && type !== 'activities' && type !== 'tickets') {
                         const priceValue = (type === 'transports' || type === 'meals') ? (item.price || 0) : (item.entry_ticket?.price || 0);
@@ -1057,64 +1057,64 @@
                             : `window.updateListItemNested(${dayIndex}, '${type}', ${itemIndex}, 'entry_ticket', 'price', this.value)`;
 
                         html += `
-                                                                    <div class="d-flex flex-wrap gap-2 mt-2 px-1">
-                                                                        <div class="input-group input-group-sm flex-fill shadow-sm" style="min-width: 120px;">
-                                                                            <span class="input-group-text bg-white border-0 text-muted px-2">${currency}</span>
-                                                                            <input type="number" class="form-control border-0 pt-1" placeholder="Price" value="${priceValue}" oninput="${onPriceChange}">
-                                                                        </div>
-                                                                        ${type === 'meals' ? `
-                                                                        <div class="input-group input-group-sm flex-fill shadow-sm" style="min-width: 80px;">
-                                                                            <span class="input-group-text bg-white border-0 text-muted px-2">Qty</span>
-                                                                            <input type="number" class="form-control border-0 pt-1" value="${qtyValue}" onchange="window.updateListItem(${dayIndex}, '${type}', ${itemIndex}, 'quantity', this.value)">
-                                                                        </div>` : ''}
-                                                                    </div>`;
+                                                                            <div class="d-flex flex-wrap gap-2 mt-2 px-1">
+                                                                                <div class="input-group input-group-sm flex-fill shadow-sm" style="min-width: 120px;">
+                                                                                    <span class="input-group-text bg-white border-0 text-muted px-2">${currency}</span>
+                                                                                    <input type="number" class="form-control border-0 pt-1" placeholder="Price" value="${priceValue}" oninput="${onPriceChange}">
+                                                                                </div>
+                                                                                ${type === 'meals' ? `
+                                                                                <div class="input-group input-group-sm flex-fill shadow-sm" style="min-width: 80px;">
+                                                                                    <span class="input-group-text bg-white border-0 text-muted px-2">Qty</span>
+                                                                                    <input type="number" class="form-control border-0 pt-1" value="${qtyValue}" onchange="window.updateListItem(${dayIndex}, '${type}', ${itemIndex}, 'quantity', this.value)">
+                                                                                </div>` : ''}
+                                                                            </div>`;
                     } else if (type === 'spots') {
                         html += `
-                                                                    <div class="d-flex flex-wrap flex-md-nowrap gap-2 mt-2 px-1">
-                                                                        <div class="input-group input-group-sm flex-fill shadow-sm">
-                                                                            <span class="input-group-text bg-white border-0 text-muted px-2"><i class="bi bi-clock me-1"></i> Hrs</span>
-                                                                            <input type="number" class="form-control border-0 pt-1" value="${item.hours || 0}" onchange="window.updateListItem(${dayIndex}, 'spots', ${itemIndex}, 'hours', this.value)">
-                                                                        </div>
-                                                                        <div class="input-group input-group-sm flex-fill shadow-sm">
-                                                                            <span class="input-group-text bg-white border-0 text-muted px-2 text-nowrap">${currency}/hr</span>
-                                                                            <input type="number" class="form-control border-0 pt-1" value="${item.price_per_hour || 0}" onchange="window.updateListItem(${dayIndex}, 'spots', ${itemIndex}, 'price_per_hour', this.value)">
-                                                                        </div>
-                                                                    </div>`;
+                                                                            <div class="d-flex flex-wrap flex-md-nowrap gap-2 mt-2 px-1">
+                                                                                <div class="input-group input-group-sm flex-fill shadow-sm">
+                                                                                    <span class="input-group-text bg-white border-0 text-muted px-2"><i class="bi bi-clock me-1"></i> Hrs</span>
+                                                                                    <input type="number" class="form-control border-0 pt-1" value="${item.hours || 0}" onchange="window.updateListItem(${dayIndex}, 'spots', ${itemIndex}, 'hours', this.value)">
+                                                                                </div>
+                                                                                <div class="input-group input-group-sm flex-fill shadow-sm">
+                                                                                    <span class="input-group-text bg-white border-0 text-muted px-2 text-nowrap">${currency}/hr</span>
+                                                                                    <input type="number" class="form-control border-0 pt-1" value="${item.price_per_hour || 0}" onchange="window.updateListItem(${dayIndex}, 'spots', ${itemIndex}, 'price_per_hour', this.value)">
+                                                                                </div>
+                                                                            </div>`;
                     } else if (type === 'activities' || type === 'tickets') {
                         const et = item.entry_ticket || {};
                         html += `
-                                                                    <div class="mt-2 pt-2 border-top border-light border-2">
-                                                                        <div class="row g-2 text-center text-muted small fw-bold mb-1">
-                                                                            <div class="col-4 text-start">Pax Type</div>
-                                                                            <div class="col-3">Qty</div>
-                                                                            <div class="col-5">Price (${currency})</div>
-                                                                        </div>
-                                                                        <div class="row g-2 align-items-center mb-2">
-                                                                            <div class="col-4 small text-secondary fw-semibold">Adult</div>
-                                                                            <div class="col-3"><input type="number" class="form-control form-control-sm border-0 shadow-sm px-2 text-center" value="${et.adult_qty || 0}" oninput="window.updateListItemNested(${dayIndex}, '${type}', ${itemIndex}, 'entry_ticket', 'adult_qty', this.value)"></div>
-                                                                            <div class="col-5"><input type="number" class="form-control form-control-sm border-0 shadow-sm px-2" value="${et.adult_price || et.price || 0}" oninput="window.updateListItemNested(${dayIndex}, '${type}', ${itemIndex}, 'entry_ticket', 'adult_price', this.value)"></div>
-                                                                        </div>
-                                                                        <div class="row g-2 align-items-center mb-2">
-                                                                            <div class="col-4 small text-secondary fw-semibold">Child 2-6</div>
-                                                                            <div class="col-3"><input type="number" class="form-control form-control-sm border-0 shadow-sm px-2 text-center" value="${et.child_2_6_qty || 0}" oninput="window.updateListItemNested(${dayIndex}, '${type}', ${itemIndex}, 'entry_ticket', 'child_2_6_qty', this.value)"></div>
-                                                                            <div class="col-5"><input type="number" class="form-control form-control-sm border-0 shadow-sm px-2" value="${et.child_2_6_price || 0}" oninput="window.updateListItemNested(${dayIndex}, '${type}', ${itemIndex}, 'entry_ticket', 'child_2_6_price', this.value)"></div>
-                                                                        </div>
-                                                                        <div class="row g-2 align-items-center mb-2">
-                                                                            <div class="col-4 small text-secondary fw-semibold">Child 6-11</div>
-                                                                            <div class="col-3"><input type="number" class="form-control form-control-sm border-0 shadow-sm px-2 text-center" value="${et.child_6_11_qty || 0}" oninput="window.updateListItemNested(${dayIndex}, '${type}', ${itemIndex}, 'entry_ticket', 'child_6_11_qty', this.value)"></div>
-                                                                            <div class="col-5"><input type="number" class="form-control form-control-sm border-0 shadow-sm px-2" value="${et.child_6_11_price || 0}" oninput="window.updateListItemNested(${dayIndex}, '${type}', ${itemIndex}, 'entry_ticket', 'child_6_11_price', this.value)"></div>
-                                                                        </div>
-                                                                        ${type === 'activities' ? `
-                                                                        <div class="row g-2 mt-2 pt-2 border-top border-light border-2 align-items-center">
-                                                                            <div class="col-12 col-md-4 small text-secondary fw-semibold"><i class="bi bi-stopwatch text-warning me-1"></i> Extra Hour</div>
-                                                                            <div class="col-6 col-md-3">
-                                                                                <div class="input-group input-group-sm shadow-sm"><span class="input-group-text bg-white border-0 text-muted px-2">Hrs</span><input type="number" class="form-control border-0 px-2" value="${item.hours || ''}" onchange="window.updateListItem(${dayIndex}, 'activities', ${itemIndex}, 'hours', this.value)"></div>
-                                                                            </div>
-                                                                            <div class="col-6 col-md-5">
-                                                                                <div class="input-group input-group-sm shadow-sm"><span class="input-group-text bg-white border-0 text-muted px-2">Rate</span><input type="number" class="form-control border-0 px-2" value="${item.price_per_hour || ''}" onchange="window.updateListItem(${dayIndex}, 'activities', ${itemIndex}, 'price_per_hour', this.value)"></div>
-                                                                            </div>
-                                                                        </div>` : ''}
-                                                                    </div>`;
+                                                                            <div class="mt-2 pt-2 border-top border-light border-2">
+                                                                                <div class="row g-2 text-center text-muted small fw-bold mb-1">
+                                                                                    <div class="col-4 text-start">Pax Type</div>
+                                                                                    <div class="col-3">Qty</div>
+                                                                                    <div class="col-5">Price (${currency})</div>
+                                                                                </div>
+                                                                                <div class="row g-2 align-items-center mb-2">
+                                                                                    <div class="col-4 small text-secondary fw-semibold">Adult</div>
+                                                                                    <div class="col-3"><input type="number" class="form-control form-control-sm border-0 shadow-sm px-2 text-center" value="${et.adult_qty || 0}" oninput="window.updateListItemNested(${dayIndex}, '${type}', ${itemIndex}, 'entry_ticket', 'adult_qty', this.value)"></div>
+                                                                                    <div class="col-5"><input type="number" class="form-control form-control-sm border-0 shadow-sm px-2" value="${et.adult_price || et.price || 0}" oninput="window.updateListItemNested(${dayIndex}, '${type}', ${itemIndex}, 'entry_ticket', 'adult_price', this.value)"></div>
+                                                                                </div>
+                                                                                <div class="row g-2 align-items-center mb-2">
+                                                                                    <div class="col-4 small text-secondary fw-semibold">Child 2-6</div>
+                                                                                    <div class="col-3"><input type="number" class="form-control form-control-sm border-0 shadow-sm px-2 text-center" value="${et.child_2_6_qty || 0}" oninput="window.updateListItemNested(${dayIndex}, '${type}', ${itemIndex}, 'entry_ticket', 'child_2_6_qty', this.value)"></div>
+                                                                                    <div class="col-5"><input type="number" class="form-control form-control-sm border-0 shadow-sm px-2" value="${et.child_2_6_price || 0}" oninput="window.updateListItemNested(${dayIndex}, '${type}', ${itemIndex}, 'entry_ticket', 'child_2_6_price', this.value)"></div>
+                                                                                </div>
+                                                                                <div class="row g-2 align-items-center mb-2">
+                                                                                    <div class="col-4 small text-secondary fw-semibold">Child 6-11</div>
+                                                                                    <div class="col-3"><input type="number" class="form-control form-control-sm border-0 shadow-sm px-2 text-center" value="${et.child_6_11_qty || 0}" oninput="window.updateListItemNested(${dayIndex}, '${type}', ${itemIndex}, 'entry_ticket', 'child_6_11_qty', this.value)"></div>
+                                                                                    <div class="col-5"><input type="number" class="form-control form-control-sm border-0 shadow-sm px-2" value="${et.child_6_11_price || 0}" oninput="window.updateListItemNested(${dayIndex}, '${type}', ${itemIndex}, 'entry_ticket', 'child_6_11_price', this.value)"></div>
+                                                                                </div>
+                                                                                ${type === 'activities' ? `
+                                                                                <div class="row g-2 mt-2 pt-2 border-top border-light border-2 align-items-center">
+                                                                                    <div class="col-12 col-md-4 small text-secondary fw-semibold"><i class="bi bi-stopwatch text-warning me-1"></i> Extra Hour</div>
+                                                                                    <div class="col-6 col-md-3">
+                                                                                        <div class="input-group input-group-sm shadow-sm"><span class="input-group-text bg-white border-0 text-muted px-2">Hrs</span><input type="number" class="form-control border-0 px-2" value="${item.hours || ''}" onchange="window.updateListItem(${dayIndex}, 'activities', ${itemIndex}, 'hours', this.value)"></div>
+                                                                                    </div>
+                                                                                    <div class="col-6 col-md-5">
+                                                                                        <div class="input-group input-group-sm shadow-sm"><span class="input-group-text bg-white border-0 text-muted px-2">Rate</span><input type="number" class="form-control border-0 px-2" value="${item.price_per_hour || ''}" onchange="window.updateListItem(${dayIndex}, 'activities', ${itemIndex}, 'price_per_hour', this.value)"></div>
+                                                                                    </div>
+                                                                                </div>` : ''}
+                                                                            </div>`;
                     }
 
                     row.innerHTML = html;
@@ -1195,25 +1195,25 @@
 
                     if (currentType === 'transports') {
                         container.innerHTML = `
-                                                                                                                                                                                                                                                                         <div class="p-3">
-                                                                                                                                                                                                                                                                         <div class="mb-3">
-                                                                                                                                                                                                                                                                         <label class="form-label small text-muted">1. Select Vendor</label>
-                                                                                                                                                                                                                                                                         <select id="wiz-vendor" class="form-select form-select-sm"><option value="">Select Vendor</option></select>
-                                                                                                                                                                                                                                                                         </div>
-                                                                                                                                                                                                                                                                         <div class="mb-3">
-                                                                                                                                                                                                                                                                         <label class="form-label small text-muted">2. Select Service / Duration</label>
-                                                                                                                                                                                                                                                                         <select id="wiz-service" class="form-select form-select-sm" disabled><option value="">Select Service / Duration</option></select>
-                                                                                                                                                                                                                                                                         </div>
-                                                                                                                                                                                                                                                                         <div class="mb-3">
-                                                                                                                                                                                                                                                                         <label class="form-label small text-muted">3. Select Vehicle</label>
-                                                                                                                                                                                                                                                                         <select id="wiz-vehicle" class="form-select form-select-sm" disabled><option value="">Select Vehicle</option></select>
-                                                                                                                                                                                                                                                                         </div>
-                                                                                                                                                                                                                                                                         <div id="wiz-result" class="text-center mt-3" style="display:none;">
-                                                                                                                                                                                                                                                                         <div class="h4 text-primary fw-bold mb-2" id="wiz-price"></div>
-                                                                                                                                                                                                                                                                         <button class="btn btn-primary w-100" id="wiz-add-btn">Add to Itinerary</button>
-                                                                                                                                                                                                                                                                         </div>
-                                                                                                                                                                                                                                                                         </div>
-                                                                                                                                                                                                                                                                         `;
+                                                                                                                                                                                                                                                                                 <div class="p-3">
+                                                                                                                                                                                                                                                                                 <div class="mb-3">
+                                                                                                                                                                                                                                                                                 <label class="form-label small text-muted">1. Select Vendor</label>
+                                                                                                                                                                                                                                                                                 <select id="wiz-vendor" class="form-select form-select-sm"><option value="">Select Vendor</option></select>
+                                                                                                                                                                                                                                                                                 </div>
+                                                                                                                                                                                                                                                                                 <div class="mb-3">
+                                                                                                                                                                                                                                                                                 <label class="form-label small text-muted">2. Select Service / Duration</label>
+                                                                                                                                                                                                                                                                                 <select id="wiz-service" class="form-select form-select-sm" disabled><option value="">Select Service / Duration</option></select>
+                                                                                                                                                                                                                                                                                 </div>
+                                                                                                                                                                                                                                                                                 <div class="mb-3">
+                                                                                                                                                                                                                                                                                 <label class="form-label small text-muted">3. Select Vehicle</label>
+                                                                                                                                                                                                                                                                                 <select id="wiz-vehicle" class="form-select form-select-sm" disabled><option value="">Select Vehicle</option></select>
+                                                                                                                                                                                                                                                                                 </div>
+                                                                                                                                                                                                                                                                                 <div id="wiz-result" class="text-center mt-3" style="display:none;">
+                                                                                                                                                                                                                                                                                 <div class="h4 text-primary fw-bold mb-2" id="wiz-price"></div>
+                                                                                                                                                                                                                                                                                 <button class="btn btn-primary w-100" id="wiz-add-btn">Add to Itinerary</button>
+                                                                                                                                                                                                                                                                                 </div>
+                                                                                                                                                                                                                                                                                 </div>
+                                                                                                                                                                                                                                                                                 `;
 
                         const allTransports = data;
                         const vendors = [...new Set(data.map(d => d.supplier ? d.supplier.name : (d.supplier_id ? 'Vendor #' + d.supplier_id : 'General')))].sort();
@@ -1285,11 +1285,11 @@
 
                         if (currentType === 'hotels') {
                             btn.innerHTML = `
-                                                                                                                                                                                                                                                                         <div class="d-flex justify-content-between align-items-center mb-2">
-                                                                                                                                                                                                                                                                         <h6 class="mb-0 fw-bold text-dark">${item.name}</h6>
-                                                                                                                                                                                                                                                                         <span class="badge bg-warning text-dark">${item.star_rating} <i class="bi bi-star-fill small"></i></span>
-                                                                                                                                                                                                                                                                         </div>
-                                                                                                                                                                                                                                                                         <div class="room-options d-grid gap-1 mt-2"></div>`;
+                                                                                                                                                                                                                                                                                 <div class="d-flex justify-content-between align-items-center mb-2">
+                                                                                                                                                                                                                                                                                 <h6 class="mb-0 fw-bold text-dark">${item.name}</h6>
+                                                                                                                                                                                                                                                                                 <span class="badge bg-warning text-dark">${item.star_rating} <i class="bi bi-star-fill small"></i></span>
+                                                                                                                                                                                                                                                                                 </div>
+                                                                                                                                                                                                                                                                                 <div class="room-options d-grid gap-1 mt-2"></div>`;
                             const roomContainer = btn.querySelector('.room-options');
                             if (item.rooms && item.rooms.length > 0) {
                                 item.rooms.forEach(room => {
@@ -1938,325 +1938,326 @@
                 renderBuilder();
                 // loadExpenses(); // Moved to end of file
                 // loadSuppliers(); // Moved to end of file
-            }</script>
+            }
+        </script>
     @endpush
 
-        <!-- Expense Modal -->
-        <div class="modal fade" id="expenseModal" tabindex="-1" aria-hidden="true">
-            <div class="modal-dialog modal-sm">
-                <div class="modal-content">
-                    <div class="modal-header py-2">
-                        <h5 class="modal-title fs-6">Add Actual Expense</h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                    </div>
-                    <div class="modal-body">
-                        <form id="expenseForm">
-                            <input type="hidden" name="itinerary_id" value="{{ $itinerary['id'] }}">
-                            <input type="hidden" name="itinerary_type" value="b2b">
-                            <div class="mb-2">
-                                <label class="form-label small text-muted mb-1">Category</label>
-                                <select name="category" id="expense-category" class="form-select form-select-sm" required>
-                                    <option value="Hotel">Hotel Payout</option>
-                                    <option value="Transport">Transport / Driver</option>
-                                    <option value="Activity">Entrance / Activity</option>
-                                    <option value="Meal">Meal Payment</option>
-                                    <option value="Agent">Agent Commission</option>
-                                    <option value="Other">Other Operational</option>
-                                </select>
-                            </div>
-                            <div class="mb-2 d-none" id="vehicle-type-field">
-                                <label class="form-label small text-muted mb-1">Vehicle Type</label>
-                                <select name="vehicle_type" class="form-select form-select-sm">
-                                    <option value="">Select Vehicle</option>
-                                    <option value="Sedan">Sedan</option>
-                                    <option value="SUV">SUV</option>
-                                    <option value="Van">Van</option>
-                                    <option value="Mini Bus">Mini Bus</option>
-                                    <option value="Coaster">Coaster</option>
-                                    <option value="Luxury Car">Luxury Car</option>
-                                </select>
-                            </div>
-                    </div>
-                    <div class="row g-2 mb-2">
-                        <div class="col-8">
-                            <label class="form-label small text-muted mb-1">Unit Rate</label>
-                            <input type="number" step="0.01" id="expense-rate" class="form-control form-control-sm"
-                                placeholder="Price per unit">
+    <!-- Expense Modal -->
+    <div class="modal fade" id="expenseModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-sm">
+            <div class="modal-content">
+                <div class="modal-header py-2">
+                    <h5 class="modal-title fs-6">Add Actual Expense</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="expenseForm">
+                        <input type="hidden" name="itinerary_id" value="{{ $itinerary['id'] }}">
+                        <input type="hidden" name="itinerary_type" value="b2b">
+                        <div class="mb-2">
+                            <label class="form-label small text-muted mb-1">Category</label>
+                            <select name="category" id="expense-category" class="form-select form-select-sm" required>
+                                <option value="Hotel">Hotel Payout</option>
+                                <option value="Transport">Transport / Driver</option>
+                                <option value="Activity">Entrance / Activity</option>
+                                <option value="Meal">Meal Payment</option>
+                                <option value="Agent">Agent Commission</option>
+                                <option value="Other">Other Operational</option>
+                            </select>
                         </div>
-                        <div class="col-4">
-                            <label class="form-label small text-muted mb-1">Qty</label>
-                            <input type="number" step="1" id="expense-qty" class="form-control form-control-sm" value="1">
+                        <div class="mb-2 d-none" id="vehicle-type-field">
+                            <label class="form-label small text-muted mb-1">Vehicle Type</label>
+                            <select name="vehicle_type" class="form-select form-select-sm">
+                                <option value="">Select Vehicle</option>
+                                <option value="Sedan">Sedan</option>
+                                <option value="SUV">SUV</option>
+                                <option value="Van">Van</option>
+                                <option value="Mini Bus">Mini Bus</option>
+                                <option value="Coaster">Coaster</option>
+                                <option value="Luxury Car">Luxury Car</option>
+                            </select>
                         </div>
+                </div>
+                <div class="row g-2 mb-2">
+                    <div class="col-8">
+                        <label class="form-label small text-muted mb-1">Unit Rate</label>
+                        <input type="number" step="0.01" id="expense-rate" class="form-control form-control-sm"
+                            placeholder="Price per unit">
                     </div>
-                    <div class="mb-2">
-                        <label class="form-label small text-muted mb-1">Amount
-                            ({{ $itinerary['currency'] ?? 'INR' }})</label>
-                        <input type="number" step="0.01" name="amount" id="expense-amount" class="form-control form-control-sm"
-                            required>
+                    <div class="col-4">
+                        <label class="form-label small text-muted mb-1">Qty</label>
+                        <input type="number" step="1" id="expense-qty" class="form-control form-control-sm" value="1">
                     </div>
+                </div>
+                <div class="mb-2">
+                    <label class="form-label small text-muted mb-1">Amount
+                        ({{ $itinerary['currency'] ?? 'INR' }})</label>
+                    <input type="number" step="0.01" name="amount" id="expense-amount" class="form-control form-control-sm"
+                        required>
+                </div>
 
-                    <div class="mb-2">
-                        <label class="form-label small text-muted mb-1">Supplier <a href="#"
-                                class="float-end text-decoration-none" data-bs-toggle="modal"
-                                data-bs-target="#newSupplierModal">+ New</a></label>
-                        <select name="supplier_id" id="expense-supplier-id" class="form-select form-select-sm">
-                            <option value="">Select Partner (Optional)</option>
-                            {{-- Loaded via JS --}}
-                        </select>
-                    </div>
-                    <div class="mb-2">
-                        <label class="form-label small text-muted mb-1">Expense Date</label>
-                        <input type="date" name="expense_date" class="form-control form-control-sm" value="{{ date('Y-m-d') }}"
-                            required>
-                    </div>
-                    <div class="mb-0">
-                        <label class="form-label small text-muted mb-1">Description / Notes</label>
-                        <input type="text" name="description" class="form-control form-control-sm"
-                            placeholder="e.g. Driver payout ref #123">
-                    </div>
+                <div class="mb-2">
+                    <label class="form-label small text-muted mb-1">Supplier <a href="#"
+                            class="float-end text-decoration-none" data-bs-toggle="modal"
+                            data-bs-target="#newSupplierModal">+ New</a></label>
+                    <select name="supplier_id" id="expense-supplier-id" class="form-select form-select-sm">
+                        <option value="">Select Partner (Optional)</option>
+                        {{-- Loaded via JS --}}
+                    </select>
+                </div>
+                <div class="mb-2">
+                    <label class="form-label small text-muted mb-1">Expense Date</label>
+                    <input type="date" name="expense_date" class="form-control form-control-sm" value="{{ date('Y-m-d') }}"
+                        required>
+                </div>
+                <div class="mb-0">
+                    <label class="form-label small text-muted mb-1">Description / Notes</label>
+                    <input type="text" name="description" class="form-control form-control-sm"
+                        placeholder="e.g. Driver payout ref #123">
+                </div>
+                </form>
+            </div>
+            <div class="modal-footer py-1">
+                <button type="button" class="btn btn-sm btn-secondary" data-bs-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-sm btn-primary" onclick="saveExpense()">Save Cost</button>
+            </div>
+        </div>
+    </div>
+    </div>
+
+    <!-- Vendor Payment Modal -->
+    <div class="modal fade" id="vendorPaymentModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-sm">
+            <div class="modal-content">
+                <div class="modal-header py-2">
+                    <h5 class="modal-title fs-6">Record Payment</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="vendorPaymentForm">
+                        <input type="hidden" id="vp_expense_id">
+                        <div class="mb-2">
+                            <label class="form-label small text-muted mb-1">Total Paid Amount</label>
+                            <div class="input-group input-group-sm">
+                                <span class="input-group-text">{{ $itinerary['currency'] ?? 'INR' }}</span>
+                                <input type="number" step="0.01" id="vp_amount" class="form-control" required>
+                            </div>
+                        </div>
+                        <div class="mb-2">
+                            <label class="form-label small text-muted mb-1">Paid By (Method)</label>
+                            <input type="text" id="vp_paid_by" class="form-control form-control-sm" list="paymentMethods"
+                                placeholder="e.g. Cash, Office Account">
+                            <datalist id="paymentMethods">
+                                <option value="Cash">
+                                <option value="Bank Transfer">
+                                <option value="UPI">
+                                <option value="Office Account">
+                                <option value="Driver">
+                                <option value="Petty Cash">
+                            </datalist>
+                        </div>
+                        <button type="submit" class="btn btn-sm btn-success w-100">Update Payment</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Supplier Modal -->
+    <div class="modal fade" id="newSupplierModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-sm">
+            <div class="modal-content">
+                <div class="modal-header py-2">
+                    <h5 class="modal-title fs-6">Quick Add Supplier</h5>
+                </div>
+                <div class="modal-body">
+                    <form id="quickSupplierForm">
+                        <input type="hidden" name="destination_id" value="{{ $itinerary['destination_id'] ?? '' }}">
+                        <div class="mb-2">
+                            <label class="small text-muted mb-1">Supplier Name</label>
+                            <input type="text" name="name" class="form-control form-control-sm" required>
+                        </div>
+                        <div class="mb-2">
+                            <label class="small text-muted mb-1">Type</label>
+                            <select name="type" class="form-select form-select-sm" required>
+                                <option value="Hotel">Hotel</option>
+                                <option value="Transport">Transport</option>
+                                <option value="Activity">Activity</option>
+                                <option value="Agent">Agent</option>
+                            </select>
+                        </div>
                     </form>
                 </div>
                 <div class="modal-footer py-1">
-                    <button type="button" class="btn btn-sm btn-secondary" data-bs-dismiss="modal">Close</button>
-                    <button type="button" class="btn btn-sm btn-primary" onclick="saveExpense()">Save Cost</button>
+                    <button type="button" class="btn btn-sm btn-secondary"
+                        onclick="$('#newSupplierModal').modal('hide'); $('#expenseModal').modal('show');">Back</button>
+                    <button type="button" class="btn btn-sm btn-primary" onclick="quickSaveSupplier()">Save</button>
                 </div>
             </div>
         </div>
-        </div>
-
-        <!-- Vendor Payment Modal -->
-        <div class="modal fade" id="vendorPaymentModal" tabindex="-1" aria-hidden="true">
-            <div class="modal-dialog modal-sm">
-                <div class="modal-content">
-                    <div class="modal-header py-2">
-                        <h5 class="modal-title fs-6">Record Payment</h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+    </div>
+    <!-- Vendor Share Modal -->
+    <div class="modal fade" id="vendorShareModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Share with Vendor</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body p-0">
+                    <div id="vendor-list-container" class="list-group list-group-flush">
+                        <!-- Populated by JS -->
                     </div>
-                    <div class="modal-body">
-                        <form id="vendorPaymentForm">
-                            <input type="hidden" id="vp_expense_id">
-                            <div class="mb-2">
-                                <label class="form-label small text-muted mb-1">Total Paid Amount</label>
-                                <div class="input-group input-group-sm">
-                                    <span class="input-group-text">{{ $itinerary['currency'] ?? 'INR' }}</span>
-                                    <input type="number" step="0.01" id="vp_amount" class="form-control" required>
-                                </div>
-                            </div>
-                            <div class="mb-2">
-                                <label class="form-label small text-muted mb-1">Paid By (Method)</label>
-                                <input type="text" id="vp_paid_by" class="form-control form-control-sm" list="paymentMethods"
-                                    placeholder="e.g. Cash, Office Account">
-                                <datalist id="paymentMethods">
-                                    <option value="Cash">
-                                    <option value="Bank Transfer">
-                                    <option value="UPI">
-                                    <option value="Office Account">
-                                    <option value="Driver">
-                                    <option value="Petty Cash">
-                                </datalist>
-                            </div>
-                            <button type="submit" class="btn btn-sm btn-success w-100">Update Payment</button>
-                        </form>
-                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Close</button>
                 </div>
             </div>
         </div>
+    </div>
 
-        <!-- Quick Supplier Modal -->
-        <div class="modal fade" id="newSupplierModal" tabindex="-1" aria-hidden="true">
-            <div class="modal-dialog modal-sm">
-                <div class="modal-content">
-                    <div class="modal-header py-2">
-                        <h5 class="modal-title fs-6">Quick Add Supplier</h5>
+    <!-- Change Supplier Modal -->
+    <div class="modal fade" id="changeSupplierModal" tabindex="-1">
+        <div class="modal-dialog modal-sm">
+            <div class="modal-content">
+                <div class="modal-header py-2">
+                    <h5 class="modal-title fs-6">Change Vendor</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label small text-muted">Select New Vendor</label>
+                        <select id="change-supplier-select" class="form-select form-select-sm">
+                            <!-- Populated JS -->
+                        </select>
                     </div>
-                    <div class="modal-body">
-                        <form id="quickSupplierForm">
-                            <input type="hidden" name="destination_id" value="{{ $itinerary['destination_id'] ?? '' }}">
-                            <div class="mb-2">
-                                <label class="small text-muted mb-1">Supplier Name</label>
-                                <input type="text" name="name" class="form-control form-control-sm" required>
-                            </div>
-                            <div class="mb-2">
-                                <label class="small text-muted mb-1">Type</label>
-                                <select name="type" class="form-select form-select-sm" required>
-                                    <option value="Hotel">Hotel</option>
-                                    <option value="Transport">Transport</option>
-                                    <option value="Activity">Activity</option>
-                                    <option value="Agent">Agent</option>
-                                </select>
-                            </div>
-                        </form>
-                    </div>
-                    <div class="modal-footer py-1">
-                        <button type="button" class="btn btn-sm btn-secondary"
-                            onclick="$('#newSupplierModal').modal('hide'); $('#expenseModal').modal('show');">Back</button>
-                        <button type="button" class="btn btn-sm btn-primary" onclick="quickSaveSupplier()">Save</button>
-                    </div>
+                    <button class="btn btn-primary btn-sm w-100" onclick="saveChangedSupplier()">Update Vendor</button>
                 </div>
             </div>
         </div>
-        <!-- Vendor Share Modal -->
-        <div class="modal fade" id="vendorShareModal" tabindex="-1" aria-hidden="true">
-            <div class="modal-dialog">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h5 class="modal-title">Share with Vendor</h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                    </div>
-                    <div class="modal-body p-0">
-                        <div id="vendor-list-container" class="list-group list-group-flush">
-                            <!-- Populated by JS -->
-                        </div>
-                    </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Close</button>
-                    </div>
-                </div>
-            </div>
-        </div>
+    </div>
 
-        <!-- Change Supplier Modal -->
-        <div class="modal fade" id="changeSupplierModal" tabindex="-1">
-            <div class="modal-dialog modal-sm">
-                <div class="modal-content">
-                    <div class="modal-header py-2">
-                        <h5 class="modal-title fs-6">Change Vendor</h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                    </div>
-                    <div class="modal-body">
-                        <div class="mb-3">
-                            <label class="form-label small text-muted">Select New Vendor</label>
-                            <select id="change-supplier-select" class="form-select form-select-sm">
-                                <!-- Populated JS -->
-                            </select>
-                        </div>
-                        <button class="btn btn-primary btn-sm w-100" onclick="saveChangedSupplier()">Update Vendor</button>
-                    </div>
-                </div>
-            </div>
-        </div>
+    <script>
+        let currentExpenses = [];
+        let allSuppliers = []; // Store suppliers for dropdown
 
-        <script>
-            let currentExpenses = [];
-            let allSuppliers = []; // Store suppliers for dropdown
+        function openVendorShareModal() {
+            const container = document.getElementById('vendor-list-container');
+            container.innerHTML = '';
 
-            function openVendorShareModal() {
-                const container = document.getElementById('vendor-list-container');
-                container.innerHTML = '';
+            // Collect vendors from expenses
+            const expenseVendors = currentExpenses.filter(e => e.supplier).map(e => ({
+                id: e.supplier.id,
+                name: e.supplier.name,
+                type: e.supplier.type,
+                category: e.category,
+                description: e.description,
+                expenseId: e.id,
+                status: e.status
+            }));
 
-                // Collect vendors from expenses
-                const expenseVendors = currentExpenses.filter(e => e.supplier).map(e => ({
-                    id: e.supplier.id,
-                    name: e.supplier.name,
-                    type: e.supplier.type,
-                    category: e.category,
-                    description: e.description,
-                    expenseId: e.id,
-                    status: e.status
-                }));
+            // Collect vendors from checkboxes
+            const selectedVendors = [];
+            $('.vendor-cb:checked').each(function () {
+                const id = $(this).val();
+                const label = $(this).next('label').text().trim();
+                const name = label.split(' (')[0];
+                const typeMatch = label.match(/\(([^)]+)\)/);
+                const type = typeMatch ? typeMatch[1] : '';
 
-                // Collect vendors from checkboxes
-                const selectedVendors = [];
-                $('.vendor-cb:checked').each(function () {
-                    const id = $(this).val();
-                    const label = $(this).next('label').text().trim();
-                    const name = label.split(' (')[0];
-                    const typeMatch = label.match(/\(([^)]+)\)/);
-                    const type = typeMatch ? typeMatch[1] : '';
-
-                    if (!expenseVendors.some(ev => ev.id == id)) {
-                        selectedVendors.push({ id, name, type, category: 'General', description: 'Selected for Proposal' });
-                    }
-                });
-
-                const allVendors = [...expenseVendors, ...selectedVendors];
-
-                if (allVendors.length === 0) {
-                    container.innerHTML = '<div class="p-4 text-center text-muted">No vendors selected. Choose vendors in the left sidebar or add expenses.</div>';
-                } else {
-                    allVendors.forEach(vendor => {
-                        let statusBadge = '';
-                        if (vendor.status) {
-                            let statusColor = 'secondary';
-                            if (vendor.status === 'confirmed') statusColor = 'success';
-                            if (vendor.status === 'requested') statusColor = 'warning';
-                            if (vendor.status === 'rejected') statusColor = 'danger';
-                            statusBadge = `<span class="badge bg-${statusColor} ms-1 text-uppercase" style="font-size: 0.65rem;">${vendor.status}</span>`;
-                        }
-
-                        const item = document.createElement('div');
-                        item.className = 'list-group-item p-3 d-flex justify-content-between align-items-center';
-                        item.innerHTML = `
-                                                                                                                                     <div style="flex:1">
-                                                                                                                                     <div class="fw-bold">${vendor.name} <span class="badge bg-light text-dark border ms-1">${vendor.category || vendor.type}</span>${statusBadge}</div>
-                                                                                                                                     <div class="text-muted small">${vendor.description || ''}</div>
-                                                                                                                                     </div>
-                                                                                                                                     <div class="d-flex gap-2">
-                                                                                                                                     <button class="btn btn-danger btn-sm" onclick="downloadVendorPdf(${vendor.expenseId})" title="PDF Voucher" ${!vendor.expenseId ? 'disabled' : ''}>
-                                                                                                                                     <i class="bi bi-file-earmark-pdf"></i>
-                                                                                                                                     </button>
-                                                                                                                                     <button class="btn btn-success btn-sm" onclick="shareVendorWhatsapp(${vendor.expenseId || 0}, ${vendor.id})" title="WhatsApp">
-                                                                                                                                     <i class="bi bi-whatsapp"></i>
-                                                                                                                                     </button>
-                                                                                                                                     </div>
-                                                                                                                                     `;
-                        container.appendChild(item);
-                    });
+                if (!expenseVendors.some(ev => ev.id == id)) {
+                    selectedVendors.push({ id, name, type, category: 'General', description: 'Selected for Proposal' });
                 }
+            });
 
-                new bootstrap.Modal(document.getElementById('vendorShareModal')).show();
-            }
+            const allVendors = [...expenseVendors, ...selectedVendors];
 
-            function updateExpenseStatus(id, status) {
-                $.ajax({
-                    url: `/admin/expenses/${id}`,
-                    type: 'PUT',
-                    data: { status: status },
-                    success: function (res) {
-                        // Update local data
-                        const idx = currentExpenses.findIndex(e => e.id == id);
-                        if (idx !== -1) currentExpenses[idx].status = status;
-                        // Re-render modal to toggle Change Vendor button if needed
-                        // For simply changing select color, we might want full refresh, but let's just re-open/render for now or simple alert
-                        // Ideally we refresh the list status badge.
-                        // Let's close and re-open to refresh the view or just refresh list
-                        openVendorShareModal();
+            if (allVendors.length === 0) {
+                container.innerHTML = '<div class="p-4 text-center text-muted">No vendors selected. Choose vendors in the left sidebar or add expenses.</div>';
+            } else {
+                allVendors.forEach(vendor => {
+                    let statusBadge = '';
+                    if (vendor.status) {
+                        let statusColor = 'secondary';
+                        if (vendor.status === 'confirmed') statusColor = 'success';
+                        if (vendor.status === 'requested') statusColor = 'warning';
+                        if (vendor.status === 'rejected') statusColor = 'danger';
+                        statusBadge = `<span class="badge bg-${statusColor} ms-1 text-uppercase" style="font-size: 0.65rem;">${vendor.status}</span>`;
                     }
+
+                    const item = document.createElement('div');
+                    item.className = 'list-group-item p-3 d-flex justify-content-between align-items-center';
+                    item.innerHTML = `
+                                                                                                                                         <div style="flex:1">
+                                                                                                                                         <div class="fw-bold">${vendor.name} <span class="badge bg-light text-dark border ms-1">${vendor.category || vendor.type}</span>${statusBadge}</div>
+                                                                                                                                         <div class="text-muted small">${vendor.description || ''}</div>
+                                                                                                                                         </div>
+                                                                                                                                         <div class="d-flex gap-2">
+                                                                                                                                         <button class="btn btn-danger btn-sm" onclick="downloadVendorPdf(${vendor.expenseId})" title="PDF Voucher" ${!vendor.expenseId ? 'disabled' : ''}>
+                                                                                                                                         <i class="bi bi-file-earmark-pdf"></i>
+                                                                                                                                         </button>
+                                                                                                                                         <button class="btn btn-success btn-sm" onclick="shareVendorWhatsapp(${vendor.expenseId || 0}, ${vendor.id})" title="WhatsApp">
+                                                                                                                                         <i class="bi bi-whatsapp"></i>
+                                                                                                                                         </button>
+                                                                                                                                         </div>
+                                                                                                                                         `;
+                    container.appendChild(item);
                 });
             }
 
-            let editingExpenseId = null;
-            function openChangeSupplierModal(expenseId) {
-                editingExpenseId = expenseId;
-                const exp = currentExpenses.find(e => e.id == expenseId);
+            new bootstrap.Modal(document.getElementById('vendorShareModal')).show();
+        }
 
-                // populate modal
-                const modal = new bootstrap.Modal(document.getElementById('changeSupplierModal'));
+        function updateExpenseStatus(id, status) {
+            $.ajax({
+                url: `/admin/expenses/${id}`,
+                type: 'PUT',
+                data: { status: status },
+                success: function (res) {
+                    // Update local data
+                    const idx = currentExpenses.findIndex(e => e.id == id);
+                    if (idx !== -1) currentExpenses[idx].status = status;
+                    // Re-render modal to toggle Change Vendor button if needed
+                    // For simply changing select color, we might want full refresh, but let's just re-open/render for now or simple alert
+                    // Ideally we refresh the list status badge.
+                    // Let's close and re-open to refresh the view or just refresh list
+                    openVendorShareModal();
+                }
+            });
+        }
 
-                // Populate select options
-                const select = document.getElementById('change-supplier-select');
-                select.innerHTML = '<option value="">Select New Vendor</option>';
-                allSuppliers.forEach(s => {
-                    select.innerHTML += `<option value="${s.id}">${s.name} (${s.type})</option>`;
-                });
+        let editingExpenseId = null;
+        function openChangeSupplierModal(expenseId) {
+            editingExpenseId = expenseId;
+            const exp = currentExpenses.find(e => e.id == expenseId);
 
-                modal.show();
-            }
+            // populate modal
+            const modal = new bootstrap.Modal(document.getElementById('changeSupplierModal'));
 
-            function saveChangedSupplier() {
-                const newSupplierId = document.getElementById('change-supplier-select').value;
-                if (!newSupplierId) return alert('Select a supplier');
+            // Populate select options
+            const select = document.getElementById('change-supplier-select');
+            select.innerHTML = '<option value="">Select New Vendor</option>';
+            allSuppliers.forEach(s => {
+                select.innerHTML += `<option value="${s.id}">${s.name} (${s.type})</option>`;
+            });
 
-                $.ajax({
-                    url: `/admin/expenses/${editingExpenseId}`,
-                    type: 'PUT',
-                    data: { supplier_id: newSupplierId, status: 'pending' }, // Reset to pending
-                    success: function (res) {
-                        location.reload(); // Simplest way to reflect everything including main list
-                    }
-                });
-            }
-        </script>
+            modal.show();
+        }
+
+        function saveChangedSupplier() {
+            const newSupplierId = document.getElementById('change-supplier-select').value;
+            if (!newSupplierId) return alert('Select a supplier');
+
+            $.ajax({
+                url: `/admin/expenses/${editingExpenseId}`,
+                type: 'PUT',
+                data: { supplier_id: newSupplierId, status: 'pending' }, // Reset to pending
+                success: function (res) {
+                    location.reload(); // Simplest way to reflect everything including main list
+                }
+            });
+        }
+    </script>
 @endsection
 
 @push('scripts')
@@ -2314,13 +2315,13 @@
                 data.forEach(s => {
                     const isChecked = ((s.id == currentVendorId) || (currentExpenses && currentExpenses.some(e => e.supplier_id == s.id))) ? 'checked' : '';
                     const cbHtml = `
-                                                                                                             <div class="form-check small mb-1">
-                                                                                                             <input class="form-check-input vendor-cb" type="checkbox" value="${s.id}" id="vcb-${s.id}" ${isChecked}>
-                                                                                                             <label class="form-check-label text-truncate d-block" for="vcb-${s.id}" title="${s.name}">
-                                                                                                             ${s.name} <span class="text-muted" style="font-size: 0.6rem;">(${s.type})</span>
-                                                                                                             </label>
-                                                                                                             </div>
-                                                                                                             `;
+                                                                                                                 <div class="form-check small mb-1">
+                                                                                                                 <input class="form-check-input vendor-cb" type="checkbox" value="${s.id}" id="vcb-${s.id}" ${isChecked}>
+                                                                                                                 <label class="form-check-label text-truncate d-block" for="vcb-${s.id}" title="${s.name}">
+                                                                                                                 ${s.name} <span class="text-muted" style="font-size: 0.6rem;">(${s.type})</span>
+                                                                                                                 </label>
+                                                                                                                 </div>
+                                                                                                                 `;
                     checkboxContainer.append(cbHtml);
                 });
 
@@ -2479,46 +2480,46 @@
                     let actions = '';
                     if (exp.supplier) {
                         actions = `
-                                                                                                             <button class="btn btn-link text-success p-0 me-2" onclick="shareVendorWhatsapp(${exp.id})" title="WhatsApp Vendor">
-                                                                                                             <i class="bi bi-whatsapp"></i>
-                                                                                                             </button>
-                                                                                                             <button class="btn btn-link text-danger p-0 me-2" onclick="downloadVendorPdf(${exp.id})" title="PDF Voucher">
-                                                                                                             <i class="bi bi-file-pdf"></i>
-                                                                                                             </button>
-                                                                                                             `;
+                                                                                                                 <button class="btn btn-link text-success p-0 me-2" onclick="shareVendorWhatsapp(${exp.id})" title="WhatsApp Vendor">
+                                                                                                                 <i class="bi bi-whatsapp"></i>
+                                                                                                                 </button>
+                                                                                                                 <button class="btn btn-link text-danger p-0 me-2" onclick="downloadVendorPdf(${exp.id})" title="PDF Voucher">
+                                                                                                                 <i class="bi bi-file-pdf"></i>
+                                                                                                                 </button>
+                                                                                                                 `;
                     }
 
                     tbody.append(`
-                                                                                                             <tr>
-                                                                                                             <td>
-                                                                                                             <div class="fw-bold" style="font-size: 0.75rem;">${exp.category}${vendorName}</div>
-                                                                                                             <div class="text-muted" style="font-size: 0.65rem;">${exp.description || ''}</div>
-                                                                                                             </td>
-                                                                                                             <td class="text-end fw-bold text-danger" style="white-space: nowrap;">
-                                                                                                              <div>-${currency} ${parseFloat(exp.amount).toFixed(2)}
-                                                                                                                  <button class="btn btn-link btn-sm p-0 text-muted opacity-50" onclick="window.editExpenseInline(${exp.id}, ${exp.amount})" title="Edit Amount">
-                                                                                                                      <i class="bi bi-pencil-square" style="font-size: 0.7rem;"></i>
-                                                                                                                  </button>
-                                                                                                               </div>
-                                                                                                               <div class="text-success small opacity-75 mt-1" style="font-size: 0.7rem;">
-                                                                                                                  Paid: ${currency} ${parseFloat(exp.paid_amount || 0).toFixed(2)}
-                                                                                                              <span class="text-muted" style="font-size: 0.6rem;">${exp.paid_by ? '(' + exp.paid_by + ')' : ''}</span>
-                                                                                                                  <button class="btn btn-link btn-sm p-0 text-success opacity-50" onclick="window.editPaidAmount(${exp.id}, ${exp.paid_amount || 0}, '${exp.paid_by || ''}')" title="Record Payment">
-                                                                                                                      <i class="bi bi-pencil-square" style="font-size: 0.6rem;"></i>
-                                                                                                                  </button>
-                                                                                                               </div>
-                                                                                                               <div class="text-danger small fw-bold mt-1" style="font-size: 0.7rem;">
-                                                                                                                  To Pay: ${currency} ${(parseFloat(exp.amount) - parseFloat(exp.paid_amount || 0)).toFixed(2)}
-                                                                                                               </div>
-                                                                                                           </td>
-                                                                                                             <td class="text-end">
-                                                                                                             ${actions}
-                                                                                                             <button class="btn btn-link text-muted p-0" onclick="deleteExpense(${exp.id})" title="Remove Cost">
-                                                                                                             <i class="bi bi-trash"></i>
-                                                                                                             </button>
-                                                                                                             </td>
-                                                                                                             </tr>
-                                                                                                             `);
+                                                                                                                 <tr>
+                                                                                                                 <td>
+                                                                                                                 <div class="fw-bold" style="font-size: 0.75rem;">${exp.category}${vendorName}</div>
+                                                                                                                 <div class="text-muted" style="font-size: 0.65rem;">${exp.description || ''}</div>
+                                                                                                                 </td>
+                                                                                                                 <td class="text-end fw-bold text-danger" style="white-space: nowrap;">
+                                                                                                                  <div>-${currency} ${parseFloat(exp.amount).toFixed(2)}
+                                                                                                                      <button class="btn btn-link btn-sm p-0 text-muted opacity-50" onclick="window.editExpenseInline(${exp.id}, ${exp.amount})" title="Edit Amount">
+                                                                                                                          <i class="bi bi-pencil-square" style="font-size: 0.7rem;"></i>
+                                                                                                                      </button>
+                                                                                                                   </div>
+                                                                                                                   <div class="text-success small opacity-75 mt-1" style="font-size: 0.7rem;">
+                                                                                                                      Paid: ${currency} ${parseFloat(exp.paid_amount || 0).toFixed(2)}
+                                                                                                                  <span class="text-muted" style="font-size: 0.6rem;">${exp.paid_by ? '(' + exp.paid_by + ')' : ''}</span>
+                                                                                                                      <button class="btn btn-link btn-sm p-0 text-success opacity-50" onclick="window.editPaidAmount(${exp.id}, ${exp.paid_amount || 0}, '${exp.paid_by || ''}')" title="Record Payment">
+                                                                                                                          <i class="bi bi-pencil-square" style="font-size: 0.6rem;"></i>
+                                                                                                                      </button>
+                                                                                                                   </div>
+                                                                                                                   <div class="text-danger small fw-bold mt-1" style="font-size: 0.7rem;">
+                                                                                                                      To Pay: ${currency} ${(parseFloat(exp.amount) - parseFloat(exp.paid_amount || 0)).toFixed(2)}
+                                                                                                                   </div>
+                                                                                                               </td>
+                                                                                                                 <td class="text-end">
+                                                                                                                 ${actions}
+                                                                                                                 <button class="btn btn-link text-muted p-0" onclick="deleteExpense(${exp.id})" title="Remove Cost">
+                                                                                                                 <i class="bi bi-trash"></i>
+                                                                                                                 </button>
+                                                                                                                 </td>
+                                                                                                                 </tr>
+                                                                                                                 `);
                 });
 
                 if (data.length === 0) {
