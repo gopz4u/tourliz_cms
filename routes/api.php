@@ -25,22 +25,7 @@ use App\Http\Controllers\Api\UploadController;
 |
 */
 
-// ============================================
-// 0. API Diagnostic Route (for troubleshooting)
-// ============================================
-Route::get('/diagnostic', function () {
-    return response()->json([
-        'api_routes_loaded' => true,
-        'laravel_version' => app()->version(),
-        'php_version' => PHP_VERSION,
-        'timestamp' => now()->toISOString(),
-        'test_endpoints' => [
-            'public_test' => url('/api/test/public'),
-            'auth_login' => url('/api/auth/login'),
-            'packages' => url('/api/v1/packages'),
-        ],
-    ]);
-});
+
 
 // ============================================
 // 1. Authentication & User Management APIs

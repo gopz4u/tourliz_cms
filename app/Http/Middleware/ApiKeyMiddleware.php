@@ -31,21 +31,14 @@ class ApiKeyMiddleware
         $apiKey = $apiKeyHeader ?? $apiKeyQuery;
         $expectedKey = config('services.api_key');
 
-        // If no API key is configured, allow access (for development)
-        // Or if API key matches, allow access
-        if (!$expectedKey || ($apiKey && $apiKey === $expectedKey)) {
+        if ($expectedKey && $apiKey && hash_equals($expectedKey, $apiKey)) {
             return $next($request);
         }
 
-        // If API key is required but not provided or invalid
-        if ($expectedKey && (!$apiKey || $apiKey !== $expectedKey)) {
-            return response()->json([
-                'message' => 'API key required. Provide X-API-Key header or api_key query parameter.',
-                'error' => 'Unauthorized'
-            ], 401);
-        }
-
-        return $next($request);
+        return response()->json([
+            'message' => 'Valid API key (X-API-Key header / api_key param) or Bearer token required.',
+            'error' => 'Unauthorized'
+        ], 401);
     }
 }
 

@@ -38,3 +38,6 @@ yarn-error.log
 /upload_files_detailed.txt
 /upload_files_paths.txt
 /cms.zip
+/.qwen/
+/scratch/
+/check_revenue.php
