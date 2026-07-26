@@ -153,8 +153,15 @@ class DestinationController extends Controller
         ]);
 
         // Handle boolean fields - convert to boolean (accepts 0, 1, true, false, "0", "1", etc.)
-        $validated['featured'] = isset($validated['featured']) && ($validated['featured'] == 1 || $validated['featured'] === true || $validated['featured'] === '1' || $validated['featured'] === 'true');
-        $validated['status'] = isset($validated['status']) && ($validated['status'] == 1 || $validated['status'] === true || $validated['status'] === '1' || $validated['status'] === 'true') ? true : (isset($validated['status']) ? false : true);
+        if (isset($validated['featured'])) {
+            $validated['is_featured'] = ($validated['featured'] == 1 || $validated['featured'] === true || $validated['featured'] === '1' || $validated['featured'] === 'true');
+        }
+        if (isset($validated['status'])) {
+            $validated['is_active'] = ($validated['status'] == 1 || $validated['status'] === true || $validated['status'] === '1' || $validated['status'] === 'true');
+        } else {
+            $validated['is_active'] = true;
+        }
+        unset($validated['featured'], $validated['status']);
 
         // Ensure gallery is not null
         $validated['gallery'] = $validated['gallery'] ?? [];
@@ -234,8 +241,15 @@ class DestinationController extends Controller
         ]);
 
         // Handle boolean fields - convert to boolean (accepts 0, 1, true, false, "0", "1", etc.)
-        $validated['featured'] = isset($validated['featured']) && ($validated['featured'] == 1 || $validated['featured'] === true || $validated['featured'] === '1' || $validated['featured'] === 'true');
-        $validated['status'] = isset($validated['status']) && ($validated['status'] == 1 || $validated['status'] === true || $validated['status'] === '1' || $validated['status'] === 'true') ? true : (isset($validated['status']) ? false : true);
+        if (isset($validated['featured'])) {
+            $validated['is_featured'] = ($validated['featured'] == 1 || $validated['featured'] === true || $validated['featured'] === '1' || $validated['featured'] === 'true');
+        }
+        if (isset($validated['status'])) {
+            $validated['is_active'] = ($validated['status'] == 1 || $validated['status'] === true || $validated['status'] === '1' || $validated['status'] === 'true');
+        } else {
+            $validated['is_active'] = true;
+        }
+        unset($validated['featured'], $validated['status']);
 
         // Ensure gallery is not null
         $validated['gallery'] = $validated['gallery'] ?? [];

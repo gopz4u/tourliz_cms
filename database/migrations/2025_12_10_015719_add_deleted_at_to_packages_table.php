@@ -13,9 +13,11 @@ class AddDeletedAtToPackagesTable extends Migration
      */
     public function up()
     {
-        Schema::table('packages', function (Blueprint $table) {
-            $table->softDeletes();
-        });
+        if (!Schema::hasColumn('packages', 'deleted_at')) {
+            Schema::table('packages', function (Blueprint $table) {
+                $table->softDeletes();
+            });
+        }
     }
 
     /**

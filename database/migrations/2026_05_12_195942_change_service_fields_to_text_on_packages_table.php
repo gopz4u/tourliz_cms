@@ -11,9 +11,11 @@ return new class extends Migration
      */
     public function up(): void
     {
-        // Use raw SQL to change column types and remove JSON constraints in MariaDB/MySQL
-        \DB::statement("ALTER TABLE packages MODIFY included_services TEXT NULL");
-        \DB::statement("ALTER TABLE packages MODIFY excluded_services TEXT NULL");
+        if (\DB::getDriverName() === 'mysql') {
+            // Use raw SQL to change column types and remove JSON constraints in MariaDB/MySQL
+            \DB::statement("ALTER TABLE packages MODIFY included_services TEXT NULL");
+            \DB::statement("ALTER TABLE packages MODIFY excluded_services TEXT NULL");
+        }
     }
 
     /**

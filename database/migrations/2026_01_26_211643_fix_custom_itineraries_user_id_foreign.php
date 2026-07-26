@@ -13,9 +13,11 @@ class FixCustomItinerariesUserIdForeign extends Migration
      */
     public function up()
     {
-        Schema::table('custom_itineraries', function (Blueprint $table) {
-            $table->dropForeign(['user_id']);
-        });
+        if (\Illuminate\Support\Facades\DB::getDriverName() !== 'sqlite') {
+            Schema::table('custom_itineraries', function (Blueprint $table) {
+                $table->dropForeign(['user_id']);
+            });
+        }
     }
 
     public function down()

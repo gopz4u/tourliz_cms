@@ -11,17 +11,13 @@ return new class extends Migration {
     public function up(): void
     {
         Schema::table('places', function (Blueprint $table) {
-            // Rename location to country
-            if (Schema::hasColumn('places', 'location')) {
-                $table->renameColumn('location', 'country');
-            }
-            // Rename region to location
-            if (Schema::hasColumn('places', 'region')) {
-                $table->renameColumn('region', 'location');
-            }
-            // Add city column
+            // Add city column if not exists
             if (!Schema::hasColumn('places', 'city')) {
-                $table->string('city')->nullable()->after('image');
+                $table->string('city')->nullable()->after('location');
+            }
+            // Add country column if not exists (in case original migration didn't have it)
+            if (!Schema::hasColumn('places', 'country')) {
+                $table->string('country')->nullable()->after('city');
             }
         });
     }
@@ -32,15 +28,12 @@ return new class extends Migration {
     public function down(): void
     {
         Schema::table('places', function (Blueprint $table) {
-            if (Schema::hasColumn('places', 'country')) {
-                $table->renameColumn('country', 'location');
-            }
-            if (Schema::hasColumn('places', 'location')) {
-                $table->renameColumn('location', 'region');
-            }
             if (Schema::hasColumn('places', 'city')) {
                 $table->dropColumn('city');
             }
+            // Only drop country if it was added by this migration (not if it existed originally)
+            // The original create_places_table migration already has a country column,
+            // so we don't drop it here to avoid data loss.
         });
     }
 };

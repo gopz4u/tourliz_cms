@@ -19,23 +19,32 @@ class RenameUsersTableToAdmins extends Migration
             // Rename the table
             Schema::rename('users', 'admins');
         } elseif (Schema::hasTable('users') && Schema::hasTable('admins')) {
-            // If both exist, migrate data from users to admins (skip duplicates)
-            try {
-                DB::statement('INSERT IGNORE INTO admins (id, name, email, email_verified_at, password, remember_token, created_at, updated_at) 
-                              SELECT id, name, email, email_verified_at, password, remember_token, created_at, updated_at 
-                              FROM users');
-            } catch (\Exception $e) {
-                // If insert fails, continue
+            if (DB::getDriverName() === 'mysql') {
+                try {
+                    DB::statement('INSERT IGNORE INTO admins (id, name, email, email_verified_at, password, remember_token, created_at, updated_at) 
+                                  SELECT id, name, email, email_verified_at, password, remember_token, created_at, updated_at 
+                                  FROM users');
+                } catch (\Exception $e) {
+                    // If insert fails, continue
+                }
+                DB::statement('SET FOREIGN_KEY_CHECKS=0;');
+                Schema::dropIfExists('users');
+                DB::statement('SET FOREIGN_KEY_CHECKS=1;');
+            } else {
+                Schema::dropIfExists('users');
             }
-            
-            // Disable foreign key checks temporarily
-            DB::statement('SET FOREIGN_KEY_CHECKS=0;');
-            
-            // Drop users table
-            Schema::dropIfExists('users');
-            
-            // Re-enable foreign key checks
-            DB::statement('SET FOREIGN_KEY_CHECKS=1;');
+        }
+
+        if (!Schema::hasTable('users')) {
+            Schema::create('users', function (Blueprint $table) {
+                $table->id();
+                $table->string('name');
+                $table->string('email')->unique('users_new_email_unique');
+                $table->timestamp('email_verified_at')->nullable();
+                $table->string('password');
+                $table->rememberToken();
+                $table->timestamps();
+            });
         }
     }
 

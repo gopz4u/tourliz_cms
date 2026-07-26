@@ -22,6 +22,13 @@ class AddAgencyFeatures extends Migration
             });
         }
 
+        // Add role to admins if not exists
+        if (Schema::hasTable('admins') && !Schema::hasColumn('admins', 'role')) {
+            Schema::table('admins', function (Blueprint $table) {
+                $table->string('role')->default('super_admin')->after('email');
+            });
+        }
+
         // Create agency profiles table
         Schema::create('agency_profiles', function (Blueprint $table) {
             $table->id();

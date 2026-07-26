@@ -15,8 +15,10 @@ class FixDeletedAtNullableInServicesTable extends Migration
     public function up()
     {
         if (Schema::hasTable('services') && Schema::hasColumn('services', 'deleted_at')) {
-            // Use raw SQL to alter the column to be nullable
-            DB::statement('ALTER TABLE `services` MODIFY COLUMN `deleted_at` TIMESTAMP NULL');
+            if (DB::getDriverName() === 'mysql') {
+                // Use raw SQL to alter the column to be nullable
+                DB::statement('ALTER TABLE `services` MODIFY COLUMN `deleted_at` TIMESTAMP NULL');
+            }
         }
     }
 

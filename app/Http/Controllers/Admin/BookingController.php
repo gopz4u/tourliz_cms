@@ -36,8 +36,12 @@ class BookingController extends Controller
         $package = \App\Models\Package::find($request->package_id);
         if ($package) {
             $price = $package->discount_price ?: $package->price;
-            $booking->package_price = $package->price;
-            $booking->discount_price = $package->discount_price;
+            if (\Illuminate\Support\Facades\Schema::hasColumn('bookings', 'package_price')) {
+                $booking->package_price = $package->price;
+            }
+            if (\Illuminate\Support\Facades\Schema::hasColumn('bookings', 'discount_price')) {
+                $booking->discount_price = $package->discount_price;
+            }
             $booking->currency = $package->currency ?: 'INR';
 
             // Basic calculation for total amount if not manually set

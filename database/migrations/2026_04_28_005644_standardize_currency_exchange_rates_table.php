@@ -13,23 +13,25 @@ return new class extends Migration
      */
     public function up()
     {
-        Schema::table('currency_exchange_rates', function (Blueprint $table) {
-            // Rename currency_code to code
-            if (Schema::hasColumn('currency_exchange_rates', 'currency_code') && !Schema::hasColumn('currency_exchange_rates', 'code')) {
+        if (Schema::hasColumn('currency_exchange_rates', 'currency_code') && !Schema::hasColumn('currency_exchange_rates', 'code')) {
+            Schema::table('currency_exchange_rates', function (Blueprint $table) {
                 $table->renameColumn('currency_code', 'code');
-            }
+            });
+        }
 
-            // Rename currency_name to name
-            if (Schema::hasColumn('currency_exchange_rates', 'currency_name') && !Schema::hasColumn('currency_exchange_rates', 'name')) {
+        if (Schema::hasColumn('currency_exchange_rates', 'currency_name') && !Schema::hasColumn('currency_exchange_rates', 'name')) {
+            Schema::table('currency_exchange_rates', function (Blueprint $table) {
                 $table->renameColumn('currency_name', 'name');
-            }
+            });
+        }
 
-            // Rename rate_to_inr to exchange_rate
-            if (Schema::hasColumn('currency_exchange_rates', 'rate_to_inr') && !Schema::hasColumn('currency_exchange_rates', 'exchange_rate')) {
+        if (Schema::hasColumn('currency_exchange_rates', 'rate_to_inr') && !Schema::hasColumn('currency_exchange_rates', 'exchange_rate')) {
+            Schema::table('currency_exchange_rates', function (Blueprint $table) {
                 $table->renameColumn('rate_to_inr', 'exchange_rate');
-            }
+            });
+        }
 
-            // Add missing columns if they don't exist
+        Schema::table('currency_exchange_rates', function (Blueprint $table) {
             if (!Schema::hasColumn('currency_exchange_rates', 'symbol')) {
                 $table->string('symbol', 10)->nullable()->after('name');
             }

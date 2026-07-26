@@ -13,9 +13,11 @@ class AddDeletedAtToPlacesTable extends Migration
      */
     public function up()
     {
-        Schema::table('places', function (Blueprint $table) {
-            $table->softDeletes();
-        });
+        if (!Schema::hasColumn('places', 'deleted_at')) {
+            Schema::table('places', function (Blueprint $table) {
+                $table->softDeletes();
+            });
+        }
     }
 
     /**

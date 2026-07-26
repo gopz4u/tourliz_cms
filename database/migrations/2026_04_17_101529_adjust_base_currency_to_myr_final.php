@@ -32,11 +32,15 @@ class AdjustBaseCurrencyToMyrFinal extends Migration
         // 1 SGD = (62/17.5) MYR = 3.5428
         // 1 AED = (22.6/17.5) MYR = 1.2914
         
-        DB::table('currency_exchange_rates')->where('code', 'MYR')->update(['exchange_rate' => 1.0000, 'is_default' => 1]);
-        DB::table('currency_exchange_rates')->where('code', 'INR')->update(['exchange_rate' => 0.0571, 'is_default' => 0]);
-        DB::table('currency_exchange_rates')->where('code', 'USD')->update(['exchange_rate' => 4.7428]);
-        DB::table('currency_exchange_rates')->where('code', 'SGD')->update(['exchange_rate' => 3.5428]);
-        DB::table('currency_exchange_rates')->where('code', 'AED')->update(['exchange_rate' => 1.2914]);
+        if (Schema::hasColumn('currency_exchange_rates', 'code') && Schema::hasColumn('currency_exchange_rates', 'exchange_rate')) {
+            DB::table('currency_exchange_rates')->where('code', 'MYR')->update(['exchange_rate' => 1.0000, 'is_default' => 1]);
+            DB::table('currency_exchange_rates')->where('code', 'INR')->update(['exchange_rate' => 0.0571, 'is_default' => 0]);
+            DB::table('currency_exchange_rates')->where('code', 'USD')->update(['exchange_rate' => 4.7428]);
+            DB::table('currency_exchange_rates')->where('code', 'SGD')->update(['exchange_rate' => 3.5428]);
+            DB::table('currency_exchange_rates')->where('code', 'AED')->update(['exchange_rate' => 1.2914]);
+        } elseif (Schema::hasColumn('currency_exchange_rates', 'currency_code')) {
+            DB::table('currency_exchange_rates')->where('currency_code', 'MYR')->update(['rate_to_inr' => 1.0000]);
+        }
 
         // 2. Update defaults in other tables
         Schema::table('packages', function (Blueprint $table) {
