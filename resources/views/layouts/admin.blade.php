@@ -539,7 +539,7 @@
     @stack('styles')
 </head>
 
-<body>
+<body class="admin-panel">
     <!-- Mobile Header -->
     <div class="mobile-header d-lg-none">
         <div class="d-flex align-items-center">
