@@ -136,8 +136,9 @@ class B2BItineraryController extends Controller
     {
         $itinerary = CustomItinerary::findOrFail($id);
 
+        // Accept either a JSON string or an array for `itinerary` to be more robust against client-side variations.
         $request->validate([
-            'itinerary' => 'required|json',
+            'itinerary' => 'required',
             'markup_percentage' => 'nullable|numeric|min:0',
             'notes' => 'nullable|string',
             'client_name' => 'nullable|string',
@@ -155,7 +156,18 @@ class B2BItineraryController extends Controller
             'user_id' => 'nullable|exists:admins,id',
         ]);
 
-        $itineraryData = json_decode($request->itinerary, true);
+        // Normalize itinerary input (either JSON string or native array)
+        $rawItinerary = $request->get('itinerary');
+        if (is_string($rawItinerary)) {
+            $itineraryData = json_decode($rawItinerary, true);
+            if (json_last_error() !== JSON_ERROR_NONE) {
+                return redirect()->back()->withErrors(['itinerary' => 'Invalid JSON for itinerary.'])->withInput();
+            }
+        } elseif (is_array($rawItinerary)) {
+            $itineraryData = $rawItinerary;
+        } else {
+            $itineraryData = [];
+        }
 
         // Recalculate duration
         if (is_array($itineraryData)) {
