@@ -46,6 +46,13 @@ if (!$projectRoot) {
 echo "<strong>Project Root Found:</strong> $projectRoot<br><br>";
 chdir($projectRoot);
 
+$composerHomeDir = '/tmp/composer-home';
+if (!is_dir($composerHomeDir)) {
+    mkdir($composerHomeDir, 0755, true);
+}
+putenv('HOME=/tmp');
+putenv('COMPOSER_HOME=' . $composerHomeDir);
+
 // Diagnostic info for .git permissions
 echo "<strong>--- .git Directory Permissions Diagnostic ---</strong><br>";
 if (file_exists('.git')) {
