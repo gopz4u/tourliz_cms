@@ -22,7 +22,7 @@
                     <a href="{{ route('admin.b2b-itineraries.index') }}" class="btn btn-outline-secondary">
                         <i class="bi bi-arrow-left me-1"></i> Back
                     </a>
-                    <button id="saveBtn" class="btn btn-success px-4 fw-bold">
+                    <button id="saveBtn" type="button" class="btn btn-success px-4 fw-bold" onclick="submitB2BProposalForm()">
                         <i class="bi bi-check2-circle me-1"></i> Save Proposal
                     </button>
                 </div>
@@ -1909,53 +1909,56 @@
                         }
                     };
 
-                    // Save Logic
-                    document.getElementById('saveBtn').addEventListener('click', function () {
-                        // Collect involved vendors
-                        const selectedVendors = [];
-                        $('.vendor-cb:checked').each(function () {
-                            selectedVendors.push($(this).val());
-                        });
+                    function submitB2BProposalForm() {
+                        const saveForm = document.getElementById('saveForm');
+                        if (!saveForm) {
+                            console.error('Save form not found on the page.');
+                            return;
+                        }
 
-                        // Collect country IDs
-                        const selectedCountries = [];
-                        $('.country-ck:checked').each(function () {
-                            selectedCountries.push($(this).val());
-                        });
-                        document.getElementById('formCountryIds').value = JSON.stringify(selectedCountries);
+                        try {
+                            const selectedVendors = [];
+                            $('.vendor-cb:checked').each(function () {
+                                selectedVendors.push($(this).val());
+                            });
 
-                        // Set primary vendor
-                        const primaryVendorId = selectedVendors.length > 0 ? selectedVendors[0] : '';
-                        document.getElementById('formSupplier').value = primaryVendorId;
+                            const selectedCountries = [];
+                            $('.country-ck:checked').each(function () {
+                                selectedCountries.push($(this).val());
+                            });
 
-                        // Set Involved Vendors JSON
-                        document.getElementById('formInvolvedVendors').value = JSON.stringify(selectedVendors);
+                            const getFieldValue = (id, fallback = '') => {
+                                const el = document.getElementById(id);
+                                return el ? el.value : fallback;
+                            };
 
-                        document.getElementById('itineraryData').value = JSON.stringify(itinerary);
-                        document.getElementById('formMarkup').value = document.getElementById('markup-percentage').value;
-                        document.getElementById('formTitle').value = document.getElementById('proposal-title').value;
-                        document.getElementById('formClient').value = document.getElementById('client-name').value;
-                        document.getElementById('formNotes').value = document.getElementById('proposal-notes').value;
+                            document.getElementById('formCountryIds').value = JSON.stringify(selectedCountries);
+                            document.getElementById('formSupplier').value = selectedVendors.length > 0 ? selectedVendors[0] : '';
+                            document.getElementById('formInvolvedVendors').value = JSON.stringify(selectedVendors);
+                            document.getElementById('itineraryData').value = JSON.stringify(itinerary);
+                            document.getElementById('formMarkup').value = getFieldValue('markup-percentage');
+                            document.getElementById('formTitle').value = getFieldValue('proposal-title');
+                            document.getElementById('formClient').value = getFieldValue('client-name');
+                            document.getElementById('formNotes').value = getFieldValue('proposal-notes');
+                            document.getElementById('formAdults').value = getFieldValue('pax-adults');
+                            document.getElementById('formChildSmall').value = getFieldValue('pax-child-small');
+                            document.getElementById('formChildLarge').value = getFieldValue('pax-child-large');
+                            document.getElementById('formPaymentStatus').value = getFieldValue('payment-status');
+                            document.getElementById('formPaymentReceived').value = getFieldValue('payment-received');
+                            document.getElementById('formPaymentDetails').value = getFieldValue('payment-details');
+                            document.getElementById('formFollowupStatus').value = getFieldValue('followup-status');
+                            document.getElementById('formNextFollowup').value = getFieldValue('next-followup');
+                            document.getElementById('formLifecycle').value = getFieldValue('proposal-lifecycle');
+                            document.getElementById('formArrivalDate').value = getFieldValue('arrival-date');
+                            document.getElementById('formDuration').value = getFieldValue('trip-duration');
 
-                        // Sync Pax & Payment
-                        document.getElementById('formAdults').value = document.getElementById('pax-adults').value;
-                        document.getElementById('formChildSmall').value = document.getElementById('pax-child-small').value;
-                        document.getElementById('formChildLarge').value = document.getElementById('pax-child-large').value;
-                        document.getElementById('formPaymentStatus').value = document.getElementById('payment-status').value;
-                        document.getElementById('formPaymentReceived').value = document.getElementById('payment-received').value;
-                        document.getElementById('formPaymentDetails').value = document.getElementById('payment-details').value;
-
-                        // Sync Followup & Lifecycle
-                        document.getElementById('formFollowupStatus').value = document.getElementById('followup-status').value;
-                        document.getElementById('formNextFollowup').value = document.getElementById('next-followup').value;
-                        document.getElementById('formLifecycle').value = document.getElementById('proposal-lifecycle').value;
-
-                        document.getElementById('formArrivalDate').value = document.getElementById('arrival-date').value;
-                        document.getElementById('formDuration').value = document.getElementById('trip-duration').value;
-
-                        isDirty = false; // Reset dirty flag before submission
-                        document.getElementById('saveForm').submit();
-                    });
+                            isDirty = false;
+                            saveForm.submit();
+                        } catch (error) {
+                            console.error('B2B proposal save failed:', error);
+                            alert('Unable to save the proposal right now. Please refresh the page and try again.');
+                        }
+                    }
 
                     // Initialize display
                     renderBuilder();
