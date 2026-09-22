@@ -785,20 +785,22 @@
             $initialItinerary = $package->days->map(function($day) use ($package) {
                 // Find matching day in the JSON itinerary to get spots
                 $jsonDay = null;
-                if (is_array($package->itinerary)) {
-                    foreach ($package->itinerary as $jd) {
-                        $jdNumber = $jd['day_number'] ?? $jd['day'] ?? null;
-                        if ($jdNumber == $day->day_number) {
-                            $jsonDay = $jd;
-                            break;
-                        }
+                $pkgItinerary = is_array($package->itinerary) ? $package->itinerary : (array) ($package->itinerary ?? []);
+                foreach ($pkgItinerary as $jd) {
+                    $jdArr = (array) $jd;
+                    $jdNumber = $jdArr['day_number'] ?? $jdArr['day'] ?? null;
+                    if ($jdNumber == $day->day_number) {
+                        $jsonDay = $jdArr;
+                        break;
                     }
                 }
                 
                 $spots = [];
-                if ($jsonDay && isset($jsonDay['spots']) && is_array($jsonDay['spots'])) {
-                    foreach ($jsonDay['spots'] as $s) {
-                        $spotId = $s['tourist_spot_id'] ?? $s['id'] ?? null;
+                if ($jsonDay && isset($jsonDay['spots'])) {
+                    $jsonSpots = is_array($jsonDay['spots']) ? $jsonDay['spots'] : (array) $jsonDay['spots'];
+                    foreach ($jsonSpots as $s) {
+                        $sArr = (array) $s;
+                        $spotId = $sArr['tourist_spot_id'] ?? $sArr['id'] ?? null;
                         if ($spotId) {
                             $spots[] = (int) $spotId;
                         }

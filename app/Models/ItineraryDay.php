@@ -46,7 +46,7 @@ class ItineraryDay extends Model
      * @param  bool  $asAssociative
      * @return mixed
      */
-    public function fromJson($json, $asAssociative = false)
+    public function fromJson($json, $asAssociative = true)
     {
         if (is_array($json)) {
             return $json;
@@ -56,10 +56,11 @@ class ItineraryDay extends Model
             return [];
         }
 
-        $decoded = json_decode($json, $asAssociative);
+        // Always decode as associative array (true) so blade views get arrays, not stdClass objects
+        $decoded = json_decode($json, true);
 
-        if (json_last_error() === JSON_ERROR_NONE && is_array($decoded)) {
-            return $decoded;
+        if (json_last_error() === JSON_ERROR_NONE && (is_array($decoded) || is_null($decoded))) {
+            return $decoded ?? [];
         }
 
         // Fallback for legacy plain text stored in database columns
