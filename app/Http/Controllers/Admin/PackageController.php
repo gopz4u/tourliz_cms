@@ -185,26 +185,29 @@ class PackageController extends Controller
         $heroPath = $this->handleFileUpload($request, 'image');
         $galleryPaths = $this->handleMultipleFileUpload($request, 'gallery');
 
+        $itineraryData = json_decode($request->itinerary_data, true) ?? [];
+        $itineraryData = $this->sanitizeUtf8($itineraryData);
+
         // Map form fields to database columns
         $packageData = [
             'country_id' => $validated['country_id'] ?? null,
-            'country_ids' => $validated['country_ids'] ?? [],
+            'country_ids' => $this->sanitizeUtf8($validated['country_ids'] ?? []),
             'destination_id' => isset($validated['destination_ids']) && count($validated['destination_ids']) > 0 ? $validated['destination_ids'][0] : null,
-            'destination_ids' => $validated['destination_ids'] ?? [],
-            'supplier_ids' => $validated['supplier_ids'] ?? [],
+            'destination_ids' => $this->sanitizeUtf8($validated['destination_ids'] ?? []),
+            'supplier_ids' => $this->sanitizeUtf8($validated['supplier_ids'] ?? []),
             'supplier_id' => isset($validated['supplier_ids']) && count($validated['supplier_ids']) > 0 ? $validated['supplier_ids'][0] : null,
-            'categories' => $validated['categories'] ?? [],
+            'categories' => $this->sanitizeUtf8($validated['categories'] ?? []),
             'category' => isset($validated['categories']) && count($validated['categories']) > 0 ? $validated['categories'][0] : null,
             'package_category' => $validated['package_category'] ?? null,
             'star_rating' => $validated['star_rating'] ?? null,
-            'vehicle_type' => $validated['vehicle_type'] ?? null,
-            'accommodation_type' => $validated['accommodation_type'] ?? null,
+            'vehicle_type' => $this->sanitizeUtf8($validated['vehicle_type'] ?? null),
+            'accommodation_type' => $this->sanitizeUtf8($validated['accommodation_type'] ?? null),
             'ticket_count' => $validated['ticket_count'] ?? null,
-            'ticket_name' => $validated['ticket_name'] ?? null,
-            'name' => $validated['name'],
+            'ticket_name' => $this->sanitizeUtf8($validated['ticket_name'] ?? null),
+            'name' => $this->sanitizeUtf8($validated['name']),
             'slug' => $validated['slug'],
-            'description' => $validated['description'] ?? null,
-            'short_description' => $validated['short_description'] ?? null,
+            'description' => $this->sanitizeUtf8($validated['description'] ?? null),
+            'short_description' => $this->sanitizeUtf8($validated['short_description'] ?? null),
             'price' => $validated['price'],
             'net_price' => $request->net_price ?? 0,
             'markup_percentage' => $request->markup_percentage ?? 0,
@@ -220,23 +223,23 @@ class PackageController extends Controller
             'min_pax' => $validated['min_pax'] ?? 1,
             'max_pax' => $validated['max_pax'] ?? null,
             'image' => $heroPath ?? null,
-            'gallery' => $galleryPaths ?? [],
-            'addon_amenities' => $validated['addon_amenities'] ?? [],
+            'gallery' => $this->sanitizeUtf8($galleryPaths ?? []),
+            'addon_amenities' => $this->sanitizeUtf8($validated['addon_amenities'] ?? []),
             'highlights' => $this->parseListInput($request->highlights),
             'inclusions' => $this->parseListInput($request->inclusions ?? $request->included_services),
             'exclusions' => $this->parseListInput($request->exclusions ?? $request->excluded_services),
-            'included_services' => $request->included_services ?? (is_array($request->inclusions) ? implode("\n", $request->inclusions) : $request->inclusions),
-            'excluded_services' => $request->excluded_services ?? (is_array($request->exclusions) ? implode("\n", $request->exclusions) : $request->exclusions),
-            'itinerary' => json_decode($request->itinerary_data, true) ?? [],
+            'included_services' => $this->sanitizeUtf8($request->included_services ?? (is_array($request->inclusions) ? implode("\n", $request->inclusions) : $request->inclusions)),
+            'excluded_services' => $this->sanitizeUtf8($request->excluded_services ?? (is_array($request->exclusions) ? implode("\n", $request->exclusions) : $request->exclusions)),
+            'itinerary' => $itineraryData,
             'featured' => isset($validated['is_featured']) ? (bool) $validated['is_featured'] : false,
             'status' => isset($validated['is_active']) && $validated['is_active'] ? 'active' : 'inactive',
-            'meta_title' => $validated['meta_title'] ?? null,
-            'meta_description' => $validated['meta_description'] ?? null,
-            'meta_keywords' => $validated['meta_keywords'] ?? null,
-            'availability' => $validated['availability'] ?? null,
+            'meta_title' => $this->sanitizeUtf8($validated['meta_title'] ?? null),
+            'meta_description' => $this->sanitizeUtf8($validated['meta_description'] ?? null),
+            'meta_keywords' => $this->sanitizeUtf8($validated['meta_keywords'] ?? null),
+            'availability' => $this->sanitizeUtf8($validated['availability'] ?? null),
             'is_trending' => $request->has('is_trending'),
-            'cancellation_policy' => $request->cancellation_policy,
-            'terms' => $request->terms,
+            'cancellation_policy' => $this->sanitizeUtf8($request->cancellation_policy),
+            'terms' => $this->sanitizeUtf8($request->terms),
         ];
 
         \DB::beginTransaction();
@@ -558,13 +561,14 @@ class PackageController extends Controller
         $galleryPaths = array_merge($retainedGallery, $newGalleryPaths);
 
         $itineraryData = json_decode($request->itinerary_data, true) ?? [];
+        $itineraryData = $this->sanitizeUtf8($itineraryData);
 
         $packageData = [
-            'name' => $validated['name'],
+            'name' => $this->sanitizeUtf8($validated['name']),
             'country_id' => $validated['country_id'] ?? $package->country_id,
-            'country_ids' => $request->country_ids ?? $package->country_ids,
+            'country_ids' => $this->sanitizeUtf8($request->country_ids ?? $package->country_ids),
             'destination_id' => isset($request->destination_ids) && count($request->destination_ids) > 0 ? $request->destination_ids[0] : null,
-            'destination_ids' => $request->destination_ids ?? [],
+            'destination_ids' => $this->sanitizeUtf8($request->destination_ids ?? []),
             'package_category' => $validated['package_category'] ?? null,
             'price' => $validated['price'],
             'net_price' => $request->net_price ?? $package->net_price,
@@ -577,22 +581,22 @@ class PackageController extends Controller
             'max_pax' => $validated['max_pax'] ?? 10,
             'includes_flight' => $request->includes_flight == '1',
             'image' => $heroPath,
-            'gallery' => $galleryPaths,
-            'short_description' => $request->short_description,
+            'gallery' => $this->sanitizeUtf8($galleryPaths),
+            'short_description' => $this->sanitizeUtf8($request->short_description),
             'highlights' => $this->parseListInput($request->highlights),
             'inclusions' => $this->parseListInput($request->inclusions ?? $request->included_services),
             'exclusions' => $this->parseListInput($request->exclusions ?? $request->excluded_services),
-            'included_services' => $request->included_services ?? (is_array($request->inclusions) ? implode("\n", $request->inclusions) : $request->inclusions),
-            'excluded_services' => $request->excluded_services ?? (is_array($request->exclusions) ? implode("\n", $request->exclusions) : $request->exclusions),
-            'cancellation_policy' => $request->cancellation_policy,
-            'terms' => $request->terms,
+            'included_services' => $this->sanitizeUtf8($request->included_services ?? (is_array($request->inclusions) ? implode("\n", $request->inclusions) : $request->inclusions)),
+            'excluded_services' => $this->sanitizeUtf8($request->excluded_services ?? (is_array($request->exclusions) ? implode("\n", $request->exclusions) : $request->exclusions)),
+            'cancellation_policy' => $this->sanitizeUtf8($request->cancellation_policy),
+            'terms' => $this->sanitizeUtf8($request->terms),
             'itinerary' => $itineraryData,
             'featured' => (bool) $request->is_featured,
             'status' => $request->is_active ? 'active' : 'inactive',
             'is_trending' => (bool) $request->is_trending,
-            'meta_title' => $validated['meta_title'] ?? null,
-            'meta_description' => $validated['meta_description'] ?? null,
-            'meta_keywords' => $validated['meta_keywords'] ?? null,
+            'meta_title' => $this->sanitizeUtf8($validated['meta_title'] ?? null),
+            'meta_description' => $this->sanitizeUtf8($validated['meta_description'] ?? null),
+            'meta_keywords' => $this->sanitizeUtf8($validated['meta_keywords'] ?? null),
             'duration' => $this->formatDuration($request->duration_days, $request->duration_nights),
         ];
 
@@ -728,23 +732,64 @@ class PackageController extends Controller
     }
 
     /**
+     * Sanitize string or array recursively to valid UTF-8
+     */
+    private function sanitizeUtf8($value)
+    {
+        if (is_string($value)) {
+            $str = mb_convert_encoding($value, 'UTF-8', 'UTF-8, Windows-1252, ISO-8859-1, ASCII');
+            return mb_scrub($str, 'UTF-8');
+        }
+
+        if (is_array($value)) {
+            $clean = [];
+            foreach ($value as $k => $v) {
+                $cleanKey = is_string($k) ? $this->sanitizeUtf8($k) : $k;
+                $clean[$cleanKey] = $this->sanitizeUtf8($v);
+            }
+            return $clean;
+        }
+
+        return $value;
+    }
+
+    /**
      * Helper to normalize text/array inputs into array of strings
      */
     private function parseListInput($input): array
     {
+        $input = $this->sanitizeUtf8($input);
+
         if (is_array($input)) {
-            return array_values(array_filter(array_map('trim', $input)));
+            $cleaned = [];
+            foreach ($input as $item) {
+                if (is_string($item) || is_numeric($item)) {
+                    $str = trim((string) $item, " \t\n\r\0\x0B-•*\xC2\xA0");
+                    if ($str !== '') {
+                        $cleaned[] = $str;
+                    }
+                }
+            }
+            return array_values($cleaned);
         }
+
         if (is_string($input)) {
             $text = preg_replace('/<\/(p|li|h[1-6]|div)>/i', "\n", $input);
             $text = preg_replace('/<br\s*\/?>/i', "\n", $text);
             $text = strip_tags($text);
             $lines = explode("\n", $text);
-            $clean = array_map(function ($line) {
-                return trim(html_entity_decode($line), " \t\n\r\0\x0B-•*");
-            }, $lines);
-            return array_values(array_filter($clean));
+            $clean = [];
+            foreach ($lines as $line) {
+                $lineStr = html_entity_decode($line, ENT_QUOTES | ENT_HTML5, 'UTF-8');
+                $lineStr = $this->sanitizeUtf8($lineStr);
+                $lineStr = trim($lineStr, " \t\n\r\0\x0B-•*\xC2\xA0");
+                if ($lineStr !== '') {
+                    $clean[] = $lineStr;
+                }
+            }
+            return array_values($clean);
         }
+
         return [];
     }
 }

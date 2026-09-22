@@ -290,23 +290,64 @@ class ItineraryService
     }
 
     /**
+     * Sanitize string or array recursively to valid UTF-8
+     */
+    private function sanitizeUtf8($value)
+    {
+        if (is_string($value)) {
+            $str = mb_convert_encoding($value, 'UTF-8', 'UTF-8, Windows-1252, ISO-8859-1, ASCII');
+            return mb_scrub($str, 'UTF-8');
+        }
+
+        if (is_array($value)) {
+            $clean = [];
+            foreach ($value as $k => $v) {
+                $cleanKey = is_string($k) ? $this->sanitizeUtf8($k) : $k;
+                $clean[$cleanKey] = $this->sanitizeUtf8($v);
+            }
+            return $clean;
+        }
+
+        return $value;
+    }
+
+    /**
      * Helper to normalize text/array inputs into array of strings
      */
     private function parseListInput($input): array
     {
+        $input = $this->sanitizeUtf8($input);
+
         if (is_array($input)) {
-            return array_values(array_filter(array_map('trim', $input)));
+            $cleaned = [];
+            foreach ($input as $item) {
+                if (is_string($item) || is_numeric($item)) {
+                    $str = trim((string) $item, " \t\n\r\0\x0B-•*\xC2\xA0");
+                    if ($str !== '') {
+                        $cleaned[] = $str;
+                    }
+                }
+            }
+            return array_values($cleaned);
         }
+
         if (is_string($input)) {
             $text = preg_replace('/<\/(p|li|h[1-6]|div)>/i', "\n", $input);
             $text = preg_replace('/<br\s*\/?>/i', "\n", $text);
             $text = strip_tags($text);
             $lines = explode("\n", $text);
-            $clean = array_map(function ($line) {
-                return trim(html_entity_decode($line), " \t\n\r\0\x0B-•*");
-            }, $lines);
-            return array_values(array_filter($clean));
+            $clean = [];
+            foreach ($lines as $line) {
+                $lineStr = html_entity_decode($line, ENT_QUOTES | ENT_HTML5, 'UTF-8');
+                $lineStr = $this->sanitizeUtf8($lineStr);
+                $lineStr = trim($lineStr, " \t\n\r\0\x0B-•*\xC2\xA0");
+                if ($lineStr !== '') {
+                    $clean[] = $lineStr;
+                }
+            }
+            return array_values($clean);
         }
+
         return [];
     }
 }
