@@ -38,7 +38,7 @@
                             @forelse($banners as $banner)
                             <tr>
                                 <td class="ps-4">
-                                    <img src="{{ asset('storage/' . $banner->image) }}" class="rounded shadow-sm" style="width: 120px; height: 60px; object-fit: cover;">
+                                    <img src="{{ $banner->image_url ?? (str_starts_with($banner->image, 'http') ? $banner->image : asset('storage/' . $banner->image)) }}" class="rounded shadow-sm" style="width: 120px; height: 60px; object-fit: cover;">
                                 </td>
                                 <td>
                                     <div class="fw-bold">{{ $banner->title }}</div>
@@ -100,6 +100,10 @@
                                                             <label class="form-check-label fw-bold" for="status{{ $banner->id }}">Active Status</label>
                                                         </div>
                                                     </div>
+                                                </div>
+                                                <div class="mb-3">
+                                                    <label class="form-label fw-bold d-block">Current Banner Image</label>
+                                                    <img src="{{ $banner->image_url ?? (str_starts_with($banner->image, 'http') ? $banner->image : asset('storage/' . $banner->image)) }}" class="rounded shadow-sm mb-2" style="max-height: 90px; width: auto; object-fit: cover;">
                                                 </div>
                                                 <div class="mb-0">
                                                     <label class="form-label fw-bold">Change Image</label>
