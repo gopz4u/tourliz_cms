@@ -30,9 +30,10 @@ class PackageOfferController extends Controller
         $imagePath = null;
         if ($request->hasFile('image')) {
             $image = $request->file('image');
-            $imageName = time() . '_' . $image->getClientOriginalName();
-            $image->storeAs('public/offers', $imageName);
-            $imagePath = $imageName;
+            $extension = $image->extension() ?: $image->getClientOriginalExtension();
+            $filename = time() . '_' . \Illuminate\Support\Str::random(10) . '.' . strtolower($extension);
+            $path = $image->storeAs('offers', $filename, 's3');
+            $imagePath = Storage::disk('s3')->url($path);
         }
 
         $offer = PackageOffer::create([
@@ -62,7 +63,7 @@ class PackageOfferController extends Controller
         $offer = PackageOffer::findOrFail($id);
         
         $request->validate([
-            'image' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:2048',
+            'image' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:5120',
         ]);
 
         $data = [
@@ -82,13 +83,17 @@ class PackageOfferController extends Controller
         if ($request->hasFile('image')) {
             // Delete old image if exists
             if ($offer->image) {
-                Storage::delete('public/offers/' . $offer->image);
+                $oldPath = parse_url($offer->image, PHP_URL_PATH);
+                if ($oldPath) {
+                    Storage::disk('s3')->delete(ltrim($oldPath, '/'));
+                }
             }
 
             $image = $request->file('image');
-            $imageName = time() . '_' . $image->getClientOriginalName();
-            $image->storeAs('public/offers', $imageName);
-            $data['image'] = $imageName;
+            $extension = $image->extension() ?: $image->getClientOriginalExtension();
+            $filename = time() . '_' . \Illuminate\Support\Str::random(10) . '.' . strtolower($extension);
+            $path = $image->storeAs('offers', $filename, 's3');
+            $data['image'] = Storage::disk('s3')->url($path);
         }
 
         $offer->update($data);

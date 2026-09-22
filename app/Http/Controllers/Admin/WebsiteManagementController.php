@@ -36,7 +36,7 @@ class WebsiteManagementController extends Controller
     {
         $request->validate([
             'title' => 'required',
-            'image' => 'required|image|mimes:jpeg,png,jpg,webp|max:2048',
+            'image' => 'required|image|mimes:jpeg,png,jpg,webp|max:5120',
         ]);
 
         $banner = new Banner();
@@ -46,8 +46,12 @@ class WebsiteManagementController extends Controller
         $banner->order = $request->order ?? 0;
         
         if ($request->hasFile('image')) {
-            $path = $request->file('image')->store('banners', 'public');
-            $banner->image = $path;
+            $file = $request->file('image');
+            $extension = $file->extension() ?: $file->getClientOriginalExtension();
+            $filename = time() . '_' . \Illuminate\Support\Str::random(10) . '.' . strtolower($extension);
+            $path = $file->storeAs('banners', $filename, 's3');
+            $url = Storage::disk('s3')->url($path);
+            $banner->image = $url;
         }
 
         $banner->save();
@@ -66,12 +70,21 @@ class WebsiteManagementController extends Controller
         $banner->status = $request->has('status');
 
         if ($request->hasFile('image')) {
-            // Delete old image
+            // Delete old image from S3 if exists
             if ($banner->image) {
+                $oldPath = parse_url($banner->image, PHP_URL_PATH);
+                if ($oldPath) {
+                    Storage::disk('s3')->delete(ltrim($oldPath, '/'));
+                }
                 Storage::disk('public')->delete($banner->image);
             }
-            $path = $request->file('image')->store('banners', 'public');
-            $banner->image = $path;
+            
+            $file = $request->file('image');
+            $extension = $file->extension() ?: $file->getClientOriginalExtension();
+            $filename = time() . '_' . \Illuminate\Support\Str::random(10) . '.' . strtolower($extension);
+            $path = $file->storeAs('banners', $filename, 's3');
+            $url = Storage::disk('s3')->url($path);
+            $banner->image = $url;
         }
 
         $banner->save();
@@ -83,6 +96,10 @@ class WebsiteManagementController extends Controller
     {
         $banner = Banner::findOrFail($id);
         if ($banner->image) {
+            $oldPath = parse_url($banner->image, PHP_URL_PATH);
+            if ($oldPath) {
+                Storage::disk('s3')->delete(ltrim($oldPath, '/'));
+            }
             Storage::disk('public')->delete($banner->image);
         }
         $banner->delete();
