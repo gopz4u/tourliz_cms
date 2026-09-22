@@ -19,16 +19,18 @@ return [
 
     'allowed_methods' => ['*'],
 
-    'allowed_origins' => ['*'],
+    'allowed_origins' => array_filter(explode(',', env('CORS_ALLOWED_ORIGINS', 'https://tourliz.com,https://webcms.tourliz.com,http://localhost:3000,http://localhost:8000'))),
 
-    'allowed_origins_patterns' => [],
+    'allowed_origins_patterns' => [
+        '/^https:\/\/(.*\.)?tourliz\.com$/',
+    ],
 
     'allowed_headers' => ['*'],
 
     'exposed_headers' => [],
 
-    'max_age' => 0,
+    'max_age' => 86400,
 
-    'supports_credentials' => false,
+    'supports_credentials' => true,
 
 ];

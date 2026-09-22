@@ -101,8 +101,27 @@ class Package extends Model
         'reviews_count',
         'is_active',
         'is_featured',
-        'destinations'
+        'destinations',
+        'image_url',
     ];
+
+    public function getImageUrlAttribute()
+    {
+        if (!$this->image) {
+            return null;
+        }
+
+        if (str_starts_with($this->image, 'http://') || str_starts_with($this->image, 'https://')) {
+            return $this->image;
+        }
+
+        $cdnUrl = env('AWS_URL');
+        if ($cdnUrl) {
+            return rtrim($cdnUrl, '/') . '/' . ltrim($this->image, '/');
+        }
+
+        return url('storage/' . ltrim($this->image, '/'));
+    }
 
     public function getRouteKeyName()
     {

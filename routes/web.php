@@ -49,7 +49,7 @@ Route::get('/', [\App\Http\Controllers\SiteController::class, 'index'])->name('l
 // Authentication Routes
 Route::middleware('guest')->group(function () {
     Route::get('/login', [AuthController::class, 'showLoginForm'])->name('login');
-    Route::post('/login', [AuthController::class, 'login']);
+    Route::post('/login', [AuthController::class, 'login'])->middleware('throttle:6,1');
     // Route::get('/register', [AuthController::class, 'showRegisterForm'])->name('register');
     // Route::post('/register', [AuthController::class, 'register']);
 });
@@ -60,8 +60,8 @@ Route::post('/logout', [AuthController::class, 'logout'])->name('logout')->middl
 // Public Package Routes
 Route::get('/packages', [PackageController::class, 'index'])->name('packages.index');
 Route::get('/packages/{slug}', [PackageController::class, 'show'])->name('packages.show');
-Route::post('/packages/{slug}/calculate-price', [BookingController::class, 'calculatePricing'])->name('packages.calculate-price');
-Route::post('/packages/{slug}/get-quote', [BookingController::class, 'getQuote'])->name('bookings.get-quote');
+Route::post('/packages/{slug}/calculate-price', [BookingController::class, 'calculatePricing'])->middleware('throttle:30,1')->name('packages.calculate-price');
+Route::post('/packages/{slug}/get-quote', [BookingController::class, 'getQuote'])->middleware('throttle:30,1')->name('bookings.get-quote');
 
 // Booking routes (auth required)
 Route::middleware('auth')->group(function () {
@@ -192,8 +192,12 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:admin'])->grou
     // Fixed Itineraries (Multi-country, fixed-price, single-vendor)
     Route::resource('fixed-itineraries', \App\Http\Controllers\Admin\FixedItineraryController::class);
 
-    // Itineraries Management (Standard Packages)
+    // Shared Itinerary Architecture Routes (B2C & B2B)
     Route::prefix('itineraries')->name('itineraries.')->group(function () {
+        Route::resource('b2c', \App\Http\Controllers\Admin\Itinerary\B2CItineraryController::class);
+        Route::resource('b2b', \App\Http\Controllers\Admin\Itinerary\B2BItineraryController::class);
+
+        // Standard Packages Itinerary Legacy Routes
         Route::get('/', [ItineraryController::class, 'index'])->name('index');
         Route::get('/{id}/edit', [ItineraryController::class, 'edit'])->name('edit');
         Route::put('/{id}', [ItineraryController::class, 'update'])->name('update');

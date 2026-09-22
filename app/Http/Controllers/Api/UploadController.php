@@ -30,7 +30,8 @@ class UploadController extends Controller
             if ($request->hasFile('image')) {
                 $file = $request->file('image');
                 $originalName = $file->getClientOriginalName();
-                $filename = time() . '_' . Str::random(10) . '.' . $file->getClientOriginalExtension();
+                $extension = $file->extension() ?: $file->getClientOriginalExtension();
+                $filename = time() . '_' . Str::random(10) . '.' . strtolower($extension);
                 $path = $file->storeAs('images', $filename, 's3');
                 $url = Storage::disk('s3')->url($path);
                 
@@ -92,7 +93,8 @@ class UploadController extends Controller
                 
                 foreach ($request->file('images') as $file) {
                     $originalName = $file->getClientOriginalName();
-                    $filename = time() . '_' . Str::random(10) . '.' . $file->getClientOriginalExtension();
+                    $extension = $file->extension() ?: $file->getClientOriginalExtension();
+                    $filename = time() . '_' . Str::random(10) . '.' . strtolower($extension);
                     $path = $file->storeAs('images', $filename, 's3');
                     $url = Storage::disk('s3')->url($path);
                     

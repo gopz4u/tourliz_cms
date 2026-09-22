@@ -33,7 +33,7 @@ use App\Http\Controllers\Api\UploadController;
 Route::prefix('auth')->group(function () {
     // Public routes
     // Route::post('/register', [AuthController::class, 'register']);
-    Route::post('/login', [AuthController::class, 'login']);
+    Route::post('/login', [AuthController::class, 'login'])->middleware('throttle:6,1');
 
     // Protected routes (require authentication)
     Route::middleware('auth:sanctum')->group(function () {

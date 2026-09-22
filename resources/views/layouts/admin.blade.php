@@ -590,163 +590,107 @@
                 @endif
             </a>
 
-            <div class="sidebar-section-title">Main Menu</div>
+            <!-- 1. WEBSITE CMS -->
+            <div class="sidebar-section-title">Website CMS</div>
             <ul class="sidebar-menu">
                 <li>
-                    <a href="{{ route('admin.dashboard') }}"
-                        class="{{ request()->routeIs('admin.dashboard') ? 'active' : '' }}">
+                    <a href="{{ route('admin.dashboard') }}" class="{{ request()->routeIs('admin.dashboard') ? 'active' : '' }}">
                         <i class="bi bi-grid-1x2-fill main-icon"></i>
-                        <span>Dashboard</span>
-                        <i class="bi bi-arrow-right nav-arrow"></i>
-                    </a>
-                </li>
-
-                <li>
-                    <a href="{{ route('admin.calendar.index') }}"
-                        class="{{ request()->routeIs('admin.calendar.*') ? 'active' : '' }}">
-                        <i class="bi bi-calendar3 main-icon"></i>
-                        <span>Calendar View</span>
-                        <i class="bi bi-arrow-right nav-arrow"></i>
-                    </a>
-                </li>
-
-
-                @if(auth()->user()->isSuperAdmin())
-                    <li>
-                        <a href="{{ route('admin.countries.index') }}"
-                            class="{{ request()->routeIs('admin.countries.*') ? 'active' : '' }}">
-                            <i class="bi bi-globe-americas main-icon"></i>
-                            <span>Countries</span>
-                            <i class="bi bi-arrow-right nav-arrow"></i>
-                        </a>
-                    </li>
-                    <li>
-                        <a href="{{ route('admin.destinations.index') }}"
-                            class="{{ request()->routeIs('admin.destinations.*') ? 'active' : '' }}">
-                            <i class="bi bi-geo-alt-fill main-icon"></i>
-                            <span>Destinations</span>
-                            <i class="bi bi-arrow-right nav-arrow"></i>
-                        </a>
-                    </li>
-                    <li>
-                        <a href="{{ route('admin.packages.index') }}"
-                            class="{{ request()->routeIs('admin.packages.*') ? 'active' : '' }}">
-                            <i class="bi bi-briefcase-fill main-icon"></i>
-                            <span>Packages</span>
-                            <i class="bi bi-arrow-right nav-arrow"></i>
-                        </a>
-                    </li>
-                    <li>
-                        <a href="{{ route('admin.group-packages.index') }}"
-                            class="{{ request()->routeIs('admin.group-packages.*') ? 'active' : '' }}">
-                            <i class="bi bi-people-fill main-icon"></i>
-                            <span>Group Packages</span>
-                            <i class="bi bi-arrow-right nav-arrow"></i>
-                        </a>
-                    </li>
-                    <li>
-                        <a href="{{ route('admin.services.index') }}"
-                            class="{{ request()->routeIs('admin.services.*') && !request()->has('category') ? 'active' : '' }}">
-                            <i class="bi bi-tools main-icon"></i>
-                            <span>Services</span>
-                            <i class="bi bi-arrow-right nav-arrow"></i>
-                        </a>
-                    </li>
-                    <li>
-                        <a href="{{ route('admin.attractions.index') }}"
-                            class="{{ request()->routeIs('admin.attractions.*') ? 'active' : '' }}">
-                            <i class="bi bi-camera-fill main-icon"></i>
-                            <span>Attractions</span>
-                            <i class="bi bi-arrow-right nav-arrow"></i>
-                        </a>
-                    </li>
-                    <li>
-                        <a href="{{ route('admin.tourist-spots.index') }}"
-                            class="{{ request()->routeIs('admin.tourist-spots.*') ? 'active' : '' }}">
-                            <i class="bi bi-pin-map-fill main-icon"></i>
-                            <span>Tourist Spots</span>
-                            <i class="bi bi-arrow-right nav-arrow"></i>
-                        </a>
-                    </li>
-                    <li>
-                        <a href="{{ route('admin.website.index') }}"
-                            class="{{ request()->routeIs('admin.website.*') ? 'active' : '' }}">
-                            <i class="bi bi-layout-text-window-reverse main-icon"></i>
-                            <span>Website Management</span>
-                            <i class="bi bi-arrow-right nav-arrow"></i>
-                        </a>
-                    </li>
-                    <li>
-                        <a href="{{ route('admin.package-offers.index') }}"
-                            class="{{ request()->routeIs('admin.package-offers.*') ? 'active' : '' }}">
-                            <i class="bi bi-gift main-icon"></i>
-                            <span>Package Offers</span>
-                            <i class="bi bi-arrow-right nav-arrow"></i>
-                        </a>
-                    </li>
-                @endif
-
-                <div class="sidebar-section-title mt-4">Operations</div>
-                <!-- Itineraries managed directly within Package page -->
-                <li class="nav-item">
-                    <a class="nav-link {{ request()->routeIs('admin.reviews.*') ? 'active' : '' }} d-flex justify-content-between align-items-center"
-                        href="{{ route('admin.reviews.index') }}">
-                        <span><i class="bi bi-star me-2"></i>Package Reviews</span>
-                        @php
-                            $pendingReviews = \App\Models\Review::where('status', 'pending')->count();
-                        @endphp
-                        @if ($pendingReviews > 0)
-                            <span class="badge bg-danger rounded-pill">{{ $pendingReviews }}</span>
-                        @endif
-                    </a>
-                </li>
-                <li>
-                    <a href="{{ route('admin.group-package-itineraries.index') }}"
-                        class="{{ request()->routeIs('admin.group-package-itineraries.*') ? 'active' : '' }}">
-                        <i class="bi bi-calendar2-heart-fill main-icon"></i>
-                        <span>Group Itineraries</span>
+                        <span>Website Dashboard</span>
                         <i class="bi bi-arrow-right nav-arrow"></i>
                     </a>
                 </li>
                 <li>
-                    <a href="{{ route('admin.fixed-itineraries.index') }}"
-                        class="{{ request()->routeIs('admin.fixed-itineraries.*') ? 'active' : '' }}">
+                    <a href="{{ route('admin.destinations.index') }}" class="{{ request()->routeIs('admin.destinations.*') ? 'active' : '' }}">
+                        <i class="bi bi-geo-alt-fill main-icon"></i>
+                        <span>Destinations</span>
+                        <i class="bi bi-arrow-right nav-arrow"></i>
+                    </a>
+                </li>
+                <li>
+                    <a href="{{ route('admin.packages.index') }}" class="{{ request()->routeIs('admin.packages.*') ? 'active' : '' }}">
+                        <i class="bi bi-briefcase-fill main-icon"></i>
+                        <span>Packages</span>
+                        <i class="bi bi-arrow-right nav-arrow"></i>
+                    </a>
+                </li>
+                <li>
+                    <a href="{{ route('admin.attractions.index') }}" class="{{ request()->routeIs('admin.attractions.*') ? 'active' : '' }}">
+                        <i class="bi bi-camera-fill main-icon"></i>
+                        <span>Attractions / Places</span>
+                        <i class="bi bi-arrow-right nav-arrow"></i>
+                    </a>
+                </li>
+                <li>
+                    <a href="{{ route('admin.services.index') }}" class="{{ request()->routeIs('admin.services.*') && !request()->has('category') ? 'active' : '' }}">
+                        <i class="bi bi-tools main-icon"></i>
+                        <span>Services</span>
+                        <i class="bi bi-arrow-right nav-arrow"></i>
+                    </a>
+                </li>
+                <li>
+                    <a href="{{ route('admin.reviews.index') }}" class="{{ request()->routeIs('admin.reviews.*') ? 'active' : '' }}">
+                        <i class="bi bi-star-fill main-icon"></i>
+                        <span>Reviews</span>
+                        <i class="bi bi-arrow-right nav-arrow"></i>
+                    </a>
+                </li>
+                <li>
+                    <a href="{{ route('admin.website.index') }}" class="{{ request()->routeIs('admin.website.*') ? 'active' : '' }}">
+                        <i class="bi bi-sliders main-icon"></i>
+                        <span>Website Settings</span>
+                        <i class="bi bi-arrow-right nav-arrow"></i>
+                    </a>
+                </li>
+            </ul>
+
+            <!-- 2. ITINERARY MANAGEMENT -->
+            <div class="sidebar-section-title mt-4">Itinerary Management</div>
+            <ul class="sidebar-menu">
+                <li>
+                    <a href="{{ route('admin.itineraries.b2c.index') }}" class="{{ request()->routeIs('admin.itineraries.b2c.*') ? 'active' : '' }}">
+                        <i class="bi bi-person-badge-fill main-icon"></i>
+                        <span>B2C Itineraries</span>
+                        <i class="bi bi-arrow-right nav-arrow"></i>
+                    </a>
+                </li>
+                <li>
+                    <a href="{{ route('admin.itineraries.b2b.index') }}" class="{{ request()->routeIs('admin.itineraries.b2b.*') ? 'active' : '' }}">
+                        <i class="bi bi-building-fill main-icon"></i>
+                        <span>B2B Itineraries</span>
+                        <i class="bi bi-arrow-right nav-arrow"></i>
+                    </a>
+                </li>
+                <li>
+                    <a href="{{ route('admin.group-package-itineraries.index') }}" class="{{ request()->routeIs('admin.group-package-itineraries.*') ? 'active' : '' }}">
+                        <i class="bi bi-people-fill main-icon"></i>
+                        <span>Itinerary Templates</span>
+                        <i class="bi bi-arrow-right nav-arrow"></i>
+                    </a>
+                </li>
+                <li>
+                    <a href="{{ route('admin.fixed-itineraries.index') }}" class="{{ request()->routeIs('admin.fixed-itineraries.*') ? 'active' : '' }}">
                         <i class="bi bi-pin-map-fill main-icon"></i>
                         <span>Fixed Itineraries</span>
                         <i class="bi bi-arrow-right nav-arrow"></i>
                     </a>
                 </li>
-                @if(auth()->user()->isSuperAdmin())
-                    <li>
-                        <a href="{{ route('admin.currency-rates.index') }}"
-                            class="{{ request()->routeIs('admin.currency-rates.*') ? 'active' : '' }}">
-                            <i class="bi bi-currency-exchange main-icon"></i>
-                            <span>Currency Rates</span>
-                            <i class="bi bi-arrow-right nav-arrow"></i>
-                        </a>
-                    </li>
-                    <li>
-                        <a href="{{ route('admin.currency-converter') }}"
-                            class="{{ request()->routeIs('admin.currency-converter') ? 'active' : '' }}">
-                            <i class="bi bi-calculator-fill main-icon"></i>
-                            <span>Currency Converter</span>
-                            <i class="bi bi-arrow-right nav-arrow"></i>
-                        </a>
-                    </li>
-                    <li>
-                        <a href="{{ route('admin.coupons.index') }}"
-                            class="{{ request()->routeIs('admin.coupons.*') ? 'active' : '' }}">
-                            <i class="bi bi-tags-fill main-icon"></i>
-                            <span>Coupons</span>
-                            <i class="bi bi-arrow-right nav-arrow"></i>
-                        </a>
-                    </li>
-                @endif
+            </ul>
+
+            <!-- 3. SALES & BOOKINGS -->
+            <div class="sidebar-section-title mt-4">Sales & Bookings</div>
+            <ul class="sidebar-menu">
                 <li>
-                    <a href="{{ route('admin.bookings.index') }}"
-                        class="{{ request()->routeIs('admin.bookings.*') ? 'active' : '' }}">
+                    <a href="{{ route('admin.b2c-itineraries.index') }}" class="{{ request()->routeIs('admin.b2c-itineraries.*') ? 'active' : '' }}">
+                        <i class="bi bi-funnel-fill main-icon"></i>
+                        <span>Leads & Quotes</span>
+                        <i class="bi bi-arrow-right nav-arrow"></i>
+                    </a>
+                </li>
+                <li>
+                    <a href="{{ route('admin.bookings.index') }}" class="{{ request()->routeIs('admin.bookings.*') ? 'active' : '' }}">
                         <i class="bi bi-ticket-detailed-fill main-icon"></i>
-                        <span>Bookings</span>
+                        <span>B2C Bookings</span>
                         @php
                             $pendingBookings = \App\Models\Booking::where('status', 'pending')->count();
                         @endphp
@@ -757,174 +701,75 @@
                         @endif
                     </a>
                 </li>
-                @if(auth()->user()->isSuperAdmin())
+                <li>
+                    <a href="{{ route('admin.agencies.index') }}" class="{{ request()->routeIs('admin.agencies.*') ? 'active' : '' }}">
+                        <i class="bi bi-person-workspace main-icon"></i>
+                        <span>Agents & Partners</span>
+                        <i class="bi bi-arrow-right nav-arrow"></i>
+                    </a>
+                </li>
+                <li>
+                    <a href="{{ route('admin.site-users.index') }}" class="{{ request()->routeIs('admin.site-users.*') ? 'active' : '' }}">
+                        <i class="bi bi-people-fill main-icon"></i>
+                        <span>Customers</span>
+                        <i class="bi bi-arrow-right nav-arrow"></i>
+                    </a>
+                </li>
+            </ul>
+
+            <!-- 4. OPERATIONS -->
+            <div class="sidebar-section-title mt-4">Operations</div>
+            <ul class="sidebar-menu">
+                <li>
+                    <a href="{{ route('admin.tourist-spots.index') }}" class="{{ request()->routeIs('admin.tourist-spots.*') ? 'active' : '' }}">
+                        <i class="bi bi-signpost-split-fill main-icon"></i>
+                        <span>Tourist Spots</span>
+                        <i class="bi bi-arrow-right nav-arrow"></i>
+                    </a>
+                </li>
+                <li>
+                    <a href="{{ route('admin.suppliers.index') }}" class="{{ request()->routeIs('admin.suppliers.*') ? 'active' : '' }}">
+                        <i class="bi bi-shop main-icon"></i>
+                        <span>Suppliers & Vendors</span>
+                        <i class="bi bi-arrow-right nav-arrow"></i>
+                    </a>
+                </li>
+            </ul>
+
+            <!-- 5. SETTINGS -->
+            @if(auth()->user()->isSuperAdmin())
+                <div class="sidebar-section-title mt-4">Settings</div>
+                <ul class="sidebar-menu">
                     <li>
-                        <a href="{{ route('admin.users.index') }}"
-                            class="{{ request()->routeIs('admin.users.*') ? 'active' : '' }}">
+                        <a href="{{ route('admin.countries.index') }}" class="{{ request()->routeIs('admin.countries.*') ? 'active' : '' }}">
+                            <i class="bi bi-globe-americas main-icon"></i>
+                            <span>Countries</span>
+                            <i class="bi bi-arrow-right nav-arrow"></i>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="{{ route('admin.currency-rates.index') }}" class="{{ request()->routeIs('admin.currency-rates.*') ? 'active' : '' }}">
+                            <i class="bi bi-currency-exchange main-icon"></i>
+                            <span>Currency Rates</span>
+                            <i class="bi bi-arrow-right nav-arrow"></i>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="{{ route('admin.coupons.index') }}" class="{{ request()->routeIs('admin.coupons.*') ? 'active' : '' }}">
+                            <i class="bi bi-tags-fill main-icon"></i>
+                            <span>Coupons</span>
+                            <i class="bi bi-arrow-right nav-arrow"></i>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="{{ route('admin.users.index') }}" class="{{ request()->routeIs('admin.users.*') ? 'active' : '' }}">
                             <i class="bi bi-person-fill-lock main-icon"></i>
                             <span>System Users</span>
                             <i class="bi bi-arrow-right nav-arrow"></i>
                         </a>
                     </li>
-                @endif
-
-                <div class="sidebar-section-title mt-4">Sales</div>
-                <li class="nav-item">
-                    <a class="nav-link collapsed" href="#" data-bs-toggle="collapse" data-bs-target="#collapseB2B"
-                        aria-expanded="false" aria-controls="collapseB2B">
-                        <i class="bi bi-building-fill main-icon"></i>
-                        <span>B2B Partners</span>
-                        <i class="bi bi-chevron-down ms-auto" style="font-size: 0.8rem; opacity: 0.5;"></i>
-                    </a>
-                    <div id="collapseB2B"
-                        class="collapse {{ request()->routeIs('admin.agencies.*') || request()->routeIs('admin.b2b-itineraries.*') || request()->routeIs('admin.b2b-itineraries.kanban') ? 'show' : '' }}">
-                        <div class="collapse-inner">
-                            <a class="dropdown-item {{ request()->routeIs('admin.agencies.*') ? 'fw-bold' : '' }}"
-                                href="{{ route('admin.agencies.index') }}">
-                                Manage Agencies
-                            </a>
-                            <a class="dropdown-item {{ request()->routeIs('admin.b2b-itineraries.index') && !request()->routeIs('admin.b2b-itineraries.kanban') ? 'fw-bold' : '' }}"
-                                href="{{ route('admin.b2b-itineraries.index') }}">
-                                Custom Proposals
-                            </a>
-                            <a class="dropdown-item {{ request()->routeIs('admin.b2b-itineraries.kanban') ? 'fw-bold' : '' }}"
-                                href="{{ route('admin.b2b-itineraries.kanban') }}">
-                                <i class="bi bi-kanban me-1 text-primary" style="font-size:.75rem;"></i>Pipeline Kanban
-                            </a>
-                        </div>
-                    </div>
-                </li>
-
-                <li class="nav-item">
-                    <a class="nav-link collapsed" href="#" data-bs-toggle="collapse" data-bs-target="#collapseB2C"
-                        aria-expanded="false" aria-controls="collapseB2C">
-                        <i class="bi bi-person-badge-fill main-icon"></i>
-                        <span>B2C Sales</span>
-                        <i class="bi bi-chevron-down ms-auto" style="font-size: 0.8rem; opacity: 0.5;"></i>
-                    </a>
-                    <div id="collapseB2C"
-                        class="collapse {{ request()->routeIs('admin.b2c-itineraries.*') || request()->routeIs('admin.b2c-itineraries.kanban') ? 'show' : '' }}">
-                        <div class="collapse-inner">
-                            <a class="dropdown-item {{ request()->routeIs('admin.b2c-itineraries.create') ? 'fw-bold' : '' }}"
-                                href="{{ route('admin.b2c-itineraries.create') }}">
-                                New Walk-in Lead
-                            </a>
-                            <a class="dropdown-item {{ request()->routeIs('admin.b2c-itineraries.index') && !request()->routeIs('admin.b2c-itineraries.create') ? 'fw-bold' : '' }}"
-                                href="{{ route('admin.b2c-itineraries.index') }}">
-                                Manage Leads
-                            </a>
-                            <a class="dropdown-item {{ request()->routeIs('admin.b2c-itineraries.kanban') ? 'fw-bold' : '' }}"
-                                href="{{ route('admin.b2c-itineraries.kanban') }}">
-                                <i class="bi bi-kanban me-1 text-primary" style="font-size:.75rem;"></i>Pipeline Kanban
-                            </a>
-                        </div>
-                    </div>
-
-                </li>
-
-                <li class="nav-item">
-                    <a class="nav-link collapsed" href="#" data-bs-toggle="collapse" data-bs-target="#collapseGroups"
-                        aria-expanded="false" aria-controls="collapseGroups">
-                        <i class="bi bi-people-fill main-icon"></i>
-                        <span>Group Proposals</span>
-                        <i class="bi bi-chevron-down ms-auto" style="font-size: 0.8rem; opacity: 0.5;"></i>
-                    </a>
-                    <div id="collapseGroups"
-                        class="collapse {{ request()->routeIs('admin.group-itineraries.*') ? 'show' : '' }}">
-                        <div class="collapse-inner">
-                            <a class="dropdown-item {{ request()->routeIs('admin.group-itineraries.create') ? 'fw-bold' : '' }}"
-                                href="{{ route('admin.group-itineraries.create') }}">
-                                New Group Lead
-                            </a>
-                            <a class="dropdown-item {{ request()->routeIs('admin.group-itineraries.index') && !request()->routeIs('admin.group-itineraries.create') ? 'fw-bold' : '' }}"
-                                href="{{ route('admin.group-itineraries.index') }}">
-                                Manage Groups
-                            </a>
-                        </div>
-                    </div>
-                </li>
-
-                <li>
-                    <a href="{{ route('admin.site-users.index') }}"
-                        class="{{ request()->routeIs('admin.site-users.*') ? 'active' : '' }}">
-                        <i class="bi bi-people-fill main-icon"></i>
-                        <span>End Users</span>
-                        <i class="bi bi-arrow-right nav-arrow"></i>
-                    </a>
-                </li>
-
-                @if(auth()->user()->isSuperAdmin())
-                    <div class="sidebar-section-title mt-4">Inventory Master</div>
-                    <li class="nav-item">
-                        <a class="nav-link collapsed" href="#" data-bs-toggle="collapse" data-bs-target="#collapseInventory"
-                            aria-expanded="false" aria-controls="collapseInventory">
-                            <i class="bi bi-box-seam-fill main-icon"></i>
-                            <span>Core Services</span>
-                            <i class="bi bi-chevron-down ms-auto" style="font-size: 0.8rem; opacity: 0.5;"></i>
-                        </a>
-                        <div id="collapseInventory"
-                            class="collapse {{ (request()->routeIs('admin.services.*') && request()->has('category')) || request()->routeIs('admin.suppliers.*') ? 'show' : '' }}">
-                            <div class="collapse-inner">
-                                <a class="dropdown-item {{ request()->routeIs('admin.services.*') && request('category') === 'Hotels' ? 'fw-bold' : '' }}"
-                                    href="{{ route('admin.services.index') }}?category=Hotels">Hotels</a>
-                                <a class="dropdown-item {{ request()->routeIs('admin.services.*') && request('category') === 'Activities' ? 'fw-bold' : '' }}"
-                                    href="{{ route('admin.services.index') }}?category=Activities">Activities</a>
-                                <a class="dropdown-item {{ request()->routeIs('admin.services.*') && request('category') === 'Transport' ? 'fw-bold' : '' }}"
-                                    href="{{ route('admin.services.index') }}?category=Transport">Transport</a>
-                                <a class="dropdown-item {{ request()->routeIs('admin.services.*') && request('category') === 'Entry Tickets' ? 'fw-bold' : '' }}"
-                                    href="{{ route('admin.services.index') }}?category=Entry Tickets">Entry Tickets</a>
-                                <a class="dropdown-item {{ request()->routeIs('admin.services.*') && request('category') === 'Meals' ? 'fw-bold' : '' }}"
-                                    href="{{ route('admin.services.index') }}?category=Meals">Meals Master</a>
-                                <a class="dropdown-item {{ request()->routeIs('admin.services.*') && request('category') === 'Other Services' ? 'fw-bold' : '' }}"
-                                    href="{{ route('admin.services.index') }}?category=Other Services">Tourist Spots
-                                    (Legacy)</a>
-                                <a class="dropdown-item {{ request()->routeIs('admin.tourist-spots.*') ? 'fw-bold' : '' }}"
-                                    href="{{ route('admin.tourist-spots.index') }}">
-                                    <i class="bi bi-geo-alt-fill me-1"></i> Tourist Spots
-                                </a>
-                                <a class="dropdown-item {{ request()->routeIs('admin.suppliers.*') && !request('type') ? 'fw-bold' : '' }}"
-                                    href="{{ route('admin.suppliers.index') }}">
-                                    <i class="bi bi-shop me-1"></i> All Suppliers
-                                </a>
-                                <div class="ps-2 mt-1">
-                                    <div
-                                        style="font-size:0.68rem; text-transform:uppercase; letter-spacing:1px; font-weight:700; color:#94a3b8; padding:2px 12px;">
-                                        By Category</div>
-                                    <a class="dropdown-item py-1 {{ request('type') == 'Hotel' ? 'fw-bold' : '' }}"
-                                        href="{{ route('admin.suppliers.index') }}?type=Hotel">
-                                        <i class="bi bi-building me-1 text-primary" style="font-size:0.8rem;"></i> Hotel
-                                    </a>
-                                    <a class="dropdown-item py-1 {{ request('type') == 'Transport' ? 'fw-bold' : '' }}"
-                                        href="{{ route('admin.suppliers.index') }}?type=Transport">
-                                        <i class="bi bi-truck me-1 text-warning" style="font-size:0.8rem;"></i> Transport
-                                    </a>
-                                    <a class="dropdown-item py-1 {{ request('type') == 'Activity' ? 'fw-bold' : '' }}"
-                                        href="{{ route('admin.suppliers.index') }}?type=Activity">
-                                        <i class="bi bi-lightning me-1 text-success" style="font-size:0.8rem;"></i> Activity
-                                    </a>
-                                    <a class="dropdown-item py-1 {{ request('type') == 'Ticket' ? 'fw-bold' : '' }}"
-                                        href="{{ route('admin.suppliers.index') }}?type=Ticket">
-                                        <i class="bi bi-ticket-perforated me-1 text-danger" style="font-size:0.8rem;"></i>
-                                        Entry Tickets
-                                    </a>
-                                    <a class="dropdown-item py-1 {{ request('type') == 'Meal' ? 'fw-bold' : '' }}"
-                                        href="{{ route('admin.suppliers.index') }}?type=Meal">
-                                        <i class="bi bi-egg-fried me-1 text-danger" style="font-size:0.8rem;"></i> Meals
-                                    </a>
-                                    <a class="dropdown-item py-1 {{ request('type') == 'Agent' ? 'fw-bold' : '' }}"
-                                        href="{{ route('admin.suppliers.index') }}?type=Agent">
-                                        <i class="bi bi-person-badge me-1 text-info" style="font-size:0.8rem;"></i> Agent /
-                                        Partner
-                                    </a>
-                                    <a class="dropdown-item py-1 {{ request('type') == 'Other' ? 'fw-bold' : '' }}"
-                                        href="{{ route('admin.suppliers.index') }}?type=Other">
-                                        <i class="bi bi-three-dots me-1 text-secondary" style="font-size:0.8rem;"></i> Other
-                                    </a>
-                                </div>
-                            </div>
-                        </div>
-                    </li>
-                @endif
+                </ul>
+            @endif
             </ul>
 
             <div class="logout-wrapper">

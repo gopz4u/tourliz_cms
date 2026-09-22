@@ -5,20 +5,36 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class Banner extends Model
+class ItineraryB2cDetail extends Model
 {
     use HasFactory;
 
+    protected $table = 'itinerary_b2c_details';
+
     protected $fillable = [
-        'title',
-        'subtitle',
+        'itinerary_id',
+        'short_description',
+        'selling_price',
+        'child_price',
         'image',
-        'link',
-        'order',
-        'status',
+        'gallery',
+        'seo_title',
+        'seo_description',
+        'seo_keywords',
+    ];
+
+    protected $casts = [
+        'selling_price' => 'decimal:2',
+        'child_price' => 'decimal:2',
+        'gallery' => 'array',
     ];
 
     protected $appends = ['image_url'];
+
+    public function itinerary()
+    {
+        return $this->belongsTo(Itinerary::class, 'itinerary_id');
+    }
 
     public function getImageUrlAttribute()
     {
