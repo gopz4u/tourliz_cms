@@ -40,6 +40,7 @@ class B2CItineraryResource extends JsonResource
             ],
             'image' => $this->b2cDetail->image_url ?? null,
             'gallery' => $this->b2cDetail->gallery ?? [],
+            'highlights' => $this->highlights ?? [],
             'inclusions' => $this->inclusions ?? [],
             'exclusions' => $this->exclusions ?? [],
             'terms_conditions' => $this->terms_conditions,
@@ -49,6 +50,9 @@ class B2CItineraryResource extends JsonResource
                         'day_number' => $day->day_number,
                         'title' => $day->title,
                         'description' => $day->description,
+                        'highlights' => $day->highlights ?? [],
+                        'inclusions' => $day->inclusions ?? [],
+                        'exclusions' => $day->exclusions ?? [],
                         'overnight_location' => $day->overnight_location,
                         'items' => $day->relationLoaded('items') ? $day->items->map(function ($item) {
                             return [

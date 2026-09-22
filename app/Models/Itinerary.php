@@ -20,6 +20,7 @@ class Itinerary extends Model
         'duration_days',
         'duration_nights',
         'description',
+        'highlights',
         'inclusions',
         'exclusions',
         'terms_conditions',
@@ -30,6 +31,7 @@ class Itinerary extends Model
     ];
 
     protected $casts = [
+        'highlights' => 'array',
         'inclusions' => 'array',
         'exclusions' => 'array',
         'is_published' => 'boolean',

@@ -80,6 +80,27 @@
                 </div>
             </div>
 
+            <!-- Package Highlights, Inclusions & Exclusions -->
+            <div class="card mb-4">
+                <div class="card-header bg-white font-weight-bold">Highlights, Inclusions & Exclusions</div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <label class="form-label font-weight-bold text-warning"><i class="bi bi-star-fill me-1"></i> Highlights (One item per line)</label>
+                        <textarea name="highlights" class="form-control" rows="3" placeholder="e.g.&#10;Private Airport Transfer&#10;Luxury Hotel Accommodations&#10;Exclusive Island Excursion">{{ old('highlights') }}</textarea>
+                    </div>
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label font-weight-bold text-success"><i class="bi bi-check-circle-fill me-1"></i> Overall Inclusions (One item per line)</label>
+                            <textarea name="inclusions" class="form-control" rows="4" placeholder="e.g.&#10;Private Vehicle & Driver&#10;Daily Breakfast & Dinner&#10;All Monument Entry Tickets">{{ old('inclusions') }}</textarea>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label font-weight-bold text-danger"><i class="bi bi-x-circle-fill me-1"></i> Overall Exclusions (One item per line)</label>
+                            <textarea name="exclusions" class="form-control" rows="4" placeholder="e.g.&#10;Personal Expenses&#10;Flight Tickets&#10;Tips & Gratuities">{{ old('exclusions') }}</textarea>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <!-- Operational & Vendor Section -->
             <div class="card mb-4">
                 <div class="card-header bg-white font-weight-bold">Operational Requirements & Notes (Internal Only)</div>
@@ -148,7 +169,22 @@
                                 <input type="text" name="days[0][overnight_location]" class="form-control" placeholder="Overnight Location">
                             </div>
                         </div>
-                        <textarea name="days[0][description]" class="form-control form-control-sm" rows="2" placeholder="Day description"></textarea>
+                        <textarea name="days[0][description]" class="form-control form-control-sm mb-2" rows="2" placeholder="Day description"></textarea>
+
+                        <div class="row g-2 bg-light p-2 rounded">
+                            <div class="col-md-4">
+                                <label class="form-label small font-weight-bold text-warning mb-1"><i class="bi bi-star me-1"></i> Day Highlights</label>
+                                <textarea name="days[0][highlights]" class="form-control form-control-sm" rows="2" placeholder="One highlight per line"></textarea>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label small font-weight-bold text-success mb-1"><i class="bi bi-check-lg me-1"></i> Day Inclusions</label>
+                                <textarea name="days[0][inclusions]" class="form-control form-control-sm" rows="2" placeholder="One inclusion per line"></textarea>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label small font-weight-bold text-danger mb-1"><i class="bi bi-x-lg me-1"></i> Day Exclusions</label>
+                                <textarea name="days[0][exclusions]" class="form-control form-control-sm" rows="2" placeholder="One exclusion per line"></textarea>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -237,7 +273,22 @@
                         <input type="text" name="days[${index}][overnight_location]" class="form-control" placeholder="Overnight Location">
                     </div>
                 </div>
-                <textarea name="days[${index}][description]" class="form-control form-control-sm" rows="2" placeholder="Day description"></textarea>
+                <textarea name="days[${index}][description]" class="form-control form-control-sm mb-2" rows="2" placeholder="Day description"></textarea>
+
+                <div class="row g-2 bg-light p-2 rounded">
+                    <div class="col-md-4">
+                        <label class="form-label small font-weight-bold text-warning mb-1"><i class="bi bi-star me-1"></i> Day Highlights</label>
+                        <textarea name="days[${index}][highlights]" class="form-control form-control-sm" rows="2" placeholder="One highlight per line"></textarea>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label small font-weight-bold text-success mb-1"><i class="bi bi-check-lg me-1"></i> Day Inclusions</label>
+                        <textarea name="days[${index}][inclusions]" class="form-control form-control-sm" rows="2" placeholder="One inclusion per line"></textarea>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label small font-weight-bold text-danger mb-1"><i class="bi bi-x-lg me-1"></i> Day Exclusions</label>
+                        <textarea name="days[${index}][exclusions]" class="form-control form-control-sm" rows="2" placeholder="One exclusion per line"></textarea>
+                    </div>
+                </div>
             </div>
         `;
         container.insertAdjacentHTML('beforeend', dayHtml);

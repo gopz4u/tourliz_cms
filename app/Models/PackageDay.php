@@ -14,12 +14,18 @@ class PackageDay extends Model
         'day_number',
         'title',
         'description',
+        'highlights',
+        'inclusions',
+        'exclusions',
         'destination_id',
         'meal_plan'
     ];
 
     protected $casts = [
-        'meal_plan' => 'array'
+        'meal_plan' => 'array',
+        'highlights' => 'array',
+        'inclusions' => 'array',
+        'exclusions' => 'array',
     ];
 
     public function package()

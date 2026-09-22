@@ -62,6 +62,9 @@ class Package extends Model
         'is_trending',
         'cancellation_policy',
         'terms',
+        'highlights',
+        'inclusions',
+        'exclusions',
     ];
 
     protected $casts = [
@@ -70,6 +73,9 @@ class Package extends Model
         'supplier_ids' => 'array',
         'categories' => 'array',
         'gallery' => 'array',
+        'highlights' => 'array',
+        'inclusions' => 'array',
+        'exclusions' => 'array',
         'addon_amenities' => 'array',
         'included_services' => 'string',
         'excluded_services' => 'string',

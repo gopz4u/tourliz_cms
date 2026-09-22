@@ -222,8 +222,11 @@ class PackageController extends Controller
             'image' => $heroPath ?? null,
             'gallery' => $galleryPaths ?? [],
             'addon_amenities' => $validated['addon_amenities'] ?? [],
-            'included_services' => $request->included_services ?? $request->inclusions ?? '',
-            'excluded_services' => $request->excluded_services ?? $request->exclusions ?? '',
+            'highlights' => $this->parseListInput($request->highlights),
+            'inclusions' => $this->parseListInput($request->inclusions ?? $request->included_services),
+            'exclusions' => $this->parseListInput($request->exclusions ?? $request->excluded_services),
+            'included_services' => $request->included_services ?? (is_array($request->inclusions) ? implode("\n", $request->inclusions) : $request->inclusions),
+            'excluded_services' => $request->excluded_services ?? (is_array($request->exclusions) ? implode("\n", $request->exclusions) : $request->exclusions),
             'itinerary' => json_decode($request->itinerary_data, true) ?? [],
             'featured' => isset($validated['is_featured']) ? (bool) $validated['is_featured'] : false,
             'status' => isset($validated['is_active']) && $validated['is_active'] ? 'active' : 'inactive',
@@ -286,9 +289,12 @@ class PackageController extends Controller
 
         foreach ($itinerary as $dayData) {
             $day = $package->days()->create([
-                'day_number' => $dayData['day_number'] ?? 1,
+                'day_number' => $dayData['day_number'] ?? ($dayData['day'] ?? 1),
                 'title' => $dayData['title'] ?? null,
-                'description' => $dayData['description'] ?? null,
+                'description' => $dayData['description'] ?? ($dayData['notes'] ?? null),
+                'highlights' => $this->parseListInput($dayData['highlights'] ?? []),
+                'inclusions' => $this->parseListInput($dayData['inclusions'] ?? []),
+                'exclusions' => $this->parseListInput($dayData['exclusions'] ?? []),
                 'meal_plan' => $dayData['meals'] ?? [],
             ]);
 
@@ -573,8 +579,11 @@ class PackageController extends Controller
             'image' => $heroPath,
             'gallery' => $galleryPaths,
             'short_description' => $request->short_description,
-            'included_services' => $request->included_services,
-            'excluded_services' => $request->excluded_services,
+            'highlights' => $this->parseListInput($request->highlights),
+            'inclusions' => $this->parseListInput($request->inclusions ?? $request->included_services),
+            'exclusions' => $this->parseListInput($request->exclusions ?? $request->excluded_services),
+            'included_services' => $request->included_services ?? (is_array($request->inclusions) ? implode("\n", $request->inclusions) : $request->inclusions),
+            'excluded_services' => $request->excluded_services ?? (is_array($request->exclusions) ? implode("\n", $request->exclusions) : $request->exclusions),
             'cancellation_policy' => $request->cancellation_policy,
             'terms' => $request->terms,
             'itinerary' => $itineraryData,
@@ -716,5 +725,26 @@ class PackageController extends Controller
                 'message' => $e->getMessage()
             ], 500);
         }
+    }
+
+    /**
+     * Helper to normalize text/array inputs into array of strings
+     */
+    private function parseListInput($input): array
+    {
+        if (is_array($input)) {
+            return array_values(array_filter(array_map('trim', $input)));
+        }
+        if (is_string($input)) {
+            $text = preg_replace('/<\/(p|li|h[1-6]|div)>/i', "\n", $input);
+            $text = preg_replace('/<br\s*\/?>/i', "\n", $text);
+            $text = strip_tags($text);
+            $lines = explode("\n", $text);
+            $clean = array_map(function ($line) {
+                return trim(html_entity_decode($line), " \t\n\r\0\x0B-•*");
+            }, $lines);
+            return array_values(array_filter($clean));
+        }
+        return [];
     }
 }

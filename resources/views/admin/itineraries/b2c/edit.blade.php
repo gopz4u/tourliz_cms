@@ -66,6 +66,27 @@
                 </div>
             </div>
 
+            <!-- Package Highlights, Inclusions & Exclusions -->
+            <div class="card mb-4">
+                <div class="card-header bg-white font-weight-bold">Highlights, Inclusions & Exclusions</div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <label class="form-label font-weight-bold text-warning"><i class="bi bi-star-fill me-1"></i> Package Highlights (One item per line)</label>
+                        <textarea name="highlights" class="form-control" rows="3" placeholder="e.g.&#10;Private Sunset Cruise&#10;5-Star Luxury Resort Stay">{{ old('highlights', is_array($itinerary->highlights) ? implode("\n", $itinerary->highlights) : $itinerary->highlights) }}</textarea>
+                    </div>
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label font-weight-bold text-success"><i class="bi bi-check-circle-fill me-1"></i> Overall Inclusions (One item per line)</label>
+                            <textarea name="inclusions" class="form-control" rows="4" placeholder="e.g.&#10;Airport Transfers&#10;Daily Breakfast">{{ old('inclusions', is_array($itinerary->inclusions) ? implode("\n", $itinerary->inclusions) : $itinerary->inclusions) }}</textarea>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label font-weight-bold text-danger"><i class="bi bi-x-circle-fill me-1"></i> Overall Exclusions (One item per line)</label>
+                            <textarea name="exclusions" class="form-control" rows="4" placeholder="e.g.&#10;Personal Expenses&#10;Travel Insurance">{{ old('exclusions', is_array($itinerary->exclusions) ? implode("\n", $itinerary->exclusions) : $itinerary->exclusions) }}</textarea>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <!-- Structured Day Activities -->
             <div class="card mb-4">
                 <div class="card-header bg-white d-flex justify-content-between align-items-center">
@@ -88,7 +109,22 @@
                                     <input type="text" name="days[{{ $index }}][overnight_location]" class="form-control" value="{{ $day->overnight_location }}" placeholder="Overnight Location">
                                 </div>
                             </div>
-                            <textarea name="days[{{ $index }}][description]" class="form-control form-control-sm" rows="2" placeholder="Day description">{{ $day->description }}</textarea>
+                            <textarea name="days[{{ $index }}][description]" class="form-control form-control-sm mb-2" rows="2" placeholder="Day description">{{ $day->description }}</textarea>
+
+                            <div class="row g-2 bg-light p-2 rounded">
+                                <div class="col-md-4">
+                                    <label class="form-label small font-weight-bold text-warning mb-1"><i class="bi bi-star me-1"></i> Day Highlights</label>
+                                    <textarea name="days[{{ $index }}][highlights]" class="form-control form-control-sm" rows="2" placeholder="One highlight per line">{{ is_array($day->highlights) ? implode("\n", $day->highlights) : $day->highlights }}</textarea>
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label small font-weight-bold text-success mb-1"><i class="bi bi-check-lg me-1"></i> Day Inclusions</label>
+                                    <textarea name="days[{{ $index }}][inclusions]" class="form-control form-control-sm" rows="2" placeholder="One inclusion per line">{{ is_array($day->inclusions) ? implode("\n", $day->inclusions) : $day->inclusions }}</textarea>
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label small font-weight-bold text-danger mb-1"><i class="bi bi-x-lg me-1"></i> Day Exclusions</label>
+                                    <textarea name="days[{{ $index }}][exclusions]" class="form-control form-control-sm" rows="2" placeholder="One exclusion per line">{{ is_array($day->exclusions) ? implode("\n", $day->exclusions) : $day->exclusions }}</textarea>
+                                </div>
+                            </div>
                         </div>
                     @empty
                         <div class="day-card border rounded p-3 mb-3" data-day="1">
@@ -104,7 +140,22 @@
                                     <input type="text" name="days[0][overnight_location]" class="form-control" placeholder="Overnight Location">
                                 </div>
                             </div>
-                            <textarea name="days[0][description]" class="form-control form-control-sm" rows="2" placeholder="Day description"></textarea>
+                            <textarea name="days[0][description]" class="form-control form-control-sm mb-2" rows="2" placeholder="Day description"></textarea>
+
+                            <div class="row g-2 bg-light p-2 rounded">
+                                <div class="col-md-4">
+                                    <label class="form-label small font-weight-bold text-warning mb-1"><i class="bi bi-star me-1"></i> Day Highlights</label>
+                                    <textarea name="days[0][highlights]" class="form-control form-control-sm" rows="2" placeholder="One highlight per line"></textarea>
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label small font-weight-bold text-success mb-1"><i class="bi bi-check-lg me-1"></i> Day Inclusions</label>
+                                    <textarea name="days[0][inclusions]" class="form-control form-control-sm" rows="2" placeholder="One inclusion per line"></textarea>
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label small font-weight-bold text-danger mb-1"><i class="bi bi-x-lg me-1"></i> Day Exclusions</label>
+                                    <textarea name="days[0][exclusions]" class="form-control form-control-sm" rows="2" placeholder="One exclusion per line"></textarea>
+                                </div>
+                            </div>
                         </div>
                     @endforelse
                 </div>
@@ -179,7 +230,22 @@
                         <input type="text" name="days[${index}][overnight_location]" class="form-control" placeholder="Overnight Location">
                     </div>
                 </div>
-                <textarea name="days[${index}][description]" class="form-control form-control-sm" rows="2" placeholder="Day description"></textarea>
+                <textarea name="days[${index}][description]" class="form-control form-control-sm mb-2" rows="2" placeholder="Day description"></textarea>
+
+                <div class="row g-2 bg-light p-2 rounded">
+                    <div class="col-md-4">
+                        <label class="form-label small font-weight-bold text-warning mb-1"><i class="bi bi-star me-1"></i> Day Highlights</label>
+                        <textarea name="days[${index}][highlights]" class="form-control form-control-sm" rows="2" placeholder="One highlight per line"></textarea>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label small font-weight-bold text-success mb-1"><i class="bi bi-check-lg me-1"></i> Day Inclusions</label>
+                        <textarea name="days[${index}][inclusions]" class="form-control form-control-sm" rows="2" placeholder="One inclusion per line"></textarea>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label small font-weight-bold text-danger mb-1"><i class="bi bi-x-lg me-1"></i> Day Exclusions</label>
+                        <textarea name="days[${index}][exclusions]" class="form-control form-control-sm" rows="2" placeholder="One exclusion per line"></textarea>
+                    </div>
+                </div>
             </div>
         `;
         container.insertAdjacentHTML('beforeend', dayHtml);

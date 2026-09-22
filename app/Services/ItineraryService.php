@@ -76,8 +76,9 @@ class ItineraryService
                 'duration_days' => $data['duration_days'],
                 'duration_nights' => $data['duration_nights'],
                 'description' => $data['description'] ?? null,
-                'inclusions' => $data['inclusions'] ?? [],
-                'exclusions' => $data['exclusions'] ?? [],
+                'highlights' => $this->parseListInput($data['highlights'] ?? []),
+                'inclusions' => $this->parseListInput($data['inclusions'] ?? []),
+                'exclusions' => $this->parseListInput($data['exclusions'] ?? []),
                 'terms_conditions' => $data['terms_conditions'] ?? null,
                 'status' => $data['status'] ?? 'draft',
                 'is_published' => ($data['status'] ?? '') === 'published' || !empty($data['is_published']),
@@ -114,8 +115,9 @@ class ItineraryService
                 'duration_days' => $data['duration_days'],
                 'duration_nights' => $data['duration_nights'],
                 'description' => $data['description'] ?? null,
-                'inclusions' => $data['inclusions'] ?? [],
-                'exclusions' => $data['exclusions'] ?? [],
+                'highlights' => $this->parseListInput($data['highlights'] ?? []),
+                'inclusions' => $this->parseListInput($data['inclusions'] ?? []),
+                'exclusions' => $this->parseListInput($data['exclusions'] ?? []),
                 'terms_conditions' => $data['terms_conditions'] ?? null,
                 'status' => $data['status'] ?? 'draft',
                 'is_published' => ($data['status'] ?? '') === 'published' || !empty($data['is_published']),
@@ -166,8 +168,9 @@ class ItineraryService
                 'duration_days' => $data['duration_days'],
                 'duration_nights' => $data['duration_nights'],
                 'description' => $data['description'] ?? null,
-                'inclusions' => $data['inclusions'] ?? [],
-                'exclusions' => $data['exclusions'] ?? [],
+                'highlights' => $this->parseListInput($data['highlights'] ?? []),
+                'inclusions' => $this->parseListInput($data['inclusions'] ?? []),
+                'exclusions' => $this->parseListInput($data['exclusions'] ?? []),
                 'terms_conditions' => $data['terms_conditions'] ?? null,
                 'status' => $data['status'] ?? 'draft',
                 'is_published' => ($data['status'] ?? '') === 'published' || !empty($data['is_published']),
@@ -214,8 +217,9 @@ class ItineraryService
                 'duration_days' => $data['duration_days'],
                 'duration_nights' => $data['duration_nights'],
                 'description' => $data['description'] ?? null,
-                'inclusions' => $data['inclusions'] ?? [],
-                'exclusions' => $data['exclusions'] ?? [],
+                'highlights' => $this->parseListInput($data['highlights'] ?? []),
+                'inclusions' => $this->parseListInput($data['inclusions'] ?? []),
+                'exclusions' => $this->parseListInput($data['exclusions'] ?? []),
                 'terms_conditions' => $data['terms_conditions'] ?? null,
                 'status' => $data['status'] ?? 'draft',
                 'is_published' => ($data['status'] ?? '') === 'published' || !empty($data['is_published']),
@@ -262,6 +266,9 @@ class ItineraryService
                 'day_number' => $dayData['day_number'],
                 'title' => $dayData['title'] ?? ('Day ' . $dayData['day_number']),
                 'description' => $dayData['description'] ?? null,
+                'highlights' => $this->parseListInput($dayData['highlights'] ?? []),
+                'inclusions' => $this->parseListInput($dayData['inclusions'] ?? []),
+                'exclusions' => $this->parseListInput($dayData['exclusions'] ?? []),
                 'overnight_location' => $dayData['overnight_location'] ?? null,
             ]);
 
@@ -280,5 +287,26 @@ class ItineraryService
                 }
             }
         }
+    }
+
+    /**
+     * Helper to normalize text/array inputs into array of strings
+     */
+    private function parseListInput($input): array
+    {
+        if (is_array($input)) {
+            return array_values(array_filter(array_map('trim', $input)));
+        }
+        if (is_string($input)) {
+            $text = preg_replace('/<\/(p|li|h[1-6]|div)>/i', "\n", $input);
+            $text = preg_replace('/<br\s*\/?>/i', "\n", $text);
+            $text = strip_tags($text);
+            $lines = explode("\n", $text);
+            $clean = array_map(function ($line) {
+                return trim(html_entity_decode($line), " \t\n\r\0\x0B-•*");
+            }, $lines);
+            return array_values(array_filter($clean));
+        }
+        return [];
     }
 }

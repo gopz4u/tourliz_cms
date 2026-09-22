@@ -16,7 +16,16 @@ class ItineraryDay extends Model
         'day_number',
         'title',
         'description',
+        'highlights',
+        'inclusions',
+        'exclusions',
         'overnight_location',
+    ];
+
+    protected $casts = [
+        'highlights' => 'array',
+        'inclusions' => 'array',
+        'exclusions' => 'array',
     ];
 
     public function itinerary()
