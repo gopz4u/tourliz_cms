@@ -242,6 +242,16 @@ class PackageController extends Controller
             'terms' => $this->sanitizeUtf8($request->terms),
         ];
 
+        if (!\Illuminate\Support\Facades\Schema::hasColumn('packages', 'highlights')) {
+            unset($packageData['highlights']);
+        }
+        if (!\Illuminate\Support\Facades\Schema::hasColumn('packages', 'inclusions')) {
+            unset($packageData['inclusions']);
+        }
+        if (!\Illuminate\Support\Facades\Schema::hasColumn('packages', 'exclusions')) {
+            unset($packageData['exclusions']);
+        }
+
         \DB::beginTransaction();
         try {
             $package = Package::create($packageData);
@@ -300,15 +310,24 @@ class PackageController extends Controller
         $package->days()->delete();
 
         foreach ($itinerary as $dayData) {
-            $day = $package->days()->create([
+            $dayFields = [
                 'day_number' => $dayData['day_number'] ?? ($dayData['day'] ?? 1),
                 'title' => $this->sanitizeUtf8($dayData['title'] ?? null),
                 'description' => $this->sanitizeUtf8($dayData['description'] ?? ($dayData['notes'] ?? null)),
-                'highlights' => $this->parseListInput($dayData['highlights'] ?? []),
-                'inclusions' => $this->parseListInput($dayData['inclusions'] ?? []),
-                'exclusions' => $this->parseListInput($dayData['exclusions'] ?? []),
                 'meal_plan' => $dayData['meals'] ?? [],
-            ]);
+            ];
+
+            if (\Illuminate\Support\Facades\Schema::hasColumn('package_days', 'highlights')) {
+                $dayFields['highlights'] = $this->parseListInput($dayData['highlights'] ?? []);
+            }
+            if (\Illuminate\Support\Facades\Schema::hasColumn('package_days', 'inclusions')) {
+                $dayFields['inclusions'] = $this->parseListInput($dayData['inclusions'] ?? []);
+            }
+            if (\Illuminate\Support\Facades\Schema::hasColumn('package_days', 'exclusions')) {
+                $dayFields['exclusions'] = $this->parseListInput($dayData['exclusions'] ?? []);
+            }
+
+            $day = $package->days()->create($dayFields);
 
             // Link Multiple Hotels
             if (!empty($dayData['hotels']) && is_array($dayData['hotels'])) {
@@ -612,6 +631,16 @@ class PackageController extends Controller
             'meta_keywords' => $this->sanitizeUtf8($validated['meta_keywords'] ?? null),
             'duration' => $this->formatDuration($request->duration_days, $request->duration_nights),
         ];
+
+        if (!\Illuminate\Support\Facades\Schema::hasColumn('packages', 'highlights')) {
+            unset($packageData['highlights']);
+        }
+        if (!\Illuminate\Support\Facades\Schema::hasColumn('packages', 'inclusions')) {
+            unset($packageData['inclusions']);
+        }
+        if (!\Illuminate\Support\Facades\Schema::hasColumn('packages', 'exclusions')) {
+            unset($packageData['exclusions']);
+        }
 
         \DB::beginTransaction();
         try {
