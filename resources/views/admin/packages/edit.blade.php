@@ -1236,10 +1236,19 @@
             success: (res) => { Swal.fire({ icon: 'success', title: 'Package Updated!', text: 'Your multi-vendor experience is now live.' }).then(() => window.location.href = '{{ route("admin.packages.index") }}'); },
             error: (err) => {
                 let msg = 'Review your configuration and try again.';
-                if (err.status === 422 && err.responseJSON.errors) {
+                if (err.status === 422 && err.responseJSON && err.responseJSON.errors) {
                     msg = Object.values(err.responseJSON.errors).flat().join('<br>');
+                } else if (err.responseJSON && (err.responseJSON.message || err.responseJSON.error)) {
+                    msg = err.responseJSON.message || err.responseJSON.error;
+                } else if (err.responseText) {
+                    try {
+                        let parsed = JSON.parse(err.responseText);
+                        msg = parsed.message || parsed.error || err.responseText;
+                    } catch(e) {
+                        msg = err.responseText.substring(0, 300);
+                    }
                 } else {
-                    msg = err.responseJSON?.message || err.statusText || 'Server Error';
+                    msg = err.statusText || 'Server Error';
                 }
                 Swal.fire({ icon: 'error', title: 'Configuration Error', html: `<div class="text-start small">${msg}</div>` });
             }

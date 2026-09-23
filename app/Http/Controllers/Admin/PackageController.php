@@ -288,13 +288,22 @@ class PackageController extends Controller
      */
     private function saveStructuredItinerary(Package $package, array $itinerary)
     {
+        // Explicitly clean up all existing days and their child relations first to prevent any foreign key constraint issues
+        foreach ($package->days as $existingDay) {
+            $existingDay->hotels()->delete();
+            $existingDay->transports()->delete();
+            $existingDay->activities()->delete();
+            $existingDay->attractions()->delete();
+            $existingDay->meals_list()->delete();
+            $existingDay->delete();
+        }
         $package->days()->delete();
 
         foreach ($itinerary as $dayData) {
             $day = $package->days()->create([
                 'day_number' => $dayData['day_number'] ?? ($dayData['day'] ?? 1),
-                'title' => $dayData['title'] ?? null,
-                'description' => $dayData['description'] ?? ($dayData['notes'] ?? null),
+                'title' => $this->sanitizeUtf8($dayData['title'] ?? null),
+                'description' => $this->sanitizeUtf8($dayData['description'] ?? ($dayData['notes'] ?? null)),
                 'highlights' => $this->parseListInput($dayData['highlights'] ?? []),
                 'inclusions' => $this->parseListInput($dayData['inclusions'] ?? []),
                 'exclusions' => $this->parseListInput($dayData['exclusions'] ?? []),
@@ -569,6 +578,10 @@ class PackageController extends Controller
             'country_ids' => $this->sanitizeUtf8($request->country_ids ?? $package->country_ids),
             'destination_id' => isset($request->destination_ids) && count($request->destination_ids) > 0 ? $request->destination_ids[0] : null,
             'destination_ids' => $this->sanitizeUtf8($request->destination_ids ?? []),
+            'supplier_ids' => $this->sanitizeUtf8($request->supplier_ids ?? $package->supplier_ids ?? []),
+            'supplier_id' => isset($request->supplier_ids) && count($request->supplier_ids) > 0 ? $request->supplier_ids[0] : $package->supplier_id,
+            'categories' => $this->sanitizeUtf8($request->categories ?? $package->categories ?? []),
+            'category' => isset($request->categories) && count($request->categories) > 0 ? $request->categories[0] : $package->category,
             'package_category' => $validated['package_category'] ?? null,
             'price' => $validated['price'],
             'net_price' => $request->net_price ?? $package->net_price,
@@ -583,7 +596,7 @@ class PackageController extends Controller
             'image' => $heroPath,
             'gallery' => $this->sanitizeUtf8($galleryPaths),
             'short_description' => $this->sanitizeUtf8($request->short_description),
-            'highlights' => $this->parseListInput($request->highlights),
+            'highlights' => $this->parseListInput($request->highlights ?? $request->short_description),
             'inclusions' => $this->parseListInput($request->inclusions ?? $request->included_services),
             'exclusions' => $this->parseListInput($request->exclusions ?? $request->excluded_services),
             'included_services' => $this->sanitizeUtf8($request->included_services ?? (is_array($request->inclusions) ? implode("\n", $request->inclusions) : $request->inclusions)),
@@ -611,8 +624,11 @@ class PackageController extends Controller
             return response()->json($package);
         } catch (\Exception $e) {
             \DB::rollBack();
-            \Log::error('Package update failed: ' . $e->getMessage());
-            return response()->json(['message' => 'Error updating package: ' . $e->getMessage()], 500);
+            \Log::error('Package update failed: ' . $e->getMessage(), ['trace' => $e->getTraceAsString()]);
+            return response()->json([
+                'error' => 'Error updating package',
+                'message' => $e->getMessage()
+            ], 500);
         }
     }
     /**
