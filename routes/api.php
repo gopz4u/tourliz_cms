@@ -58,7 +58,14 @@ Route::prefix('test')->group(function () {
 });
 
 // ============================================
-// 3. Public API Routes (v1) - No authentication required
+// 3. Webhooks
+// ============================================
+Route::prefix('webhooks')->group(function () {
+    Route::match(['get', 'post'], '/meta-leads', [\App\Http\Controllers\Api\WebhookController::class, 'metaLead']);
+});
+
+// ============================================
+// 4. Public API Routes (v1) - No authentication required
 // ============================================
 Route::prefix('v1')->group(function () {
 
