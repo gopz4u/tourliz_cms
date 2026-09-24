@@ -205,12 +205,31 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:admin'])->grou
                     $output[] = "Checked/Added columns to 'itinerary_days' table.";
                 }
 
+                // 5. Leads Table
+                if (!\Illuminate\Support\Facades\Schema::hasTable('leads')) {
+                    \Illuminate\Support\Facades\Schema::create('leads', function (\Illuminate\Database\Schema\Blueprint $table) {
+                        $table->id();
+                        $table->string('name')->nullable();
+                        $table->string('email')->nullable();
+                        $table->string('phone')->nullable();
+                        $table->string('source')->default('Meta Ads');
+                        $table->string('campaign_name')->nullable();
+                        $table->string('form_id')->nullable();
+                        $table->string('leadgen_id')->nullable()->unique();
+                        $table->string('status')->default('New');
+                        $table->text('notes')->nullable();
+                        $table->json('raw_data')->nullable();
+                        $table->timestamps();
+                    });
+                    $output[] = "Created 'leads' table.";
+                }
+
                 // Clear schema cache just in case
                 \Illuminate\Support\Facades\Artisan::call('cache:clear');
 
                 return response()->json([
                     'success' => true,
-                    'message' => 'Database tables updated successfully! The missing columns have been added.',
+                    'message' => 'Database tables updated successfully!',
                     'output' => implode('<br>', $output)
                 ]);
             } catch (\Exception $e) {
