@@ -143,6 +143,24 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:admin'])->grou
             Route::delete('/banners/{id}', [WebsiteManagementController::class, 'destroyBanner'])->name('banners.destroy');
         });
 
+        // Run migrations (Utility to fix missing columns on production)
+        Route::get('/run-migrations', function () {
+            try {
+                \Illuminate\Support\Facades\Artisan::call('migrate', ['--force' => true]);
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Migrations ran successfully!',
+                    'output' => nl2br(\Illuminate\Support\Facades\Artisan::output())
+                ]);
+            } catch (\Exception $e) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Failed to run migrations.',
+                    'error' => $e->getMessage()
+                ], 500);
+            }
+        })->name('run-migrations');
+
         // Package Offers Management
         Route::resource('package-offers', PackageOfferController::class);
 
