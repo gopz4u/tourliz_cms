@@ -143,19 +143,80 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:admin'])->grou
             Route::delete('/banners/{id}', [WebsiteManagementController::class, 'destroyBanner'])->name('banners.destroy');
         });
 
-        // Run migrations (Utility to fix missing columns on production)
+        // Run migrations (Utility to fix missing columns on production without relying on migrations table)
         Route::get('/run-migrations', function () {
             try {
-                \Illuminate\Support\Facades\Artisan::call('migrate', ['--force' => true]);
+                $output = [];
+                // 1. Packages Table
+                if (\Illuminate\Support\Facades\Schema::hasTable('packages')) {
+                    \Illuminate\Support\Facades\Schema::table('packages', function (\Illuminate\Database\Schema\Blueprint $table) {
+                        if (!\Illuminate\Support\Facades\Schema::hasColumn('packages', 'highlights')) {
+                            $table->json('highlights')->nullable()->after('short_description');
+                        }
+                        if (!\Illuminate\Support\Facades\Schema::hasColumn('packages', 'inclusions')) {
+                            $table->json('inclusions')->nullable();
+                        }
+                        if (!\Illuminate\Support\Facades\Schema::hasColumn('packages', 'exclusions')) {
+                            $table->json('exclusions')->nullable();
+                        }
+                    });
+                    $output[] = "Checked/Added columns to 'packages' table.";
+                }
+
+                // 2. Package Days Table
+                if (\Illuminate\Support\Facades\Schema::hasTable('package_days')) {
+                    \Illuminate\Support\Facades\Schema::table('package_days', function (\Illuminate\Database\Schema\Blueprint $table) {
+                        if (!\Illuminate\Support\Facades\Schema::hasColumn('package_days', 'highlights')) {
+                            $table->json('highlights')->nullable()->after('description');
+                        }
+                        if (!\Illuminate\Support\Facades\Schema::hasColumn('package_days', 'inclusions')) {
+                            $table->json('inclusions')->nullable()->after('highlights');
+                        }
+                        if (!\Illuminate\Support\Facades\Schema::hasColumn('package_days', 'exclusions')) {
+                            $table->json('exclusions')->nullable()->after('inclusions');
+                        }
+                    });
+                    $output[] = "Checked/Added columns to 'package_days' table.";
+                }
+
+                // 3. Unified Itineraries Table
+                if (\Illuminate\Support\Facades\Schema::hasTable('itineraries')) {
+                    \Illuminate\Support\Facades\Schema::table('itineraries', function (\Illuminate\Database\Schema\Blueprint $table) {
+                        if (!\Illuminate\Support\Facades\Schema::hasColumn('itineraries', 'highlights')) {
+                            $table->json('highlights')->nullable()->after('description');
+                        }
+                    });
+                    $output[] = "Checked/Added columns to 'itineraries' table.";
+                }
+
+                // 4. Unified Itinerary Days Table
+                if (\Illuminate\Support\Facades\Schema::hasTable('itinerary_days')) {
+                    \Illuminate\Support\Facades\Schema::table('itinerary_days', function (\Illuminate\Database\Schema\Blueprint $table) {
+                        if (!\Illuminate\Support\Facades\Schema::hasColumn('itinerary_days', 'highlights')) {
+                            $table->json('highlights')->nullable()->after('description');
+                        }
+                        if (!\Illuminate\Support\Facades\Schema::hasColumn('itinerary_days', 'inclusions')) {
+                            $table->json('inclusions')->nullable()->after('highlights');
+                        }
+                        if (!\Illuminate\Support\Facades\Schema::hasColumn('itinerary_days', 'exclusions')) {
+                            $table->json('exclusions')->nullable()->after('inclusions');
+                        }
+                    });
+                    $output[] = "Checked/Added columns to 'itinerary_days' table.";
+                }
+
+                // Clear schema cache just in case
+                \Illuminate\Support\Facades\Artisan::call('cache:clear');
+
                 return response()->json([
                     'success' => true,
-                    'message' => 'Migrations ran successfully!',
-                    'output' => nl2br(\Illuminate\Support\Facades\Artisan::output())
+                    'message' => 'Database tables updated successfully! The missing columns have been added.',
+                    'output' => implode('<br>', $output)
                 ]);
             } catch (\Exception $e) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'Failed to run migrations.',
+                    'message' => 'Failed to update tables.',
                     'error' => $e->getMessage()
                 ], 500);
             }
