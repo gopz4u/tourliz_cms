@@ -38,7 +38,7 @@ class B2BItineraryController extends Controller
     public function create()
     {
         $destinations = Destination::orderBy('name')->get();
-        $agencies = Agency::orderBy('name')->get();
+        $agencies = Agency::orderBy('company_name')->get();
         $suppliers = Supplier::orderBy('name')->get();
 
         return view('admin.itineraries.b2b.create', compact('destinations', 'agencies', 'suppliers'));
@@ -68,7 +68,7 @@ class B2BItineraryController extends Controller
             ->findOrFail($id);
 
         $destinations = Destination::orderBy('name')->get();
-        $agencies = Agency::orderBy('name')->get();
+        $agencies = Agency::orderBy('company_name')->get();
         $suppliers = Supplier::orderBy('name')->get();
 
         return view('admin.itineraries.b2b.edit', compact('itinerary', 'destinations', 'agencies', 'suppliers'));
