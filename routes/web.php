@@ -179,30 +179,48 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:admin'])->grou
                     $output[] = "Checked/Added columns to 'package_days' table.";
                 }
 
-                // 3. Unified Itineraries Table
-                if (\Illuminate\Support\Facades\Schema::hasTable('itineraries')) {
+                // 3. Unified Itineraries Tables
+                if (!\Illuminate\Support\Facades\Schema::hasTable('itineraries') || !\Illuminate\Support\Facades\Schema::hasColumn('itineraries', 'itinerary_type')) {
+                    // Drop existing broken/legacy tables if they exist
+                    \Illuminate\Support\Facades\Schema::dropIfExists('itinerary_b2c_details');
+                    \Illuminate\Support\Facades\Schema::dropIfExists('itinerary_b2b_details');
+                    \Illuminate\Support\Facades\Schema::dropIfExists('itinerary_day_items');
+                    \Illuminate\Support\Facades\Schema::dropIfExists('itinerary_days');
+                    \Illuminate\Support\Facades\Schema::dropIfExists('itineraries');
+
+                    // Run the migration classes directly
+                    require_once database_path('migrations/2026_09_22_100000_create_unified_itineraries_tables.php');
+                    $migration1 = new \CreateUnifiedItinerariesTables();
+                    $migration1->up();
+                    $output[] = "Created Unified Itineraries Tables.";
+
+                    // Run the data migration
+                    require_once database_path('migrations/2026_09_22_100001_migrate_existing_itineraries_data.php');
+                    $migration2 = new \MigrateExistingItinerariesData();
+                    $migration2->up();
+                    $output[] = "Migrated legacy itinerary data.";
+                } else {
+                    // Just check for highlights on existing tables
                     \Illuminate\Support\Facades\Schema::table('itineraries', function (\Illuminate\Database\Schema\Blueprint $table) {
                         if (!\Illuminate\Support\Facades\Schema::hasColumn('itineraries', 'highlights')) {
                             $table->json('highlights')->nullable()->after('description');
                         }
                     });
-                    $output[] = "Checked/Added columns to 'itineraries' table.";
-                }
-
-                // 4. Unified Itinerary Days Table
-                if (\Illuminate\Support\Facades\Schema::hasTable('itinerary_days')) {
-                    \Illuminate\Support\Facades\Schema::table('itinerary_days', function (\Illuminate\Database\Schema\Blueprint $table) {
-                        if (!\Illuminate\Support\Facades\Schema::hasColumn('itinerary_days', 'highlights')) {
-                            $table->json('highlights')->nullable()->after('description');
-                        }
-                        if (!\Illuminate\Support\Facades\Schema::hasColumn('itinerary_days', 'inclusions')) {
-                            $table->json('inclusions')->nullable()->after('highlights');
-                        }
-                        if (!\Illuminate\Support\Facades\Schema::hasColumn('itinerary_days', 'exclusions')) {
-                            $table->json('exclusions')->nullable()->after('inclusions');
-                        }
-                    });
-                    $output[] = "Checked/Added columns to 'itinerary_days' table.";
+                    
+                    if (\Illuminate\Support\Facades\Schema::hasTable('itinerary_days')) {
+                        \Illuminate\Support\Facades\Schema::table('itinerary_days', function (\Illuminate\Database\Schema\Blueprint $table) {
+                            if (!\Illuminate\Support\Facades\Schema::hasColumn('itinerary_days', 'highlights')) {
+                                $table->json('highlights')->nullable()->after('description');
+                            }
+                            if (!\Illuminate\Support\Facades\Schema::hasColumn('itinerary_days', 'inclusions')) {
+                                $table->json('inclusions')->nullable()->after('highlights');
+                            }
+                            if (!\Illuminate\Support\Facades\Schema::hasColumn('itinerary_days', 'exclusions')) {
+                                $table->json('exclusions')->nullable()->after('inclusions');
+                            }
+                        });
+                    }
+                    $output[] = "Checked/Added highlights columns to 'itineraries' tables.";
                 }
 
                 // 5. Leads Table
