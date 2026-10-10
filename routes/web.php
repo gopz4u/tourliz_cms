@@ -63,6 +63,9 @@ Route::get('/packages/{slug}', [PackageController::class, 'show'])->name('packag
 Route::post('/packages/{slug}/calculate-price', [BookingController::class, 'calculatePricing'])->middleware('throttle:30,1')->name('packages.calculate-price');
 Route::post('/packages/{slug}/get-quote', [BookingController::class, 'getQuote'])->middleware('throttle:30,1')->name('bookings.get-quote');
 
+// Public Quotation Route
+Route::get('/quote/{slug}', [\App\Http\Controllers\QuotationController::class, 'show'])->name('quote.show');
+
 // Booking routes (auth required)
 Route::middleware('auth')->group(function () {
     Route::get('/book/package/{id}', [BookingController::class, 'showPackage'])->name('book.package.show');
@@ -302,6 +305,8 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:admin'])->grou
 
     // Shared Itinerary Architecture Routes (B2C & B2B)
     Route::prefix('itineraries')->name('itineraries.')->group(function () {
+        Route::get('b2c/{b2c}/pdf', [\App\Http\Controllers\Admin\Itinerary\B2CItineraryController::class, 'generatePdf'])->name('b2c.pdf');
+        Route::get('b2c/{b2c}/whatsapp', [\App\Http\Controllers\Admin\Itinerary\B2CItineraryController::class, 'shareWhatsapp'])->name('b2c.whatsapp');
         Route::resource('b2c', \App\Http\Controllers\Admin\Itinerary\B2CItineraryController::class);
         Route::resource('b2b', \App\Http\Controllers\Admin\Itinerary\B2BItineraryController::class);
 

@@ -96,4 +96,37 @@ class B2CItineraryController extends Controller
         return redirect()->route('admin.itineraries.b2c.index')
             ->with('success', "B2C Itinerary '{$title}' deleted successfully.");
     }
+
+    public function generatePdf($id)
+    {
+        $itinerary = Itinerary::where('itinerary_type', 'b2c')
+            ->with(['destination', 'days.items', 'b2cDetail'])
+            ->findOrFail($id);
+            
+        // We will generate a view first to see what we have
+        // Later we can implement proper PDF generation using dompdf or browsershot
+        return view('admin.itineraries.b2c.pdf', compact('itinerary'));
+    }
+
+    public function shareWhatsapp($id)
+    {
+        $itinerary = Itinerary::where('itinerary_type', 'b2c')
+            ->with(['b2cDetail'])
+            ->findOrFail($id);
+            
+        $name = $itinerary->b2cDetail->customer_name ?? 'Customer';
+        $title = $itinerary->title;
+        $price = $itinerary->b2cDetail->selling_price ?? 0;
+        
+        $message = "Hello {$name},\n\n";
+        $message .= "Here is your quotation for *{$title}*.\n\n";
+        $message .= "Total Package Price: RM " . number_format($price, 2) . "\n\n";
+        $message .= "View full itinerary details here: " . route('quote.show', $itinerary->slug) . "\n\n";
+        $message .= "Please let us know if you have any questions!\n\n";
+        $message .= "Best regards,\nTourliz Holidays";
+
+        $url = "https://wa.me/" . preg_replace('/[^0-9]/', '', $itinerary->b2cDetail->customer_whatsapp) . "?text=" . urlencode($message);
+
+        return redirect()->away($url);
+    }
 }

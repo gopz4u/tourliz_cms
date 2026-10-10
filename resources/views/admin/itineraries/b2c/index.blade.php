@@ -109,6 +109,12 @@
                             <td class="small text-muted">{{ $itinerary->updated_at->format('M d, Y') }}</td>
                             <td class="text-end">
                                 <div class="btn-group btn-group-sm">
+                                    <a href="{{ route('itineraries.b2c.pdf', $itinerary->id) }}" class="btn btn-outline-danger" title="Generate PDF" target="_blank">
+                                        <i class="bi bi-file-earmark-pdf"></i>
+                                    </a>
+                                    <a href="{{ route('itineraries.b2c.whatsapp', $itinerary->id) }}" class="btn btn-outline-success" title="Share via WhatsApp" target="_blank">
+                                        <i class="bi bi-whatsapp"></i>
+                                    </a>
                                     <a href="{{ route('admin.itineraries.b2c.edit', $itinerary->id) }}" class="btn btn-outline-primary" title="Edit">
                                         <i class="bi bi-pencil"></i>
                                     </a>
