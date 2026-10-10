@@ -202,6 +202,13 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:admin'])->grou
                     $migration1->up();
                     $output[] = "Created Unified Itineraries Tables from scratch.";
                 }
+                
+                // 3.5 Fix package_id issue on itineraries if it somehow exists
+                if (\Illuminate\Support\Facades\Schema::hasTable('itineraries') && \Illuminate\Support\Facades\Schema::hasColumn('itineraries', 'package_id')) {
+                    // Try to make it nullable using DB statement directly (faster and safer than Doctrine)
+                    \Illuminate\Support\Facades\DB::statement('ALTER TABLE itineraries MODIFY package_id BIGINT UNSIGNED NULL');
+                    $output[] = "Made 'package_id' nullable on 'itineraries' table.";
+                }
                     
                 if (\Illuminate\Support\Facades\Schema::hasTable('itinerary_days')) {
                     \Illuminate\Support\Facades\Schema::table('itinerary_days', function (\Illuminate\Database\Schema\Blueprint $table) {
