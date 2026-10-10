@@ -193,13 +193,27 @@
             <div class="card mb-4">
                 <div class="card-header bg-white font-weight-bold">Pricing & Status</div>
                 <div class="card-body">
-                    <div class="mb-3">
-                        <label class="form-label font-weight-bold">Public Selling Price (₹) <span class="text-danger">*</span></label>
-                        <input type="number" step="0.01" name="selling_price" class="form-control" value="{{ old('selling_price', '0.00') }}" required>
+                    <div class="mb-3 border-bottom pb-3">
+                        <label class="form-label font-weight-bold text-muted">Pricing Engine Calculator</label>
+                        <div class="row g-2">
+                            <div class="col-6">
+                                <label class="form-label small">Adult Rate (RM)</label>
+                                <input type="number" step="0.01" id="adultRate" class="form-control form-control-sm calc-trigger" value="0.00">
+                            </div>
+                            <div class="col-6">
+                                <label class="form-label small">Child Rate (RM)</label>
+                                <input type="number" step="0.01" id="childRate" class="form-control form-control-sm calc-trigger" value="0.00">
+                            </div>
+                        </div>
                     </div>
                     <div class="mb-3">
-                        <label class="form-label">Child Price (₹)</label>
-                        <input type="number" step="0.01" name="child_price" class="form-control" value="{{ old('child_price') }}">
+                        <label class="form-label font-weight-bold text-success">Total Package Price (RM) <span class="text-danger">*</span></label>
+                        <input type="number" step="0.01" name="selling_price" id="sellingPrice" class="form-control fw-bold text-success" value="{{ old('selling_price', '0.00') }}" required>
+                        <small class="text-muted" id="priceSummary">0 Adults × RM0 + 0 Children × RM0</small>
+                    </div>
+                    <div class="mb-3" style="display:none;">
+                        <label class="form-label">Child Price (Internal)</label>
+                        <input type="number" step="0.01" name="child_price" id="hiddenChildPrice" class="form-control" value="{{ old('child_price') }}">
                     </div>
                     <div class="mb-3">
                         <label class="form-label font-weight-bold">Status <span class="text-danger">*</span></label>
@@ -292,6 +306,26 @@
             el.style.display = this.checked ? 'none' : (el.classList.contains('row') ? 'flex' : 'block');
         });
     });
+
+    // Pricing Engine Logic
+    function calculateTotalPrice() {
+        const adults = parseInt(document.querySelector('input[name="adults"]').value) || 0;
+        const children = parseInt(document.querySelector('input[name="children"]').value) || 0;
+        const adultRate = parseFloat(document.getElementById('adultRate').value) || 0;
+        const childRate = parseFloat(document.getElementById('childRate').value) || 0;
+        
+        const total = (adults * adultRate) + (children * childRate);
+        
+        document.getElementById('sellingPrice').value = total.toFixed(2);
+        document.getElementById('hiddenChildPrice').value = childRate.toFixed(2);
+        document.getElementById('priceSummary').textContent = `${adults} Adults × RM${adultRate.toFixed(2)} + ${children} Children × RM${childRate.toFixed(2)}`;
+    }
+
+    document.querySelectorAll('.calc-trigger').forEach(el => {
+        el.addEventListener('input', calculateTotalPrice);
+    });
+    document.querySelector('input[name="adults"]').addEventListener('input', calculateTotalPrice);
+    document.querySelector('input[name="children"]').addEventListener('input', calculateTotalPrice);
 </script>
 @endpush
 @endsection
