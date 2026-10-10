@@ -13,6 +13,19 @@ class ItineraryB2cDetail extends Model
 
     protected $fillable = [
         'itinerary_id',
+        'is_template',
+        'quotation_reference',
+        'lead_id',
+        'customer_name',
+        'customer_whatsapp',
+        'customer_email',
+        'travel_date_start',
+        'travel_date_end',
+        'adults',
+        'children',
+        'rooms',
+        'lead_source',
+        'assigned_staff_id',
         'short_description',
         'selling_price',
         'child_price',
@@ -24,6 +37,9 @@ class ItineraryB2cDetail extends Model
     ];
 
     protected $casts = [
+        'is_template' => 'boolean',
+        'travel_date_start' => 'date',
+        'travel_date_end' => 'date',
         'selling_price' => 'decimal:2',
         'child_price' => 'decimal:2',
         'gallery' => 'array',
@@ -52,5 +68,15 @@ class ItineraryB2cDetail extends Model
         }
 
         return url('storage/' . ltrim($this->image, '/'));
+    }
+
+    public function lead()
+    {
+        return $this->belongsTo(Lead::class, 'lead_id');
+    }
+
+    public function assignedStaff()
+    {
+        return $this->belongsTo(Admin::class, 'assigned_staff_id');
     }
 }

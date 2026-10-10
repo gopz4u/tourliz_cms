@@ -95,6 +95,17 @@ class ItineraryService
                 'seo_title' => $data['seo_title'] ?? null,
                 'seo_description' => $data['seo_description'] ?? null,
                 'seo_keywords' => $data['seo_keywords'] ?? null,
+                'is_template' => isset($data['is_template']) ? true : false,
+                'quotation_reference' => $data['quotation_reference'] ?? null,
+                'customer_name' => $data['customer_name'] ?? null,
+                'customer_whatsapp' => $data['customer_whatsapp'] ?? null,
+                'customer_email' => $data['customer_email'] ?? null,
+                'travel_date_start' => $data['travel_date_start'] ?? null,
+                'travel_date_end' => $data['travel_date_end'] ?? null,
+                'adults' => $data['adults'] ?? 2,
+                'children' => $data['children'] ?? 0,
+                'rooms' => $data['rooms'] ?? 1,
+                'lead_source' => $data['lead_source'] ?? null,
             ]);
 
             $this->saveDaysAndItems($itinerary, $data['days'] ?? []);
@@ -131,6 +142,17 @@ class ItineraryService
                 'seo_title' => $data['seo_title'] ?? null,
                 'seo_description' => $data['seo_description'] ?? null,
                 'seo_keywords' => $data['seo_keywords'] ?? null,
+                'is_template' => isset($data['is_template']) ? true : false,
+                'quotation_reference' => $data['quotation_reference'] ?? null,
+                'customer_name' => $data['customer_name'] ?? null,
+                'customer_whatsapp' => $data['customer_whatsapp'] ?? null,
+                'customer_email' => $data['customer_email'] ?? null,
+                'travel_date_start' => $data['travel_date_start'] ?? null,
+                'travel_date_end' => $data['travel_date_end'] ?? null,
+                'adults' => $data['adults'] ?? 2,
+                'children' => $data['children'] ?? 0,
+                'rooms' => $data['rooms'] ?? 1,
+                'lead_source' => $data['lead_source'] ?? null,
             ];
 
             if ($imagePath) {

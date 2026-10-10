@@ -29,6 +29,66 @@
         <!-- Main Form Left -->
         <div class="col-lg-8">
             <div class="card mb-4">
+                <div class="card-header bg-white font-weight-bold"><i class="bi bi-person-lines-fill text-primary me-2"></i>Quotation & Customer Details</div>
+                <div class="card-body">
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <div class="form-check form-switch mb-2">
+                                <input class="form-check-input" type="checkbox" role="switch" id="isTemplateToggle" name="is_template" value="1" checked>
+                                <label class="form-check-label fw-bold" for="isTemplateToggle">Save as Reusable Template</label>
+                            </div>
+                            <small class="text-muted">Turn off if this is a quotation for a specific customer/lead.</small>
+                        </div>
+                        <div class="col-md-6 customer-fields" style="display: none;">
+                            <label class="form-label font-weight-bold">Lead / Customer Ref.</label>
+                            <input type="text" name="quotation_reference" class="form-control form-control-sm" placeholder="Leave blank to auto-generate">
+                        </div>
+                    </div>
+                    <div class="row g-3 customer-fields" style="display: none;">
+                        <div class="col-md-4">
+                            <label class="form-label">Customer Name</label>
+                            <input type="text" name="customer_name" class="form-control" value="{{ old('customer_name') }}" placeholder="e.g. John Doe">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">WhatsApp Number</label>
+                            <input type="text" name="customer_whatsapp" class="form-control" value="{{ old('customer_whatsapp') }}" placeholder="+1234567890">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Email Address</label>
+                            <input type="email" name="customer_email" class="form-control" value="{{ old('customer_email') }}" placeholder="john@example.com">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Travel Start Date</label>
+                            <input type="date" name="travel_date_start" class="form-control" value="{{ old('travel_date_start') }}">
+                        </div>
+                        <div class="col-md-2">
+                            <label class="form-label">Adults</label>
+                            <input type="number" name="adults" class="form-control" value="{{ old('adults', 2) }}" min="1">
+                        </div>
+                        <div class="col-md-2">
+                            <label class="form-label">Children</label>
+                            <input type="number" name="children" class="form-control" value="{{ old('children', 0) }}" min="0">
+                        </div>
+                        <div class="col-md-2">
+                            <label class="form-label">Rooms</label>
+                            <input type="number" name="rooms" class="form-control" value="{{ old('rooms', 1) }}" min="1">
+                        </div>
+                        <div class="col-md-2">
+                            <label class="form-label">Lead Source</label>
+                            <select name="lead_source" class="form-select">
+                                <option value="">Select...</option>
+                                <option value="Facebook">Facebook Ads</option>
+                                <option value="Instagram">Instagram</option>
+                                <option value="WhatsApp">WhatsApp</option>
+                                <option value="Website">Website</option>
+                                <option value="Referral">Referral</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card mb-4">
                 <div class="card-header bg-white font-weight-bold">General Information</div>
                 <div class="card-body">
                     <div class="mb-3">
@@ -225,6 +285,12 @@
             </div>
         `;
         container.insertAdjacentHTML('beforeend', dayHtml);
+    });
+    document.getElementById('isTemplateToggle').addEventListener('change', function() {
+        const fields = document.querySelectorAll('.customer-fields');
+        fields.forEach(el => {
+            el.style.display = this.checked ? 'none' : (el.classList.contains('row') ? 'flex' : 'block');
+        });
     });
 </script>
 @endpush
