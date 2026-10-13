@@ -381,6 +381,7 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:admin'])->grou
     Route::patch('group-departures/{groupDeparture}/customers/{customer}', [\App\Http\Controllers\Admin\GroupDepartureController::class, 'updateCustomer'])->name('group-departures.customers.update');
     Route::delete('group-departures/{groupDeparture}/customers/{customer}', [\App\Http\Controllers\Admin\GroupDepartureController::class, 'destroyCustomer'])->name('group-departures.customers.destroy');
     Route::get('group-departures/{groupDeparture}/itinerary', [\App\Http\Controllers\Admin\GroupDepartureController::class, 'downloadItinerary'])->name('group-departures.itinerary');
+    Route::get('group-departures/{groupDeparture}/whatsapp', [\App\Http\Controllers\Admin\GroupDepartureController::class, 'whatsapp'])->name('group-departures.whatsapp');
     Route::resource('group-departures', \App\Http\Controllers\Admin\GroupDepartureController::class);
 
     // Shared Itinerary Architecture Routes (B2C & B2B)

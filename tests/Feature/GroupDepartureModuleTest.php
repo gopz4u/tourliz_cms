@@ -75,4 +75,34 @@ class GroupDepartureModuleTest extends TestCase
         $response->assertSessionHasErrors('pax');
         $this->assertDatabaseCount('group_departure_customers', 0);
     }
+
+    /** @test */
+    public function admin_can_download_the_professional_group_trip_pdf()
+    {
+        $departure = GroupDeparture::create([
+            'fixed_itinerary_id' => $this->template->id, 'title' => 'Downloadable Group Trip',
+            'departure_date' => '2026-12-10', 'return_date' => '2026-12-13',
+            'adult_rate' => 1500, 'child_rate' => 1000, 'currency' => 'MYR', 'capacity' => 20, 'status' => 'open',
+        ]);
+
+        $response = $this->actingAs($this->admin)->get(route('admin.group-departures.itinerary', $departure));
+        $response->assertOk();
+        $response->assertHeader('content-type', 'application/pdf');
+    }
+
+    /** @test */
+    public function whatsapp_share_contains_the_group_proposal_without_a_web_link()
+    {
+        $departure = GroupDeparture::create([
+            'fixed_itinerary_id' => $this->template->id, 'title' => 'WhatsApp Group Trip',
+            'departure_date' => '2026-12-10', 'adult_rate' => 1500, 'currency' => 'MYR', 'capacity' => 20, 'status' => 'open',
+        ]);
+
+        $response = $this->actingAs($this->admin)->get(route('admin.group-departures.whatsapp', $departure));
+        $response->assertRedirect();
+        $location = urldecode($response->headers->get('Location'));
+        $this->assertStringContainsString('WhatsApp Group Trip', $location);
+        $this->assertStringContainsString('GROUP TRIP RATE', $location);
+        $this->assertStringNotContainsString('/admin/group-departures/', $location);
+    }
 }

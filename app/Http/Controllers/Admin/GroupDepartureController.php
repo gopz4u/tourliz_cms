@@ -125,9 +125,78 @@ class GroupDepartureController extends Controller
 
     public function downloadItinerary(GroupDeparture $groupDeparture)
     {
-        $itinerary = $groupDeparture->fixedItinerary()->with(['supplier', 'destination'])->firstOrFail();
-        $pdf = Pdf::loadView('admin.fixed-itineraries.pdf', compact('itinerary'));
-        return $pdf->download('Group_Trip_' . $groupDeparture->departure_date->format('Ymd') . '.pdf');
+        $groupDeparture->load(['fixedItinerary.supplier', 'fixedItinerary.destination']);
+        $pdf = Pdf::loadView('admin.group-departures.pdf', compact('groupDeparture'))
+            ->setPaper('a4', 'portrait');
+        return $pdf->download('Tourliz_Group_Trip_' . $groupDeparture->departure_date->format('Ymd') . '.pdf');
+    }
+
+    public function whatsapp(GroupDeparture $groupDeparture)
+    {
+        $groupDeparture->load(['fixedItinerary.destination']);
+        $itinerary = $groupDeparture->fixedItinerary;
+        $lines = [
+            '✈️ *TOURLIZ HOLIDAYS*',
+            '_Group Departure Proposal_',
+            '',
+            '🌟 *' . $groupDeparture->title . '*',
+            '📅 *Departure:* ' . $groupDeparture->departure_date->format('d M Y'),
+            '🔙 *Return:* ' . ($groupDeparture->return_date ? $groupDeparture->return_date->format('d M Y') : 'To be advised'),
+            '🗓️ *Duration:* ' . $itinerary->duration,
+            '📍 *Destination:* ' . ($itinerary->destination->name ?? 'Multiple destinations'),
+            '👥 *Group Size:* Maximum ' . $groupDeparture->capacity . ' guests',
+            '',
+            '💰 *GROUP TRIP RATE — PER PERSON*',
+            '*Adult:* ' . $groupDeparture->currency . ' ' . number_format($groupDeparture->adult_rate, 2),
+            '*Child:* ' . ($groupDeparture->child_rate ? $groupDeparture->currency . ' ' . number_format($groupDeparture->child_rate, 2) : 'Contact us'),
+        ];
+
+        $overview = $itinerary->short_description ?: $itinerary->itinerary_description;
+        if ($overview) {
+            $lines[] = '';
+            $lines[] = '📝 *JOURNEY OVERVIEW*';
+            $lines[] = \Illuminate\Support\Str::limit(trim(strip_tags($overview)), 600);
+        }
+
+        if (is_array($itinerary->days)) {
+            $lines[] = '';
+            $lines[] = '🗺️ *DAY-BY-DAY PLAN*';
+            foreach ($itinerary->days as $index => $rawDay) {
+                $day = (array) $rawDay;
+                $number = $day['day_number'] ?? ($index + 1);
+                $lines[] = '';
+                $lines[] = '*DAY ' . $number . ' — ' . ($day['title'] ?? 'Travel Day') . '*';
+                if (!empty($day['description'])) {
+                    $lines[] = \Illuminate\Support\Str::limit(trim(strip_tags($day['description'])), 350);
+                }
+                foreach ((array) ($day['items'] ?? []) as $rawItem) {
+                    $item = (array) $rawItem;
+                    if (empty($item['title'])) continue;
+                    $marker = ($item['item_type'] ?? '') === 'spot' ? '📍' : '•';
+                    $lines[] = $marker . ' ' . $item['title'] . (!empty($item['room_type']) ? ' (' . $item['room_type'] . ')' : '');
+                }
+                if (!empty($day['overnight_location'])) {
+                    $lines[] = '🌙 _Overnight: ' . $day['overnight_location'] . '_';
+                }
+            }
+        }
+
+        if (!empty($itinerary->inclusions)) {
+            $lines[] = '';
+            $lines[] = '✅ *INCLUDED*';
+            foreach ($itinerary->inclusions as $item) $lines[] = '✓ ' . $item;
+        }
+        if (!empty($itinerary->exclusions)) {
+            $lines[] = '';
+            $lines[] = '❌ *NOT INCLUDED*';
+            foreach ($itinerary->exclusions as $item) $lines[] = '× ' . $item;
+        }
+
+        $lines[] = '';
+        $lines[] = '_Rates and availability are subject to confirmation._';
+        $lines[] = 'Contact *Tourliz Holidays* to reserve your seat.';
+
+        return redirect()->away('https://wa.me/?text=' . rawurlencode(implode("\n", $lines)));
     }
 
     private function validateDeparture(Request $request): array
