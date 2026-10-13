@@ -37,6 +37,16 @@
                         </div>
 
                         <div class="mb-3">
+                            <label for="whatsapp_number" class="form-label">WhatsApp Number</label>
+                            <input type="tel" class="form-control" id="whatsapp_number" name="whatsapp_number" value="{{ $user->whatsapp_number }}" placeholder="+60123456789">
+                            <small class="form-text text-muted">Use international format with country code.</small>
+                        </div>
+                        <div class="form-check form-switch mb-3">
+                            <input class="form-check-input" type="checkbox" id="whatsapp_notifications" name="whatsapp_notifications" value="1" {{ $user->whatsapp_notifications ? 'checked' : '' }}>
+                            <label class="form-check-label" for="whatsapp_notifications">Receive walk-in lead and follow-up alerts</label>
+                        </div>
+
+                        <div class="mb-3">
                             <label for="password" class="form-label">Password</label>
                             <input type="password" class="form-control" id="password" name="password" minlength="8">
                             <small class="form-text text-muted">Leave blank to keep current password. Minimum 8 characters
@@ -75,6 +85,8 @@
                         name: $('#name').val(),
                         email: $('#email').val(),
                         role: $('#role').val(),
+                        whatsapp_number: $('#whatsapp_number').val(),
+                        whatsapp_notifications: $('#whatsapp_notifications').is(':checked') ? 1 : 0,
                         password: $('#password').val() || null,
                         password_confirmation: $('#password_confirmation').val() || null
                     };

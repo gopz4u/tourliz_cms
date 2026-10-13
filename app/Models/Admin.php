@@ -15,6 +15,8 @@ class Admin extends Authenticatable
     protected $fillable = [
         'name',
         'email',
+        'whatsapp_number',
+        'whatsapp_notifications',
         'password',
         'role',
     ];
@@ -26,6 +28,7 @@ class Admin extends Authenticatable
 
     protected $casts = [
         'email_verified_at' => 'datetime',
+        'whatsapp_notifications' => 'boolean',
     ];
 
     /**

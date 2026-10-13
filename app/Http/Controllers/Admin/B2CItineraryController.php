@@ -275,6 +275,16 @@ class B2CItineraryController extends Controller
 
         $itinerary->calculatePricing()->save();
 
+        // Staff alerts must never block creation of the customer lead.
+        try {
+            app(\App\Services\LeadWhatsAppNotifier::class)->notifyNewLead($itinerary);
+        } catch (\Throwable $e) {
+            \Log::error('Unable to send new walk-in lead WhatsApp notification.', [
+                'lead_id' => $itinerary->id,
+                'error' => $e->getMessage(),
+            ]);
+        }
+
         return redirect()->route('admin.b2c-itineraries.edit', $itinerary->id)
             ->with('success', 'Walk-in lead created. Now build the itinerary.');
     }

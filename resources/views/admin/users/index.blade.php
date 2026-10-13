@@ -22,6 +22,7 @@
                             <th>ID</th>
                             <th>Name</th>
                             <th>Email</th>
+                            <th>WhatsApp Alerts</th>
                             <th>Role</th>
                             <th>Created At</th>
                             <th>Actions</th>
@@ -29,7 +30,7 @@
                     </thead>
                     <tbody>
                         <tr>
-                            <td colspan="6" class="text-center">
+                            <td colspan="7" class="text-center">
                                 <div class="spinner-border text-primary" role="status">
                                     <span class="visually-hidden">Loading...</span>
                                 </div>
@@ -54,7 +55,7 @@
                     tbody.empty();
 
                     if (users.length === 0) {
-                        tbody.append('<tr><td colspan="6" class="text-center">No users found</td></tr>');
+                        tbody.append('<tr><td colspan="7" class="text-center">No users found</td></tr>');
                         return;
                     }
 
@@ -71,6 +72,7 @@
                                 <td>${user.id}</td>
                                 <td><strong>${user.name}</strong></td>
                                 <td>${user.email}</td>
+                                <td>${user.whatsapp_number && user.whatsapp_notifications ? `<span class="badge bg-success"><i class="bi bi-whatsapp me-1"></i>${user.whatsapp_number}</span>` : '<span class="text-muted small">Disabled</span>'}</td>
                                 <td>${roleBadge}</td>
                                 <td>${new Date(user.created_at).toLocaleDateString()}</td>
                                 <td>
@@ -86,7 +88,7 @@
                         tbody.append(row);
                     });
                 }).fail(function () {
-                    $('#users-table tbody').html('<tr><td colspan="6" class="text-center text-danger">Error loading users</td></tr>');
+                    $('#users-table tbody').html('<tr><td colspan="7" class="text-center text-danger">Error loading users</td></tr>');
                 });
             }
 

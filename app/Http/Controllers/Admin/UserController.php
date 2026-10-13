@@ -57,6 +57,8 @@ class UserController extends Controller
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'email' => 'required|string|email|max:255|unique:admins',
+            'whatsapp_number' => ['nullable', 'string', 'max:40', 'regex:/^\+[1-9]\d{7,14}$/'],
+            'whatsapp_notifications' => 'nullable|boolean',
             'password' => 'required|string|min:8|confirmed',
             'role' => 'required|string|in:super_admin,employee,admin',
         ], [
@@ -70,6 +72,7 @@ class UserController extends Controller
         ]);
 
         $validated['password'] = Hash::make($validated['password']);
+        $validated['whatsapp_notifications'] = $request->boolean('whatsapp_notifications');
 
         $user = Admin::create($validated);
 
@@ -114,6 +117,8 @@ class UserController extends Controller
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'email' => ['required', 'string', 'email', 'max:255', Rule::unique('admins')->ignore($user->id)],
+            'whatsapp_number' => ['nullable', 'string', 'max:40', 'regex:/^\+[1-9]\d{7,14}$/'],
+            'whatsapp_notifications' => 'nullable|boolean',
             'password' => 'nullable|string|min:8|confirmed',
             'role' => 'required|string|in:super_admin,employee,admin',
         ], [
@@ -130,6 +135,7 @@ class UserController extends Controller
         } else {
             unset($validated['password']);
         }
+        $validated['whatsapp_notifications'] = $request->boolean('whatsapp_notifications');
 
         $user->update($validated);
 
