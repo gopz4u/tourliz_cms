@@ -267,11 +267,87 @@ class FixedItineraryController extends Controller
             $withRelations[] = 'destination';
         }
         $itinerary = FixedItinerary::with($withRelations)->findOrFail($id);
-        $title = $itinerary->title;
-        $price = $itinerary->currency . ' ' . number_format($itinerary->fixed_price, 2);
-        $text = urlencode("Hi, check out our Fixed Package: *{$title}* at {$price}. View details: " . route('admin.fixed-itineraries.show', $itinerary->id));
+        $lines = [
+            "✈️ *TOURLIZ HOLIDAYS*",
+            "_Curated Travel Proposal_",
+            '',
+            "🌟 *{$itinerary->title}*",
+            "🗓️ *Duration:* {$itinerary->duration}",
+            '📍 *Destination:* ' . ($itinerary->destination->name ?? 'Multiple Destinations'),
+        ];
 
-        return redirect("https://wa.me/?text={$text}");
+        if ($itinerary->countries->count() > 0) {
+            $lines[] = '🌍 *Countries:* ' . $itinerary->countries->pluck('name')->join(', ');
+        }
+
+        $overview = $itinerary->short_description ?: $itinerary->itinerary_description;
+        if ($overview) {
+            $lines[] = '';
+            $lines[] = '📝 *JOURNEY OVERVIEW*';
+            $lines[] = Str::limit(trim(strip_tags($overview)), 700);
+        }
+
+        if (is_array($itinerary->days) && count($itinerary->days) > 0) {
+            $lines[] = '';
+            $lines[] = '🗺️ *DAY-BY-DAY ITINERARY*';
+
+            foreach ($itinerary->days as $index => $rawDay) {
+                $day = (array) $rawDay;
+                $dayNumber = $day['day_number'] ?? ($index + 1);
+                $dayTitle = $day['title'] ?? ('Day ' . $dayNumber);
+                $lines[] = '';
+                $lines[] = "*DAY {$dayNumber} — {$dayTitle}*";
+
+                if (!empty($day['description'])) {
+                    $lines[] = Str::limit(trim(strip_tags($day['description'])), 500);
+                }
+
+                $items = is_array($day['items'] ?? null) ? $day['items'] : [];
+                foreach ($items as $rawItem) {
+                    $item = (array) $rawItem;
+                    if (!empty($item['title'])) {
+                        $type = ucfirst($item['item_type'] ?? 'Activity');
+                        $room = !empty($item['room_type']) ? ' (' . $item['room_type'] . ')' : '';
+                        $lines[] = "  • {$type}: {$item['title']}{$room}";
+                    }
+                }
+
+                if (!empty($day['overnight_location'])) {
+                    $lines[] = '🌙 _Overnight: ' . $day['overnight_location'] . '_';
+                }
+            }
+        }
+
+        if (!empty($itinerary->inclusions)) {
+            $lines[] = '';
+            $lines[] = '✅ *PACKAGE INCLUSIONS*';
+            foreach ($itinerary->inclusions as $item) {
+                $lines[] = '  ✓ ' . $item;
+            }
+        }
+
+        if (!empty($itinerary->exclusions)) {
+            $lines[] = '';
+            $lines[] = '❌ *PACKAGE EXCLUSIONS*';
+            foreach ($itinerary->exclusions as $item) {
+                $lines[] = '  × ' . $item;
+            }
+        }
+
+        if (!empty($itinerary->terms_conditions)) {
+            $lines[] = '';
+            $lines[] = 'ℹ️ *IMPORTANT INFORMATION*';
+            $lines[] = Str::limit(trim(strip_tags($itinerary->terms_conditions)), 700);
+        }
+
+        $lines[] = '';
+        $lines[] = '💰 *TOTAL FIXED PACKAGE PRICE*';
+        $lines[] = '*' . ($itinerary->currency ?: 'MYR') . ' ' . number_format($itinerary->fixed_price, 2) . '*';
+        $lines[] = '';
+        $lines[] = '_Rates and availability are subject to confirmation._';
+        $lines[] = 'Thank you for choosing *Tourliz Holidays!* 🌴';
+
+        return redirect()->away('https://wa.me/?text=' . rawurlencode(implode("\n", $lines)));
     }
 
     /**
