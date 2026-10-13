@@ -531,6 +531,78 @@
         }
     </style>
 
+    <style>
+        /* Compact admin design system */
+        :root { --primary:#4f46e5; --primary-hover:#4338ca; --primary-light:#eef2ff; --sidebar-width:236px; --bg-body:#f5f7fb; --text-main:#172033; --text-muted:#8a94a6; --text-muted-darker:#5f6b7c; --app-radius:0; }
+        * { scrollbar-width:thin; scrollbar-color:#cbd5e1 transparent; }
+        body { padding:0; font-size:14px; background:var(--bg-body); }
+        .app-wrapper { min-height:100vh; border-radius:0; box-shadow:none; background:var(--bg-body); }
+        .sidebar { position:sticky; top:0; height:100vh; padding:1.15rem .8rem; background:#fff; border-right:1px solid #e8ecf2; transition:width .22s ease, transform .22s ease; }
+        .sidebar-brand { min-height:42px; margin-bottom:1rem; padding:0 .65rem; }
+        .sidebar-brand img { max-width:150px; object-fit:contain; }
+        .sidebar-section-title { margin:1rem 0 .3rem .75rem !important; font-size:.61rem; letter-spacing:1.15px; }
+        .sidebar-menu li { margin:2px 0; }
+        .sidebar-menu a { min-height:40px; padding:.62rem .75rem; border-radius:10px; font-size:.82rem; }
+        .sidebar-menu a i.main-icon { width:20px; margin-right:.65rem; font-size:1rem; text-align:center; }
+        .sidebar-menu a.active { box-shadow:0 5px 14px rgba(79,70,229,.18); }
+        .nav-badge { width:auto; min-width:20px; height:20px; padding:0 6px; border-radius:10px; font-size:.62rem; }
+        .logout-wrapper { padding-top:.75rem; }
+        .btn-logout { min-height:40px; padding:.6rem .75rem; border-radius:10px; font-size:.82rem; }
+        .btn-logout i { width:20px; margin-right:.65rem; }
+        .main-content { min-width:0; padding:0 1.5rem 1.5rem; background:var(--bg-body); }
+        .top-search-bar { position:sticky; top:0; z-index:90; min-height:64px; margin:0 -1.5rem 1.25rem; padding:.65rem 1.5rem; background:rgba(245,247,251,.92); border-bottom:1px solid rgba(226,232,240,.8); backdrop-filter:blur(12px); }
+        .sidebar-collapse-btn { width:36px; height:36px; margin-right:auto; padding:0; border:1px solid #e2e8f0; border-radius:9px; background:#fff; color:#64748b; }
+        .sidebar-collapse-btn:hover { color:var(--primary); border-color:#c7d2fe; background:var(--primary-light); }
+        .search-wrapper { width:min(320px,30vw); }
+        .search-wrapper input { padding:.6rem .9rem .6rem 2.4rem; border:1px solid #e2e8f0; border-radius:10px; background:#fff; font-size:.82rem; }
+        .user-avatar { width:36px; height:36px; border-radius:10px; font-size:.8rem; }
+        body.sidebar-collapsed .sidebar { width:72px; }
+        body.sidebar-collapsed .sidebar-brand { justify-content:center; padding:0; overflow:hidden; }
+        body.sidebar-collapsed .sidebar-brand img { width:34px; height:34px !important; object-fit:cover; object-position:left; }
+        body.sidebar-collapsed .logo-text, body.sidebar-collapsed .sidebar-section-title, body.sidebar-collapsed .sidebar-menu a span, body.sidebar-collapsed .sidebar-menu .nav-arrow, body.sidebar-collapsed .btn-logout span { display:none; }
+        body.sidebar-collapsed .sidebar-menu a, body.sidebar-collapsed .btn-logout { justify-content:center; padding-inline:.5rem; }
+        body.sidebar-collapsed .sidebar-menu a i.main-icon, body.sidebar-collapsed .btn-logout i { margin:0; }
+        body.sidebar-collapsed .nav-badge { position:absolute; top:1px; right:1px; }
+        .page-header { margin-bottom:1rem !important; padding:.15rem 0 .75rem !important; }
+        .page-header h1, .page-header h2, h1, h2 { letter-spacing:-.4px; }
+        .page-header h1 { font-size:1.55rem; } .page-header h2, h2 { font-size:1.4rem; } h3 { font-size:1.25rem; }
+        .container-fluid { padding-left:0; padding-right:0; }
+        .container-fluid.py-4 { padding-top:.25rem !important; padding-bottom:.5rem !important; }
+        .mb-5 { margin-bottom:1.5rem !important; }
+        .g-4,.gy-4 { --bs-gutter-y:1rem; } .g-4,.gx-4 { --bs-gutter-x:1rem; }
+        .card,.stat-card,.pkg-card { border:1px solid #e7ebf1 !important; border-radius:14px !important; box-shadow:0 2px 8px rgba(15,23,42,.035) !important; margin-bottom:1rem; }
+        .card:hover { box-shadow:0 5px 16px rgba(15,23,42,.06) !important; }
+        .card-header { padding:.85rem 1rem; } .card-body { padding:1rem; } .stat-card { padding:1rem !important; }
+        .btn { border-radius:9px; font-size:.82rem; font-weight:600; }
+        .btn-primary { padding:.52rem .9rem; border-radius:9px; box-shadow:0 3px 8px rgba(79,70,229,.18); }
+        .btn-primary:hover,.btn-primary:focus { transform:none; box-shadow:0 4px 10px rgba(79,70,229,.25); }
+        .btn-sm { border-radius:8px; } .rounded-pill.btn { border-radius:9px !important; }
+        .form-label { margin-bottom:.35rem; color:#475569; font-size:.78rem; font-weight:700; }
+        .form-control,.form-select,.select2-container--bootstrap-5 .select2-selection { min-height:39px; border-color:#dfe4ec; border-radius:9px; font-size:.84rem; }
+        .form-control:focus,.form-select:focus { border-color:#a5b4fc; box-shadow:0 0 0 3px rgba(79,70,229,.1); }
+        textarea.form-control { min-height:88px; } .input-group-text { border-color:#dfe4ec; }
+        .table-responsive { overflow-x:auto; border-radius:10px; }
+        .table { margin-bottom:0; font-size:.81rem; }
+        .table thead th { white-space:nowrap; padding:.68rem .75rem; background:#f8fafc; border-bottom:1px solid #e2e8f0; font-size:.66rem; }
+        .table td { padding:.68rem .75rem; border-bottom-color:#eef1f5; }
+        .table tbody tr:hover td { background:#fafbff; }
+        .badge { border-radius:6px; font-size:.68rem; }
+        .pagination { --bs-pagination-padding-x:.68rem; --bs-pagination-padding-y:.35rem; --bs-pagination-font-size:.78rem; }
+        .dropdown-menu { border:1px solid #e6eaf0 !important; border-radius:10px !important; box-shadow:0 12px 30px rgba(15,23,42,.12) !important; }
+        .dropdown-item { border-radius:7px; font-size:.82rem; } .alert { padding:.75rem 1rem; border-radius:10px; font-size:.82rem; }
+        @media (max-width:991.98px) {
+            body.sidebar-collapsed .sidebar { width:var(--sidebar-width); }
+            .sidebar { position:fixed; width:min(86vw,280px); padding:1rem .8rem; }
+            .main-content { padding:.85rem; }
+            .mobile-header { position:sticky; top:0; z-index:95; min-height:56px; padding:.55rem .85rem; border-bottom:1px solid #e8ecf2; box-shadow:none; }
+            .mobile-header .bi-list { font-size:1.65rem !important; }
+            .page-header h1 { font-size:1.3rem; }
+            .page-header .d-flex { align-items:flex-start !important; gap:.75rem; flex-wrap:wrap; }
+            .card-body,.card-header { padding:.85rem; }
+            .table thead th,.table td { white-space:nowrap; }
+        }
+    </style>
+
     <!-- Select2 CSS -->
     <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
     <link href="https://cdn.jsdelivr.net/npm/select2-bootstrap-5-theme@1.3.0/dist/select2-bootstrap-5-theme.min.css"
@@ -787,6 +859,9 @@
         <div class="main-content">
             <!-- Top App Bar -->
             <div class="top-search-bar d-none d-lg-flex">
+                <button type="button" class="sidebar-collapse-btn" id="sidebarCollapse" title="Collapse sidebar" aria-label="Collapse sidebar">
+                    <i class="bi bi-layout-sidebar-inset"></i>
+                </button>
                 <form action="{{ route('admin.search') }}" method="GET" class="search-wrapper">
                     <i class="bi bi-search"></i>
                     <input type="text" name="q" value="{{ request('q') }}" placeholder="Search client, title, ID...">
@@ -808,6 +883,16 @@
     <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
     <script>
         $(document).ready(function () {
+            // Remember the preferred desktop sidebar size.
+            if (localStorage.getItem('tourliz-sidebar') === 'collapsed') {
+                $('body').addClass('sidebar-collapsed');
+            }
+
+            $('#sidebarCollapse').on('click', function () {
+                $('body').toggleClass('sidebar-collapsed');
+                localStorage.setItem('tourliz-sidebar', $('body').hasClass('sidebar-collapsed') ? 'collapsed' : 'expanded');
+            });
+
             // Mobile sidebar toggle
             $('#sidebarToggle, #sidebarOverlay').on('click', function () {
                 $('.sidebar').toggleClass('show');
