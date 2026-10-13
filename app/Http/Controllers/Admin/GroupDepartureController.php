@@ -13,8 +13,20 @@ use Illuminate\Validation\Rule;
 
 class GroupDepartureController extends Controller
 {
+    public function __construct()
+    {
+        GroupDeparture::ensureTableSchema();
+    }
+
     public function index(Request $request)
     {
+        GroupDeparture::ensureTableSchema();
+
+        if (!\Illuminate\Support\Facades\Schema::hasTable('group_departures')) {
+            $departures = new \Illuminate\Pagination\LengthAwarePaginator([], 0, 15);
+            return view('admin.group-departures.index', compact('departures'));
+        }
+
         $query = GroupDeparture::with('fixedItinerary')->withCount('customers')->withSum([
             'customers as booked_pax' => fn ($q) => $q->where('booking_status', '!=', 'cancelled')
         ], 'pax');

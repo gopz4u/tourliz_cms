@@ -273,6 +273,14 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:admin'])->grou
                     $output[] = "Repaired supplier_ids columns on fixed_itineraries, itineraries, and itinerary_b2b_details.";
                 }
 
+                // 4.2 Group Departures Tables
+                if (file_exists(database_path('migrations/2026_10_14_010000_create_group_departures_tables.php'))) {
+                    require_once database_path('migrations/2026_10_14_010000_create_group_departures_tables.php');
+                    $grpDepMig = new \CreateGroupDeparturesTables();
+                    $grpDepMig->up();
+                    $output[] = "Checked/Created group_departures and group_departure_customers tables.";
+                }
+
                 // 5. Leads Table
                 if (!\Illuminate\Support\Facades\Schema::hasTable('leads')) {
                     \Illuminate\Support\Facades\Schema::create('leads', function (\Illuminate\Database\Schema\Blueprint $table) {
