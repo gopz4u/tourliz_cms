@@ -7,6 +7,7 @@
     <style>
         body { font-family: 'Helvetica', 'Arial', sans-serif; color: #333; line-height: 1.5; margin: 0; padding: 25px; }
         .header { text-align: center; margin-bottom: 25px; border-bottom: 2px solid #0056b3; padding-bottom: 15px; }
+        .header-logo { display: block; width: 180px; max-height: 72px; object-fit: contain; margin: 0 auto 10px; }
         .header h1 { color: #0056b3; margin: 0 0 8px 0; font-size: 26px; }
         .header p { margin: 0; color: #666; font-size: 13px; }
         .package-info { margin-bottom: 25px; background: #f8f9fa; padding: 15px; border-radius: 6px; }
@@ -30,6 +31,7 @@
 <body>
 
     <div class="header">
+        <img src="https://webcms.tourliz.com/img/tourliz_logo.png" alt="Tourliz Holidays" class="header-logo">
         <h1>Tourliz Holidays</h1>
         <p>123 Travel Street, Kuala Lumpur, Malaysia | +60 123 456 789 | hello@tourliz.com</p>
     </div>
