@@ -12,24 +12,40 @@ use Illuminate\Support\Str;
 
 class FixedItineraryController extends Controller
 {
+    public function __construct()
+    {
+        FixedItinerary::ensureTableSchema();
+    }
+
     public function index(Request $request)
     {
-        $query = FixedItinerary::with(['supplier', 'destination']);
+        FixedItinerary::ensureTableSchema();
+
+        $hasDestCol = \Illuminate\Support\Facades\Schema::hasColumn('fixed_itineraries', 'destination_id');
+        $hasSupplierIds = \Illuminate\Support\Facades\Schema::hasColumn('fixed_itineraries', 'supplier_ids');
+
+        $withRelations = ['supplier'];
+        if ($hasDestCol) {
+            $withRelations[] = 'destination';
+        }
+
+        $query = FixedItinerary::with($withRelations);
 
         if ($request->filled('search')) {
             $search = $request->search;
-            $query->where(function ($q) use ($search) {
+            $query->where(function ($q) use ($search, $hasDestCol) {
                 $q->where('title', 'like', "%{$search}%")
-                  ->orWhere('itinerary_description', 'like', "%{$search}%")
-                  ->orWhereHas('destination', function ($dq) use ($search) {
-                      $dq->where('name', 'like', "%{$search}%");
-                  });
+                  ->orWhere('itinerary_description', 'like', "%{$search}%");
+                if ($hasDestCol) {
+                    $q->orWhereHas('destination', function ($dq) use ($search) {
+                        $dq->where('name', 'like', "%{$search}%");
+                    });
+                }
             });
         }
 
         if ($request->filled('supplier_id')) {
             $sId = (int) $request->supplier_id;
-            $hasSupplierIds = \Illuminate\Support\Facades\Schema::hasColumn('fixed_itineraries', 'supplier_ids');
             $query->where(function ($sq) use ($sId, $hasSupplierIds) {
                 $sq->where('supplier_id', $sId);
                 if ($hasSupplierIds) {
@@ -38,7 +54,7 @@ class FixedItineraryController extends Controller
             });
         }
 
-        if ($request->filled('destination_id')) {
+        if ($hasDestCol && $request->filled('destination_id')) {
             $query->where('destination_id', $request->destination_id);
         }
 
@@ -101,7 +117,7 @@ class FixedItineraryController extends Controller
         $supplierIds = $this->resolveSupplierIds($rawSupplierIds, $validated['destination_id'] ?? null);
         $primarySupplierId = !empty($supplierIds) ? $supplierIds[0] : null;
 
-        $itinerary = FixedItinerary::create($this->filterSupplierIdsIfMissing([
+        $itinerary = FixedItinerary::create($this->filterColumnsIfMissing([
             'user_id' => auth()->id(),
             'supplier_id' => $primarySupplierId,
             'supplier_ids' => $supplierIds,
@@ -129,14 +145,24 @@ class FixedItineraryController extends Controller
 
     public function show($id)
     {
-        $itinerary = FixedItinerary::with(['supplier', 'destination'])->findOrFail($id);
+        FixedItinerary::ensureTableSchema();
+        $withRelations = ['supplier'];
+        if (\Illuminate\Support\Facades\Schema::hasColumn('fixed_itineraries', 'destination_id')) {
+            $withRelations[] = 'destination';
+        }
+        $itinerary = FixedItinerary::with($withRelations)->findOrFail($id);
 
         return view('admin.fixed-itineraries.show', compact('itinerary'));
     }
 
     public function edit($id)
     {
-        $itinerary = FixedItinerary::with(['supplier', 'destination'])->findOrFail($id);
+        FixedItinerary::ensureTableSchema();
+        $withRelations = ['supplier'];
+        if (\Illuminate\Support\Facades\Schema::hasColumn('fixed_itineraries', 'destination_id')) {
+            $withRelations[] = 'destination';
+        }
+        $itinerary = FixedItinerary::with($withRelations)->findOrFail($id);
         $destinations = Destination::orderBy('name')->get();
         $countries = Country::where('status', true)->orderBy('name')->get();
         $suppliers = Supplier::where('is_active', true)->orderBy('name')->get();
@@ -186,7 +212,7 @@ class FixedItineraryController extends Controller
         $supplierIds = $this->resolveSupplierIds($rawSupplierIds, $destId);
         $primarySupplierId = !empty($supplierIds) ? $supplierIds[0] : null;
 
-        $itinerary->update($this->filterSupplierIdsIfMissing([
+        $itinerary->update($this->filterColumnsIfMissing([
             'supplier_id' => $primarySupplierId,
             'supplier_ids' => $supplierIds,
             'destination_id' => $validated['destination_id'] ?? $itinerary->destination_id,
@@ -223,14 +249,24 @@ class FixedItineraryController extends Controller
 
     public function pdf($id)
     {
-        $itinerary = FixedItinerary::with(['supplier', 'destination'])->findOrFail($id);
+        FixedItinerary::ensureTableSchema();
+        $withRelations = ['supplier'];
+        if (\Illuminate\Support\Facades\Schema::hasColumn('fixed_itineraries', 'destination_id')) {
+            $withRelations[] = 'destination';
+        }
+        $itinerary = FixedItinerary::with($withRelations)->findOrFail($id);
 
         return view('admin.fixed-itineraries.pdf', compact('itinerary'));
     }
 
     public function whatsapp($id)
     {
-        $itinerary = FixedItinerary::with(['supplier', 'destination'])->findOrFail($id);
+        FixedItinerary::ensureTableSchema();
+        $withRelations = ['supplier'];
+        if (\Illuminate\Support\Facades\Schema::hasColumn('fixed_itineraries', 'destination_id')) {
+            $withRelations[] = 'destination';
+        }
+        $itinerary = FixedItinerary::with($withRelations)->findOrFail($id);
         $title = $itinerary->title;
         $price = $itinerary->currency . ' ' . number_format($itinerary->fixed_price, 2);
         $text = urlencode("Hi, check out our Fixed Package: *{$title}* at {$price}. View details: " . route('admin.fixed-itineraries.show', $itinerary->id));
@@ -354,22 +390,19 @@ class FixedItineraryController extends Controller
     }
 
     /**
-     * Ensure supplier_ids column exists on fixed_itineraries table, or strip it from data if missing.
+     * Ensure fixed_itineraries table has all columns, and strip any non-existent columns from payload.
      */
-    protected function filterSupplierIdsIfMissing(array $data): array
+    protected function filterColumnsIfMissing(array $data): array
     {
-        if (!\Illuminate\Support\Facades\Schema::hasColumn('fixed_itineraries', 'supplier_ids')) {
-            try {
-                \Illuminate\Support\Facades\Schema::table('fixed_itineraries', function (\Illuminate\Database\Schema\Blueprint $table) {
-                    $table->json('supplier_ids')->nullable()->after('supplier_id');
-                });
-            } catch (\Throwable $e) {
-                \Illuminate\Support\Facades\Log::warning('Could not auto-add supplier_ids to fixed_itineraries: ' . $e->getMessage());
-            }
-        }
+        FixedItinerary::ensureTableSchema();
 
-        if (!\Illuminate\Support\Facades\Schema::hasColumn('fixed_itineraries', 'supplier_ids')) {
-            unset($data['supplier_ids']);
+        try {
+            $tableColumns = \Illuminate\Support\Facades\Schema::getColumnListing('fixed_itineraries');
+            if (!empty($tableColumns)) {
+                return array_intersect_key($data, array_flip($tableColumns));
+            }
+        } catch (\Throwable $e) {
+            // fallback
         }
 
         return $data;
