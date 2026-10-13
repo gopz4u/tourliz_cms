@@ -36,7 +36,8 @@ class ItineraryController extends Controller
         $countryName = $package->destination->country ?? null;
         
         $suppliersQuery = \App\Models\Supplier::query();
-        $touristSpotsQuery = \App\Models\TouristSpot::query();
+        $touristSpotsQuery = \App\Models\TouristSpot::with(['supplier', 'destination'])->where('is_active', true);
+        $entryTicketsQuery = \App\Models\EntryTicket::with(['supplier', 'destination'])->where('is_active', true);
         $coreServicesQuery = \App\Models\Service::query();
         
         if ($countryName || $package->destination_id) {
@@ -52,16 +53,19 @@ class ItineraryController extends Controller
             };
             $suppliersQuery->where($filter);
             $touristSpotsQuery->where($filter);
+            $entryTicketsQuery->where($filter);
             $coreServicesQuery->where($filter);
         }
         
         $suppliers = $suppliersQuery->orderBy('name')->get();
         $touristSpots = $touristSpotsQuery->orderBy('name')->get();
+        $entryTickets = $entryTicketsQuery->orderBy('attraction_name')->get();
         $coreServices = $coreServicesQuery->orderBy('name')->get();
 
         // Fallbacks if empty
         if ($suppliers->count() === 0) $suppliers = \App\Models\Supplier::orderBy('name')->take(50)->get();
-        if ($touristSpots->count() === 0) $touristSpots = \App\Models\TouristSpot::orderBy('name')->take(50)->get();
+        if ($touristSpots->count() === 0) $touristSpots = \App\Models\TouristSpot::with(['supplier', 'destination'])->where('is_active', true)->orderBy('name')->get();
+        if ($entryTickets->count() === 0) $entryTickets = \App\Models\EntryTicket::with(['supplier', 'destination'])->where('is_active', true)->orderBy('attraction_name')->get();
         if ($coreServices->count() === 0) $coreServices = \App\Models\Service::orderBy('name')->take(50)->get();
 
         // Initialize empty itinerary if doesn't exist
@@ -69,7 +73,7 @@ class ItineraryController extends Controller
             $package->itinerary = [];
         }
 
-        return view('admin.itineraries.edit', compact('package', 'destinations', 'attractions', 'touristSpots', 'coreServices', 'suppliers'));
+        return view('admin.itineraries.edit', compact('package', 'destinations', 'attractions', 'touristSpots', 'entryTickets', 'coreServices', 'suppliers'));
     }
 
     /**
@@ -248,6 +252,15 @@ class ItineraryController extends Controller
                 $day['spots'] = array_map(function ($spot) {
                     return is_string($spot) ? ['name' => $spot, 'hours' => 2, 'price_per_hour' => 0] : $spot;
                 }, $day['spots']);
+            }
+
+            // Normalize tickets: ensure it's an array of arrays
+            if (!isset($day['tickets']) || !is_array($day['tickets'])) {
+                $day['tickets'] = [];
+            } else {
+                $day['tickets'] = array_map(function ($ticket) {
+                    return is_string($ticket) ? ['name' => $ticket, 'price' => 0] : $ticket;
+                }, $day['tickets']);
             }
 
             return $day;

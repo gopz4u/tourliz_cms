@@ -90,33 +90,76 @@
                 @php
                     $allPlaces = collect();
                     if(isset($touristSpots)) {
-                        foreach($touristSpots as $spot) $allPlaces->push(['name' => $spot->name, 'id' => $spot->id, 'type' => 'spot', 'supplier_id' => null, 'supplier_name' => null]);
+                        foreach($touristSpots as $spot) {
+                            $sName = $spot->supplier ? $spot->supplier->name : ($supplierMap[$spot->supplier_id] ?? null);
+                            $dName = $spot->destination ? $spot->destination->name : null;
+                            $allPlaces->push([
+                                'name' => $spot->name,
+                                'id' => $spot->id,
+                                'type' => 'spot',
+                                'supplier_id' => $spot->supplier_id,
+                                'supplier_name' => $sName,
+                                'destination' => $dName
+                            ]);
+                        }
                     }
                     if(isset($coreServices)) {
                         foreach($coreServices as $service) {
                             $sName = $supplierMap[$service->supplier_id] ?? null;
-                            $allPlaces->push(['name' => $service->name, 'id' => $service->id, 'type' => 'service', 'supplier_id' => $service->supplier_id, 'supplier_name' => $sName]);
+                            $allPlaces->push([
+                                'name' => $service->name,
+                                'id' => $service->id,
+                                'type' => 'service',
+                                'supplier_id' => $service->supplier_id,
+                                'supplier_name' => $sName,
+                                'destination' => null
+                            ]);
                         }
                     }
-                    // Sort alphabetically
-                    $allPlaces = $allPlaces->sortBy('name', SORT_NATURAL | SORT_FLAG_CASE)->unique('name');
+                    // Sort alphabetically and reset array keys
+                    $allPlaces = $allPlaces->sortBy('name', SORT_NATURAL | SORT_FLAG_CASE)->unique('name')->values();
                 @endphp
 
                 @if($allPlaces->count())
                 <hr class="my-3 text-muted">
                 <h6 class="fw-bold mb-2" style="color:var(--info);">
-                    <i class="bi bi-geo-alt me-1"></i>Core Services & Tourist Spots
+                    <i class="bi bi-geo-alt me-1"></i>Tourist Spots & Places
                 </h6>
                 <div class="d-flex flex-wrap gap-1" style="max-height: 200px; overflow-y: auto; align-content: flex-start;">
                     @foreach($allPlaces as $spot)
-                        @php $sTitle = $spot['supplier_name'] ? 'Vendor: '.$spot['supplier_name'] : ''; @endphp
-                        <span class="vendor-chip places" data-type="places" data-name="{{ $spot['name'] }}" data-item-id="{{ $spot['id'] }}" data-item-type="{{ $spot['type'] }}" data-supplier-id="{{ $spot['supplier_id'] ?? '' }}" data-supplier-name="{{ $spot['supplier_name'] ?? '' }}" onclick="assignVendorToActiveDay(this)" style="background:var(--info-bg-subtle, #e0f8f8); color:#0c7e7e; border-color:#b4e5e5;" title="{{ $sTitle }}">
+                        @php 
+                            $sTitle = ($spot['destination'] ? $spot['destination'] . ' | ' : '') . ($spot['supplier_name'] ? 'Vendor: '.$spot['supplier_name'] : ''); 
+                        @endphp
+                        <span class="vendor-chip places" data-type="places" data-name="{{ $spot['name'] }}" data-item-id="{{ $spot['id'] }}" data-item-type="{{ $spot['type'] }}" data-supplier-id="{{ $spot['supplier_id'] ?? '' }}" data-supplier-name="{{ $spot['supplier_name'] ?? '' }}" onclick="assignVendorToActiveDay(this)" style="background:var(--info-bg-subtle, #e0f8f8); color:#0c7e7e; border-color:#b4e5e5; cursor:pointer;" title="{{ $sTitle }}">
                             <i class="bi bi-pin-map"></i> {{ $spot['name'] }}
+                            @if(!empty($spot['destination'])) <small class="opacity-75">({{ $spot['destination'] }})</small> @endif
                         </span>
                     @endforeach
                 </div>
                 @endif
                 
+                {{-- Operations Entry Tickets --}}
+                @if(isset($entryTickets) && $entryTickets->count())
+                <hr class="my-3 text-muted">
+                <h6 class="fw-bold mb-2 text-danger">
+                    <i class="bi bi-ticket-perforated me-1"></i>Operations Entry Tickets
+                </h6>
+                <div class="d-flex flex-wrap gap-1" style="max-height: 200px; overflow-y: auto; align-content: flex-start;">
+                    @foreach($entryTickets as $et)
+                        @php
+                            $etSupplier = $et->supplier ? $et->supplier->name : ($supplierMap[$et->supplier_id] ?? null);
+                            $etDest = $et->destination ? $et->destination->name : null;
+                            $etPrice = (float) ($et->adult_price ?? 0);
+                            $etTitle = ($etDest ? $etDest . ' | ' : '') . ($etSupplier ? 'Supplier: ' . $etSupplier : '');
+                        @endphp
+                        <span class="vendor-chip ticket" data-type="ticket" data-name="{{ $et->attraction_name }}" data-supplier-id="{{ $et->supplier_id ?? '' }}" data-supplier-name="{{ $etSupplier ?? '' }}" data-total="{{ $etPrice }}" onclick="assignVendorToActiveDay(this)" style="background: #fee2e2; color: #b91c1c; border: 1px solid #fecaca; cursor:pointer;" title="{{ $etTitle }}">
+                            <i class="bi bi-ticket-perforated"></i> {{ $et->attraction_name }}
+                            <small class="fw-bold opacity-75">({{ $package->currency ?? 'MYR' }} {{ number_format($etPrice, 2) }})</small>
+                        </span>
+                    @endforeach
+                </div>
+                @endif
+
                 <hr class="my-3 text-muted">
 
                 @if($transports->count())
@@ -135,11 +178,11 @@
 
                 @if($tickets->count())
                 <div class="mb-3">
-                    <div class="section-header"><span><i class="bi bi-ticket-perforated me-1"></i>Entry Tickets</span></div>
+                    <div class="section-header"><span><i class="bi bi-ticket-perforated me-1"></i>Package Tickets</span></div>
                     <div class="d-flex flex-wrap gap-1">
                         @foreach($tickets as $i => $a)
                             @php $sName = $supplierMap[$a['supplier_id'] ?? ''] ?? null; @endphp
-                            <span class="vendor-chip activity" data-type="ticket" data-index="{{ $i }}" data-name="{{ $a['name'] }}" data-supplier-id="{{ $a['supplier_id'] ?? '' }}" data-supplier-name="{{ $sName ?? '' }}" data-total="{{ $a['value'] ?? ($a['total'] ?? 0) }}" onclick="assignVendorToActiveDay(this)" style="background: #fee2e2; color: #b91c1c; border: 1px solid #fecaca;" title="{{ $sName ? 'Vendor: '.$sName : '' }}">
+                            <span class="vendor-chip ticket" data-type="ticket" data-index="{{ $i }}" data-name="{{ $a['name'] }}" data-supplier-id="{{ $a['supplier_id'] ?? '' }}" data-supplier-name="{{ $sName ?? '' }}" data-total="{{ $a['value'] ?? ($a['total'] ?? 0) }}" onclick="assignVendorToActiveDay(this)" style="background: #fee2e2; color: #b91c1c; border: 1px solid #fecaca; cursor:pointer;" title="{{ $sName ? 'Vendor: '.$sName : '' }}">
                                 <i class="bi bi-ticket-perforated"></i> {{ $a['name'] }}
                             </span>
                         @endforeach
@@ -230,7 +273,24 @@
 // ── Data ─────────────────────────────────────────────────────────────
 let itinerary = @json($package->itinerary ?? []);
 const currency = "{{ $package->currency ?? 'MYR' }}";
-const costComponents = @json($package->addon_amenities ?? []);
+const rawEntryTickets = @json($entryTickets ?? []);
+const rawTouristSpots = @json($allPlaces ?? []);
+const opsEntryTickets = Array.isArray(rawEntryTickets) ? rawEntryTickets : Object.values(rawEntryTickets || {});
+const opsTouristSpots = Array.isArray(rawTouristSpots) ? rawTouristSpots : Object.values(rawTouristSpots || {});
+
+const opsTicketsOptions = (opsEntryTickets || []).map((t, idx) => {
+    const sName = t.supplier ? t.supplier.name : '';
+    const pr = parseFloat(t.adult_price || 0);
+    const label = `${t.attraction_name} (${currency} ${pr.toFixed(2)})${sName ? ' - ' + sName : ''}`;
+    return `<option value="${idx}">${escHtml(label)}</option>`;
+}).join('');
+
+const opsSpotsOptions = (opsTouristSpots || []).map((s, idx) => {
+    const sName = s.supplier_name || '';
+    const dName = s.destination || '';
+    const label = `${s.name}${dName ? ' (' + dName + ')' : ''}${sName ? ' - ' + sName : ''}`;
+    return `<option value="${idx}">${escHtml(label)}</option>`;
+}).join('');
 
 // ── Active day tracking (for vendor assignment) ───────────────────────
 let activeDayIndex = null;
@@ -247,14 +307,13 @@ function resolveVendorName(val) {
     if (!val) return null;
     if (typeof val === 'object' && val.name) return val.name;
     if (typeof val === 'string') {
-        // Try to match "hotel_18" or just a plain name
         const match = val.match(/^(\w+)_(\d+)$/);
         if (match) {
             const idx = parseInt(match[2]);
             const comp = costComponents.find((_, i) => i === idx);
             return comp ? comp.name : val;
         }
-        return val; // plain custom name
+        return val;
     }
     return null;
 }
@@ -293,19 +352,18 @@ function createDayCard(day, index) {
     };
 
     // Resolve vendor info
-    const hotelName = resolveVendorName(day.hotel);
+    const hotelObj = (typeof day.hotel === 'object' && day.hotel !== null) ? day.hotel : { name: resolveVendorName(day.hotel) };
+    const hotelName = hotelObj.name || resolveVendorName(day.hotel) || '';
+    const hotelSupplier = hotelObj.supplier_name || '';
     const transportItems = Array.isArray(day.transport) ? day.transport : (day.transport ? [{ mode: resolveVendorName(day.transport) }] : []);
     const activities = Array.isArray(day.activities) ? day.activities : [];
     const places = Array.isArray(day.places) ? day.places : [];
+    const tickets = Array.isArray(day.tickets) ? day.tickets : [];
     const meals = day.meals || {};
     const mealsIncluded = Array.isArray(meals)
         ? meals
         : Object.entries(meals).filter(([k, v]) => v && v !== 'Not included').map(([k]) => k.charAt(0).toUpperCase() + k.slice(1));
 
-    // Resolve vendor info
-    const hotelObj = typeof day.hotel === 'object' ? day.hotel : { name: day.hotel };
-    const hotelName = hotelObj.name || '';
-    const hotelSupplier = hotelObj.supplier_name || '';
     // Build transport entries HTML
     let transportRows = '';
     transportItems.forEach((t, ti) => {
@@ -354,6 +412,27 @@ function createDayCard(day, index) {
                 </button>
             </div>
             ${placeSupplier ? `<small class="text-muted ms-1" style="font-size: 0.65rem;"><i class="bi bi-shop"></i> ${placeSupplier}</small>` : ''}
+        </div>`;
+    });
+
+    // Build ticket entries HTML
+    let ticketRows = '';
+    tickets.forEach((tck, ti) => {
+        const ticketName = typeof tck === 'string' ? tck : (tck.name || tck.attraction_name || '');
+        const ticketPrice = typeof tck === 'object' && tck.price ? parseFloat(tck.price) : 0;
+        const ticketSupplier = typeof tck === 'object' ? (tck.supplier_name || '') : '';
+        const priceBadge = ticketPrice > 0 ? `<span class="badge bg-danger text-white ms-1">${currency} ${ticketPrice.toFixed(2)}</span>` : '';
+        ticketRows += `
+        <div class="d-flex flex-column mb-1 ticket-entry" data-ti="${ti}">
+            <div class="d-flex align-items-center gap-2">
+                <span class="badge bg-danger-subtle text-danger flex-grow-1 text-start" style="border-radius:6px; font-size:0.75rem; padding:4px 8px;">
+                    <i class="bi bi-ticket-perforated"></i> ${ticketName} ${priceBadge}
+                </span>
+                <button class="btn btn-sm btn-link text-danger p-0" onclick="removeTicket(${index}, ${ti})" title="Remove">
+                    <i class="bi bi-x" style="font-size:0.75rem;"></i>
+                </button>
+            </div>
+            ${ticketSupplier ? `<small class="text-muted ms-1" style="font-size: 0.65rem;"><i class="bi bi-shop"></i> ${ticketSupplier}</small>` : ''}
         </div>`;
     });
 
@@ -443,17 +522,37 @@ function createDayCard(day, index) {
                         </div>
                     </div>
 
-                    {{-- Places --}}
+                    {{-- Places & Tourist Spots --}}
                     <div class="col-md-6">
                         <div class="section-header">
-                            <span><i class="bi bi-pin-map me-1 text-info"></i>Places</span>
-                            <button class="btn btn-link btn-sm p-0 text-muted" onclick="toggleCustomInput(${index}, 'places')" title="Add custom place">
-                                <i class="bi bi-plus-circle" style="font-size:0.8rem;"></i>
-                            </button>
+                            <span><i class="bi bi-pin-map me-1 text-info"></i>Tourist Spots & Places</span>
+                            <div class="d-flex gap-1">
+                                <button class="btn btn-link btn-sm p-0 text-info fw-bold" onclick="toggleCustomInput(${index}, 'place-ops')" title="Select Operations Spot" style="font-size:0.7rem; text-decoration:none;">
+                                    <i class="bi bi-database-add me-1"></i>+ Operations
+                                </button>
+                                <span class="text-muted">|</span>
+                                <button class="btn btn-link btn-sm p-0 text-muted" onclick="toggleCustomInput(${index}, 'places')" title="Add custom place">
+                                    <i class="bi bi-plus-circle" style="font-size:0.8rem;"></i> Custom
+                                </button>
+                            </div>
                         </div>
                         <div id="place-list-${index}">
                             ${placeRows || '<div class="text-muted small py-1 ps-1"><i class="bi bi-dash"></i> No places assigned</div>'}
                         </div>
+                        {{-- Dropdown for Operations Tourist Spot --}}
+                        <div id="place-ops-custom-${index}" class="mt-1 custom-field">
+                            <div class="input-group input-group-sm">
+                                <span class="input-group-text bg-info-subtle border-info text-info"><i class="bi bi-geo-alt"></i></span>
+                                <select class="form-select border-info" id="place-ops-select-${index}">
+                                    <option value="">-- Choose Operations Spot --</option>
+                                    ${opsSpotsOptions}
+                                </select>
+                                <button class="btn btn-info text-white" type="button" onclick="assignOpsSpotToDay(${index})">
+                                    Add
+                                </button>
+                            </div>
+                        </div>
+                        {{-- Custom Place input --}}
                         <div id="places-custom-${index}" class="mt-1 custom-field">
                             <div class="input-group input-group-sm">
                                 <span class="input-group-text bg-info-subtle border-info text-info"><i class="bi bi-geo-alt"></i></span>
@@ -466,8 +565,51 @@ function createDayCard(day, index) {
                         </div>
                     </div>
 
-                    {{-- Activities --}}
+                    {{-- Entry Tickets --}}
                     <div class="col-md-6">
+                        <div class="section-header">
+                            <span><i class="bi bi-ticket-perforated me-1 text-danger"></i>Entry Tickets</span>
+                            <div class="d-flex gap-1">
+                                <button class="btn btn-link btn-sm p-0 text-danger fw-bold" onclick="toggleCustomInput(${index}, 'ticket-ops')" title="Select Operations Ticket" style="font-size:0.7rem; text-decoration:none;">
+                                    <i class="bi bi-database-add me-1"></i>+ Operations
+                                </button>
+                                <span class="text-muted">|</span>
+                                <button class="btn btn-link btn-sm p-0 text-muted" onclick="toggleCustomInput(${index}, 'ticket')" title="Add custom ticket">
+                                    <i class="bi bi-plus-circle" style="font-size:0.8rem;"></i> Custom
+                                </button>
+                            </div>
+                        </div>
+                        <div id="ticket-list-${index}">
+                            ${ticketRows || '<div class="text-muted small py-1 ps-1"><i class="bi bi-dash"></i> No tickets assigned</div>'}
+                        </div>
+                        {{-- Dropdown for Operations Ticket --}}
+                        <div id="ticket-ops-custom-${index}" class="mt-1 custom-field">
+                            <div class="input-group input-group-sm">
+                                <span class="input-group-text bg-danger-subtle text-danger border-danger"><i class="bi bi-ticket-perforated"></i></span>
+                                <select class="form-select border-danger" id="ticket-ops-select-${index}">
+                                    <option value="">-- Choose Operations Ticket --</option>
+                                    ${opsTicketsOptions}
+                                </select>
+                                <button class="btn btn-danger" type="button" onclick="assignOpsTicketToDay(${index})">
+                                    Add
+                                </button>
+                            </div>
+                        </div>
+                        {{-- Custom Ticket inputs --}}
+                        <div id="ticket-custom-${index}" class="mt-1 custom-field">
+                            <div class="input-group input-group-sm">
+                                <span class="input-group-text"><i class="bi bi-ticket-detailed"></i></span>
+                                <input type="text" id="custom-ticket-name-${index}" class="form-control" placeholder="Ticket Name (e.g. Cable Car)">
+                                <input type="number" step="0.01" id="custom-ticket-price-${index}" class="form-control" style="max-width:85px;" placeholder="Price">
+                                <button class="btn btn-outline-danger" type="button" onclick="submitCustomTicket(${index})">
+                                    Add
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    {{-- Activities --}}
+                    <div class="col-md-12">
                         <div class="section-header">
                             <span><i class="bi bi-lightning me-1 text-success"></i>Activities</span>
                             <button class="btn btn-link btn-sm p-0 text-muted" onclick="toggleCustomInput(${index}, 'activities')" title="Add custom activity">
@@ -538,7 +680,7 @@ window.toggleCustomInput = function(index, type) {
     if (!el) return;
     const isHidden = el.style.display === 'none' || !el.style.display;
     el.style.display = isHidden ? 'block' : 'none';
-    if (isHidden) el.querySelector('input')?.focus();
+    if (isHidden) el.querySelector('input, select')?.focus();
 };
 window.toggleMealEditor = function(index) {
     const el = document.getElementById(`meal-editor-${index}`);
@@ -627,12 +769,30 @@ function refreshActivityList(index) {
     }).join('');
 }
 
-// ── Places ────────────────────────────────────────────────────────
+// ── Places / Tourist Spots ────────────────────────────────────────────
 window.addCustomPlace = function(index, name) {
     if (!name.trim()) return;
     if (!Array.isArray(itinerary[index].places)) itinerary[index].places = [];
     itinerary[index].places.push(name.trim());
     refreshPlaceList(index);
+};
+window.assignOpsSpotToDay = function(index) {
+    const select = document.getElementById(`place-ops-select-${index}`);
+    if (!select || select.value === '') return;
+    const spot = opsTouristSpots[parseInt(select.value)];
+    if (!spot) return;
+    if (!Array.isArray(itinerary[index].places)) itinerary[index].places = [];
+    itinerary[index].places.push({
+        spot_id: spot.id,
+        tourist_spot_id: spot.id,
+        name: spot.name,
+        supplier_id: spot.supplier_id || null,
+        supplier_name: spot.supplier_name || null,
+        destination: spot.destination || null
+    });
+    refreshPlaceList(index);
+    toggleCustomInput(index, 'place-ops');
+    select.value = '';
 };
 window.removePlace = function(index, pi) {
     (itinerary[index].places || []).splice(pi, 1);
@@ -650,6 +810,75 @@ function refreshPlaceList(index) {
             <div class="d-flex align-items-center gap-2">
                 <span class="badge bg-info-subtle text-info flex-grow-1 text-start" style="border-radius:6px; font-size:0.75rem; padding:4px 8px;"><i class="bi bi-pin-map"></i> ${name}</span>
                 <button class="btn btn-sm btn-link text-danger p-0" onclick="removePlace(${index}, ${pi})"><i class="bi bi-x"></i></button>
+            </div>
+            ${supplier ? `<small class="text-muted ms-1" style="font-size: 0.65rem;"><i class="bi bi-shop"></i> ${supplier}</small>` : ''}
+        </div>`;
+    }).join('');
+}
+
+// ── Entry Tickets ─────────────────────────────────────────────────────
+window.submitCustomTicket = function(index) {
+    const nameEl = document.getElementById(`custom-ticket-name-${index}`);
+    const priceEl = document.getElementById(`custom-ticket-price-${index}`);
+    const name = nameEl ? nameEl.value.trim() : '';
+    const price = priceEl ? parseFloat(priceEl.value || 0) : 0;
+    if (!name) return;
+    if (!Array.isArray(itinerary[index].tickets)) itinerary[index].tickets = [];
+    itinerary[index].tickets.push({
+        name: name,
+        price: price,
+        currency: currency
+    });
+    refreshTicketList(index);
+    if (nameEl) nameEl.value = '';
+    if (priceEl) priceEl.value = '';
+    toggleCustomInput(index, 'ticket');
+};
+window.assignOpsTicketToDay = function(index) {
+    const select = document.getElementById(`ticket-ops-select-${index}`);
+    if (!select || select.value === '') return;
+    const ticket = opsEntryTickets[parseInt(select.value)];
+    if (!ticket) return;
+    if (!Array.isArray(itinerary[index].tickets)) itinerary[index].tickets = [];
+    itinerary[index].tickets.push({
+        ticket_id: ticket.id,
+        entry_ticket_id: ticket.id,
+        name: ticket.attraction_name,
+        price: parseFloat(ticket.adult_price || 0),
+        currency: currency,
+        supplier_id: ticket.supplier_id || null,
+        supplier_name: ticket.supplier ? ticket.supplier.name : null
+    });
+    refreshTicketList(index);
+    toggleCustomInput(index, 'ticket-ops');
+    select.value = '';
+};
+window.removeTicket = function(index, ti) {
+    (itinerary[index].tickets || []).splice(ti, 1);
+    refreshTicketList(index);
+};
+function refreshTicketList(index) {
+    const list = document.getElementById(`ticket-list-${index}`);
+    if (!list) return;
+    const items = itinerary[index].tickets || [];
+    if (!items.length) {
+        list.innerHTML = '<div class="text-muted small py-1 ps-1"><i class="bi bi-dash"></i> No tickets assigned</div>';
+        return;
+    }
+    list.innerHTML = items.map((tck, ti) => {
+        const name = typeof tck === 'string' ? tck : (tck.name || tck.attraction_name || '');
+        const price = typeof tck === 'object' && tck.price ? parseFloat(tck.price) : 0;
+        const supplier = typeof tck === 'object' ? (tck.supplier_name || '') : '';
+        const priceBadge = price > 0 ? `<span class="badge bg-danger text-white ms-1">${currency} ${price.toFixed(2)}</span>` : '';
+        return `
+        <div class="d-flex flex-column mb-1 ticket-entry" data-ti="${ti}">
+            <div class="d-flex align-items-center gap-2">
+                <span class="badge bg-danger-subtle text-danger flex-grow-1 text-start" style="border-radius:6px; font-size:0.75rem; padding:4px 8px;">
+                    <i class="bi bi-ticket-perforated"></i> ${name} ${priceBadge}
+                </span>
+                <button class="btn btn-sm btn-link text-danger p-0" onclick="removeTicket(${index}, ${ti})" title="Remove">
+                    <i class="bi bi-x" style="font-size:0.75rem;"></i>
+                </button>
             </div>
             ${supplier ? `<small class="text-muted ms-1" style="font-size: 0.65rem;"><i class="bi bi-shop"></i> ${supplier}</small>` : ''}
         </div>`;
@@ -687,10 +916,14 @@ window.assignVendorToActiveDay = function(chipEl) {
         if (!Array.isArray(itinerary[index].transport)) itinerary[index].transport = [];
         itinerary[index].transport.push({ type: 'Component', mode: name, from: '', to: '', price: total, currency, supplier_id: supplierId, supplier_name: supplierName });
         refreshTransportList(index);
-    } else if (type === 'places') {
+    } else if (type === 'places' || type === 'spot') {
         if (!Array.isArray(itinerary[index].places)) itinerary[index].places = [];
         itinerary[index].places.push({ name: name, supplier_id: supplierId, supplier_name: supplierName });
         refreshPlaceList(index);
+    } else if (type === 'ticket' || type === 'tickets') {
+        if (!Array.isArray(itinerary[index].tickets)) itinerary[index].tickets = [];
+        itinerary[index].tickets.push({ name: name, price: total, currency: currency, supplier_id: supplierId, supplier_name: supplierName });
+        refreshTicketList(index);
     } else {
         if (!Array.isArray(itinerary[index].activities)) itinerary[index].activities = [];
         itinerary[index].activities.push({ name: name, supplier_id: supplierId, supplier_name: supplierName });
@@ -723,10 +956,11 @@ window.addDay = function() {
         title: `Day ${nextNum}`,
         hotel: { name: '', type: '', price_per_night: 0, currency },
         transport: [],
+        tickets: [],
+        places: [],
         activities: [],
         meals: { breakfast: 'Not included', lunch: 'Not included', dinner: 'Not included' },
         notes: '',
-        places: [],
         destinations: [],
     });
     const card = createDayCard(itinerary[itinerary.length - 1], itinerary.length - 1);

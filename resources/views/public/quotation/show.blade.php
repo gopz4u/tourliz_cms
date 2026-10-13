@@ -90,9 +90,32 @@
                                         <span class="badge bg-primary me-2">Day {{ $day->day_number }}</span>
                                         <div class="timeline-title mb-0">{{ $day->title }}</div>
                                     </div>
-                                    <p class="text-muted mt-2" style="line-height: 1.7;">{!! nl2br(e($day->description)) !!}</p>
+                                    <p class="text-muted mt-2 mb-2" style="line-height: 1.7;">{!! nl2br(e($day->description)) !!}</p>
+                                    @if($day->items && $day->items->count() > 0)
+                                        <div class="d-flex flex-wrap gap-2 mt-2 mb-2">
+                                            @foreach($day->items as $item)
+                                                @php
+                                                    $bBadge = 'bg-secondary';
+                                                    $bIcon = 'bi-box';
+                                                    switch($item->item_type) {
+                                                        case 'hotel': $bBadge = 'bg-primary'; $bIcon = 'bi-building'; break;
+                                                        case 'transport': $bBadge = 'bg-secondary'; $bIcon = 'bi-car-front'; break;
+                                                        case 'ticket': $bBadge = 'bg-danger'; $bIcon = 'bi-ticket-perforated'; break;
+                                                        case 'spot': $bBadge = 'bg-info text-white'; $bIcon = 'bi-geo-alt'; break;
+                                                        case 'activity': $bBadge = 'bg-warning text-dark'; $bIcon = 'bi-lightning'; break;
+                                                        case 'meal': $bBadge = 'bg-success'; $bIcon = 'bi-cup-hot'; break;
+                                                    }
+                                                @endphp
+                                                <span class="badge {{ $bBadge }} p-2 fw-normal d-inline-flex align-items-center">
+                                                    <i class="bi {{ $bIcon }} me-1"></i>
+                                                    <strong>{{ $item->title }}</strong>
+                                                    @if($item->room_type) &nbsp;({{ $item->room_type }}) @endif
+                                                </span>
+                                            @endforeach
+                                        </div>
+                                    @endif
                                     @if($day->overnight_location)
-                                        <div class="text-primary small mt-2"><i class="bi bi-moon-stars me-1"></i> Overnight: {{ $day->overnight_location }}</div>
+                                        <div class="text-primary small mt-1"><i class="bi bi-moon-stars me-1"></i> Overnight: {{ $day->overnight_location }}</div>
                                     @endif
                                 </div>
                             @endforeach
@@ -108,7 +131,27 @@
                 <!-- Price Card -->
                 <div class="price-box mb-4">
                     <div class="text-uppercase text-muted fw-bold tracking-wider mb-2">Total Package Price</div>
-                    <div class="total-price">RM {{ number_format($itinerary->b2cDetail->selling_price ?? 0, 2) }}</div>
+                    <div class="total-price" id="quotationPriceDisplay">
+                        {{ $itinerary->currency_symbol }} {{ number_format($itinerary->b2cDetail->selling_price ?? 0, 2) }}
+                    </div>
+
+                    <!-- Multi-Currency Quick Switcher -->
+                    <div class="d-flex justify-content-center gap-1 my-3">
+                        @foreach($itinerary->converted_prices as $c)
+                            <button type="button" class="btn btn-sm {{ $c['code'] === ($itinerary->active_currency) ? 'btn-success fw-bold text-white' : 'btn-outline-success' }} quote-cur-btn"
+                                data-code="{{ $c['code'] }}" data-symbol="{{ $c['symbol'] }}" data-amount="{{ number_format($c['amount'], 2) }}">
+                                {{ $c['code'] }} ({{ $c['symbol'] }})
+                            </button>
+                        @endforeach
+                    </div>
+
+                    <div class="p-2 rounded bg-white border small mb-3 text-muted">
+                        <div class="d-flex justify-content-around flex-wrap gap-2">
+                            @foreach($itinerary->converted_prices as $c)
+                                <span><strong>{{ $c['code'] }}:</strong> {{ $c['symbol'] }} {{ number_format($c['amount'], 2) }}</span>
+                            @endforeach
+                        </div>
+                    </div>
                     
                     @if($itinerary->b2cDetail->travel_date_start)
                     <div class="d-flex justify-content-between align-items-center border-top pt-3 mt-3">
@@ -166,5 +209,24 @@
         <p class="small text-muted">This is an automated quotation. Prices and availability are subject to change until confirmed.</p>
     </div>
 
+    <script>
+        document.querySelectorAll('.quote-cur-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                document.querySelectorAll('.quote-cur-btn').forEach(b => {
+                    b.classList.remove('btn-success', 'text-white', 'fw-bold');
+                    b.classList.add('btn-outline-success');
+                });
+                this.classList.remove('btn-outline-success');
+                this.classList.add('btn-success', 'text-white', 'fw-bold');
+
+                const symbol = this.getAttribute('data-symbol');
+                const amount = this.getAttribute('data-amount');
+                const priceEl = document.getElementById('quotationPriceDisplay');
+                if (priceEl) {
+                    priceEl.textContent = `${symbol} ${amount}`;
+                }
+            });
+        });
+    </script>
 </body>
 </html>

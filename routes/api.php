@@ -157,6 +157,10 @@ Route::prefix('inventory')->group(function () {
     Route::get('tickets', [\App\Http\Controllers\Api\InventoryApiController::class, 'tickets']);
     Route::get('meals', [\App\Http\Controllers\Api\InventoryApiController::class, 'meals']);
     Route::get('spots', [\App\Http\Controllers\Api\InventoryApiController::class, 'spots']);
+    Route::get('group-packages', [\App\Http\Controllers\Api\InventoryApiController::class, 'groupPackages']);
+    Route::get('group-packages/{id}', [\App\Http\Controllers\Api\InventoryApiController::class, 'getGroupPackage']);
+    Route::get('fixed-itineraries', [\App\Http\Controllers\Api\InventoryApiController::class, 'fixedItineraries']);
+    Route::get('fixed-itineraries/{id}', [\App\Http\Controllers\Api\InventoryApiController::class, 'getFixedItinerary']);
     Route::get('suppliers/{id}/assets', [\App\Http\Controllers\Api\InventoryApiController::class, 'supplierAssets']);
 });
 

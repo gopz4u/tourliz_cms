@@ -87,7 +87,15 @@ class GroupPackage extends Model
      */
     public function destination()
     {
-        return $this->belongsTo(Destination::class, 'destination_id');
+        return $this->belongsTo(Destination::class, 'destination_id')->withTrashed();
+    }
+
+    /**
+     * Get the supplier that owns the group package.
+     */
+    public function supplier()
+    {
+        return $this->belongsTo(Supplier::class, 'supplier_id');
     }
 
     public function getCountriesAttribute()

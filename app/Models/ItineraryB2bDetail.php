@@ -14,6 +14,7 @@ class ItineraryB2bDetail extends Model
     protected $fillable = [
         'itinerary_id',
         'agency_id',
+        'currency',
         'net_rate',
         'agent_rate',
         'markup_percentage',

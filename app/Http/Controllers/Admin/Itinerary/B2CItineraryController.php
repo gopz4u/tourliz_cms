@@ -36,7 +36,8 @@ class B2CItineraryController extends Controller
     public function create()
     {
         $destinations = Destination::orderBy('name')->get();
-        return view('admin.itineraries.b2c.create', compact('destinations'));
+        $countries = \App\Models\Country::orderBy('name')->get();
+        return view('admin.itineraries.b2c.create', compact('destinations', 'countries'));
     }
 
     public function store(B2CItineraryRequest $request)
@@ -68,8 +69,9 @@ class B2CItineraryController extends Controller
             ->findOrFail($id);
 
         $destinations = Destination::orderBy('name')->get();
+        $countries = \App\Models\Country::orderBy('name')->get();
 
-        return view('admin.itineraries.b2c.edit', compact('itinerary', 'destinations'));
+        return view('admin.itineraries.b2c.edit', compact('itinerary', 'destinations', 'countries'));
     }
 
     public function update(B2CItineraryRequest $request, $id)

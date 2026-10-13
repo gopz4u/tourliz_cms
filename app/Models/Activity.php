@@ -14,7 +14,7 @@ class Activity extends Model
 
     public function destination()
     {
-        return $this->belongsTo(Destination::class, 'destination_id');
+        return $this->belongsTo(Destination::class, 'destination_id')->withTrashed();
     }
 
     public function supplier()

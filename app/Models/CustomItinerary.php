@@ -155,4 +155,40 @@ class CustomItinerary extends Model
 
         return $this;
     }
+
+    public function getActiveCurrencyAttribute(): string
+    {
+        return $this->currency ?: 'MYR';
+    }
+
+    public function getCurrencySymbolAttribute(): string
+    {
+        $symbols = [
+            'MYR' => 'RM',
+            'INR' => '₹',
+            'USD' => '$',
+            'SGD' => 'S$',
+            'AED' => 'AED',
+            'EUR' => '€',
+            'GBP' => '£',
+        ];
+        return $symbols[$this->currency ?: 'MYR'] ?? ($this->currency ?: 'MYR');
+    }
+
+    public function getConvertedPricesAttribute(): array
+    {
+        $baseCurrency = $this->currency ?: 'MYR';
+        $basePrice = (float) ($this->total_price ?? 0);
+        $currencies = ['MYR', 'USD', 'INR'];
+        
+        $converted = [];
+        foreach ($currencies as $cur) {
+            $converted[$cur] = [
+                'code' => $cur,
+                'symbol' => $cur === 'INR' ? '₹' : ($cur === 'USD' ? '$' : 'RM'),
+                'amount' => \App\Helpers\CurrencyHelper::convert($basePrice, $baseCurrency, $cur),
+            ];
+        }
+        return $converted;
+    }
 }

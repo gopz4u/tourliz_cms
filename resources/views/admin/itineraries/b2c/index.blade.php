@@ -87,8 +87,21 @@
                                     {{ $itinerary->duration_days }}D / {{ $itinerary->duration_nights }}N
                                 </span>
                             </td>
-                            <td class="fw-bold text-success">
-                                ₹{{ number_format($itinerary->b2cDetail->selling_price ?? 0, 2) }}
+                            <td>
+                                <div class="fw-bold text-success">
+                                    {{ $itinerary->currency_symbol }} {{ number_format($itinerary->b2cDetail->selling_price ?? 0, 2) }}
+                                    <span class="badge bg-light text-secondary border ms-1" style="font-size: 10px;">{{ $itinerary->currency ?: 'MYR' }}</span>
+                                </div>
+                                @if(!empty($itinerary->converted_prices))
+                                    <div class="small text-muted" style="font-size: 11px;">
+                                        @php
+                                            $alts = array_filter($itinerary->converted_prices, fn($cp) => $cp['code'] !== ($itinerary->currency ?: 'MYR'));
+                                        @endphp
+                                        @foreach($alts as $alt)
+                                            <span>≈ {{ $alt['symbol'] }}{{ number_format($alt['amount'], 0) }}</span>@if(!$loop->last) &bull; @endif
+                                        @endforeach
+                                    </div>
+                                @endif
                             </td>
                             <td>
                                 @if($itinerary->status === 'published')
@@ -109,10 +122,10 @@
                             <td class="small text-muted">{{ $itinerary->updated_at->format('M d, Y') }}</td>
                             <td class="text-end">
                                 <div class="btn-group btn-group-sm">
-                                    <a href="{{ route('itineraries.b2c.pdf', $itinerary->id) }}" class="btn btn-outline-danger" title="Generate PDF" target="_blank">
+                                    <a href="{{ route('admin.itineraries.b2c.pdf', $itinerary->id) }}" class="btn btn-outline-danger" title="Generate PDF" target="_blank">
                                         <i class="bi bi-file-earmark-pdf"></i>
                                     </a>
-                                    <a href="{{ route('itineraries.b2c.whatsapp', $itinerary->id) }}" class="btn btn-outline-success" title="Share via WhatsApp" target="_blank">
+                                    <a href="{{ route('admin.itineraries.b2c.whatsapp', $itinerary->id) }}" class="btn btn-outline-success" title="Share via WhatsApp" target="_blank">
                                         <i class="bi bi-whatsapp"></i>
                                     </a>
                                     <a href="{{ route('admin.itineraries.b2c.edit', $itinerary->id) }}" class="btn btn-outline-primary" title="Edit">

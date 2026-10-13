@@ -13,6 +13,26 @@
                 </p>
             </div>
             <div class="d-flex gap-2">
+                <div class="dropdown">
+                    <button type="button" class="btn btn-outline-primary dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
+                        <i class="bi bi-cloud-arrow-down me-1"></i> Import Template
+                    </button>
+                    <ul class="dropdown-menu shadow border-0">
+                        <li>
+                            <a class="dropdown-item py-2" href="javascript:void(0)" onclick="openFixedItineraryImportModal()">
+                                <i class="bi bi-pin-map text-primary me-2"></i><strong>Fixed Itinerary Master</strong>
+                                <div class="small text-muted ps-4">Load standardized pre-packaged tour days</div>
+                            </a>
+                        </li>
+                        <li><hr class="dropdown-divider my-1"></li>
+                        <li>
+                            <a class="dropdown-item py-2" href="javascript:void(0)" onclick="openGroupPackageImportModal()">
+                                <i class="bi bi-box-seam text-info me-2"></i><strong>Operations Group Tour Master</strong>
+                                <div class="small text-muted ps-4">Load operations group package</div>
+                            </a>
+                        </li>
+                    </ul>
+                </div>
                 <button class="btn btn-outline-dark" onclick="openVendorShareModal()">
                     <i class="bi bi-people me-1"></i> Vendor
                 </button>
@@ -71,6 +91,42 @@
                         <button class="btn btn-success" onclick="shareCustomerQuote()">
                             <i class="bi bi-send me-1"></i> Share as Text
                         </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Group Package Import Modal -->
+    <div class="modal fade" id="groupPackageImportModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header bg-light">
+                    <h5 class="modal-title"><i class="bi bi-box-seam text-primary me-2"></i>Import from Operations Group Tour Master</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body p-4">
+                    <p class="text-muted small mb-3">Select an active operational group tour to import its day-wise itinerary, accommodations, transport, attractions, and meal components into this proposal.</p>
+                    <div id="groupPackagesList" class="list-group">
+                        <div class="text-center p-4"><div class="spinner-border text-primary"></div><p class="mt-2 text-muted">Loading operational packages...</p></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Fixed Itinerary Import Modal -->
+    <div class="modal fade" id="fixedItineraryImportModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header bg-light">
+                    <h5 class="modal-title"><i class="bi bi-pin-map text-primary me-2"></i>Import from Fixed Itinerary Master</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body p-4">
+                    <p class="text-muted small mb-3">Select an active standardized Fixed Itinerary to import its pre-configured day-wise schedule, hotels, transfers, and activities into this proposal.</p>
+                    <div id="fixedItinerariesList" class="list-group">
+                        <div class="text-center p-4"><div class="spinner-border text-primary"></div><p class="mt-2 text-muted">Loading fixed itineraries...</p></div>
                     </div>
                 </div>
             </div>
@@ -531,6 +587,26 @@
                         <button type="button" class="btn btn-sm btn-secondary"
                             onclick="$('#newSupplierModal').modal('hide'); $('#expenseModal').modal('show');">Back</button>
                         <button type="button" class="btn btn-sm btn-primary" onclick="quickSaveSupplier()">Save</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Vendor Share Modal -->
+        <div class="modal fade" id="vendorShareModal" tabindex="-1" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title"><i class="bi bi-people me-2"></i>Share with Vendor</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body p-0">
+                        <div id="vendor-list-container" class="list-group list-group-flush">
+                            <!-- Populated by JS -->
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Close</button>
                     </div>
                 </div>
             </div>
@@ -1271,6 +1347,381 @@
             });
         }
 
+        // Group Package Import Logic
+        let groupPackageImportModalInstance = null;
+        function getGroupPackageModal() {
+            if (!groupPackageImportModalInstance) {
+                const el = document.getElementById('groupPackageImportModal');
+                if (el) groupPackageImportModalInstance = new bootstrap.Modal(el);
+            }
+            return groupPackageImportModalInstance;
+        }
+
+        window.openGroupPackageImportModal = function() {
+            const listEl = document.getElementById('groupPackagesList');
+            if (listEl) {
+                listEl.innerHTML = '<div class="text-center p-4"><div class="spinner-border text-primary"></div><p class="mt-2 text-muted">Loading operational packages...</p></div>';
+            }
+            const modal = getGroupPackageModal();
+            if (modal) modal.show();
+
+            fetch('/api/inventory/group-packages')
+                .then(res => res.json())
+                .then(data => {
+                    if (!listEl) return;
+                    listEl.innerHTML = '';
+                    if (!data || data.length === 0) {
+                        listEl.innerHTML = '<div class="text-center p-4 text-muted"><i class="bi bi-info-circle fs-3 d-block mb-2"></i>No active operational group packages found.</div>';
+                        return;
+                    }
+
+                    data.forEach(pkg => {
+                        const item = document.createElement('div');
+                        item.className = 'list-group-item list-group-item-action p-3 mb-2 border rounded shadow-sm';
+                        item.innerHTML = `
+                            <div class="d-flex justify-content-between align-items-start mb-2">
+                                <div>
+                                    <h6 class="fw-bold mb-1 text-primary">${pkg.name}</h6>
+                                    <span class="badge bg-light text-dark border me-1"><i class="bi bi-clock me-1"></i>${pkg.duration || (pkg.duration_days + ' Days')}</span>
+                                    ${pkg.star_rating ? `<span class="badge bg-warning text-dark me-1"><i class="bi bi-star-fill me-1"></i>${pkg.star_rating} Star</span>` : ''}
+                                    ${pkg.vehicle_type ? `<span class="badge bg-info text-dark me-1"><i class="bi bi-truck me-1"></i>${pkg.vehicle_type}</span>` : ''}
+                                </div>
+                                <div class="text-end">
+                                    <div class="h5 fw-bold text-success mb-0">${pkg.currency} ${Number(pkg.price).toFixed(2)}</div>
+                                    <small class="text-muted">Master Price</small>
+                                </div>
+                            </div>
+                            <p class="small text-muted mb-2">${pkg.description || 'Full operational package with day-wise itinerary components.'}</p>
+                            <button type="button" class="btn btn-sm btn-primary w-100" onclick="importGroupPackage(${pkg.id})">
+                                <i class="bi bi-cloud-download me-1"></i> Load This Package Itinerary
+                            </button>
+                        `;
+                        listEl.appendChild(item);
+                    });
+                })
+                .catch(err => {
+                    if (listEl) listEl.innerHTML = '<div class="alert alert-danger">Failed to load group packages from operations.</div>';
+                    console.error(err);
+                });
+        };
+
+        window.importGroupPackage = function(packageId) {
+            if (!confirm('Import this operational tour? This will populate your day-wise schedule with the master components.')) {
+                return;
+            }
+
+            fetch(`/api/inventory/group-packages/${packageId}`)
+                .then(res => res.json())
+                .then(pkg => {
+                    if (!pkg.itinerary || !Array.isArray(pkg.itinerary) || pkg.itinerary.length === 0) {
+                        alert('This package has no day-wise itinerary defined in Operations.');
+                        return;
+                    }
+
+                    const newItinerary = pkg.itinerary.map((day, idx) => {
+                        const dayNum = day.day || (idx + 1);
+                        const dayTitle = day.title || ('Day ' + dayNum);
+
+                        const hotels = [];
+                        if (day.hotel && (day.hotel.name || day.hotel.hotel_id)) {
+                            hotels.push({
+                                name: day.hotel.name || 'Operational Hotel',
+                                type: day.hotel.type || 'Standard',
+                                hotel_id: day.hotel.hotel_id || null,
+                                hotel_room_id: day.hotel.hotel_room_id || null,
+                                price_per_night: parseFloat(day.hotel.price_per_night || 0),
+                                currency: day.hotel.currency || currency,
+                                quantity: 1,
+                                add_on_price: 0,
+                                service_id: null,
+                                supplier_id: day.hotel.supplier_id || null
+                            });
+                        }
+
+                        const transports = [];
+                        if (day.transport && Array.isArray(day.transport)) {
+                            day.transport.forEach(t => {
+                                transports.push({
+                                    name: t.mode || t.name || t.type || 'Transport',
+                                    transport_id: t.transport_id || null,
+                                    vehicle_type: t.vehicle_type || t.mode || 'Transfer',
+                                    price: parseFloat(t.price || 0),
+                                    currency: t.currency || currency,
+                                    service_id: null,
+                                    supplier_id: t.supplier_id || null
+                                });
+                            });
+                        }
+
+                        const places = [];
+                        const spots = [];
+                        if (day.places && Array.isArray(day.places)) {
+                            day.places.forEach(p => {
+                                const pName = typeof p === 'string' ? p : (p.name || p.attraction_name);
+                                spots.push({
+                                    name: pName,
+                                    spot_id: typeof p === 'object' ? (p.spot_id || p.id) : null,
+                                    tourist_spot_id: typeof p === 'object' ? (p.spot_id || p.id) : null,
+                                    description: '',
+                                    hours: 2,
+                                    price_per_hour: 0,
+                                    service_id: null,
+                                    supplier_id: null
+                                });
+                            });
+                        }
+
+                        const activities = [];
+                        if (day.activities && Array.isArray(day.activities)) {
+                            day.activities.forEach(a => {
+                                activities.push({
+                                    name: a.name || 'Activity',
+                                    activity_id: a.activity_id || null,
+                                    description: a.description || '',
+                                    entry_ticket: a.entry_ticket || {
+                                        adult_price: parseFloat(a.price || 0),
+                                        adult_qty: 1,
+                                        child_2_6_price: 0,
+                                        child_2_6_qty: 0,
+                                        child_6_11_price: 0,
+                                        child_6_11_qty: 0,
+                                        currency: currency
+                                    },
+                                    service_id: null,
+                                    supplier_id: a.supplier_id || null
+                                });
+                            });
+                        }
+
+                        const meals = [];
+                        if (day.meals && typeof day.meals === 'object') {
+                            Object.entries(day.meals).forEach(([mType, mDesc]) => {
+                                if (mDesc && mDesc.toLowerCase().includes('included')) {
+                                    meals.push({
+                                        name: `[${mType.toUpperCase()}] Operational Meal`,
+                                        price: 0,
+                                        quantity: 1,
+                                        currency: currency,
+                                        service_id: null,
+                                        supplier_id: null
+                                    });
+                                }
+                            });
+                        }
+
+                        return {
+                            day: dayNum,
+                            title: dayTitle,
+                            hotels: hotels,
+                            transport: transports,
+                            places: places,
+                            spots: spots,
+                            activities: activities,
+                            meals: meals,
+                            notes: day.notes || ''
+                        };
+                    });
+
+                    window.itinerary = newItinerary;
+                    const durationInput = document.getElementById('trip-duration');
+                    if (durationInput) {
+                        durationInput.value = newItinerary.length;
+                    }
+                    const modal = getGroupPackageModal();
+                    if (modal) modal.hide();
+                    renderBuilder();
+                    calculateDynamicTotal();
+                    isDirty = true;
+                    alert(`Successfully imported '${pkg.name}' (${newItinerary.length} Days) from Operations!`);
+                })
+                .catch(err => {
+                    alert('Error importing group package: ' + err.message);
+                    console.error(err);
+                });
+        };
+
+        // Fixed Itinerary Import Logic
+        let fixedItineraryModalInstance = null;
+        function getFixedItineraryModal() {
+            if (!fixedItineraryModalInstance) {
+                const el = document.getElementById('fixedItineraryImportModal');
+                if (el) fixedItineraryModalInstance = new bootstrap.Modal(el);
+            }
+            return fixedItineraryModalInstance;
+        }
+
+        window.openFixedItineraryImportModal = function() {
+            const listEl = document.getElementById('fixedItinerariesList');
+            if (listEl) {
+                listEl.innerHTML = '<div class="text-center p-4"><div class="spinner-border text-primary"></div><p class="mt-2 text-muted">Loading fixed itineraries...</p></div>';
+            }
+            const modal = getFixedItineraryModal();
+            if (modal) modal.show();
+
+            fetch('/api/inventory/fixed-itineraries')
+                .then(res => res.json())
+                .then(data => {
+                    if (!listEl) return;
+                    listEl.innerHTML = '';
+                    if (!data || data.length === 0) {
+                        listEl.innerHTML = '<div class="text-center p-4 text-muted"><i class="bi bi-info-circle fs-3 d-block mb-2"></i>No active fixed itineraries found.</div>';
+                        return;
+                    }
+
+                    data.forEach(fi => {
+                        const item = document.createElement('div');
+                        item.className = 'list-group-item list-group-item-action p-3 mb-2 border rounded shadow-sm';
+                        item.innerHTML = `
+                            <div class="d-flex justify-content-between align-items-start mb-2">
+                                <div>
+                                    <h6 class="fw-bold mb-1 text-primary">${fi.title}</h6>
+                                    <span class="badge bg-light text-dark border me-1"><i class="bi bi-clock me-1"></i>${fi.duration_days} Days / ${fi.duration_nights} Nights</span>
+                                    ${fi.destination_name ? `<span class="badge bg-secondary-subtle text-secondary me-1"><i class="bi bi-geo-alt me-1"></i>${fi.destination_name}</span>` : ''}
+                                </div>
+                                <div class="text-end">
+                                    <div class="h5 fw-bold text-success mb-0">${fi.currency} ${Number(fi.fixed_price).toFixed(2)}</div>
+                                    <small class="text-muted">Package Price</small>
+                                </div>
+                            </div>
+                            <p class="small text-muted mb-2">${fi.description || 'Standardized fixed itinerary package.'}</p>
+                            <button type="button" class="btn btn-sm btn-primary w-100" onclick="importFixedItinerary(${fi.id})">
+                                <i class="bi bi-cloud-download me-1"></i> Load This Fixed Itinerary
+                            </button>
+                        `;
+                        listEl.appendChild(item);
+                    });
+                })
+                .catch(err => {
+                    if (listEl) listEl.innerHTML = '<div class="alert alert-danger">Failed to load fixed itineraries.</div>';
+                    console.error(err);
+                });
+        };
+
+        window.importFixedItinerary = function(itineraryId) {
+            if (!confirm('Import this Fixed Itinerary? This will populate your day-wise schedule with the package components.')) {
+                return;
+            }
+
+            fetch(`/api/inventory/fixed-itineraries/${itineraryId}`)
+                .then(res => res.json())
+                .then(fi => {
+                    if (!fi.days || !Array.isArray(fi.days) || fi.days.length === 0) {
+                        alert('This fixed itinerary has no day-wise schedule defined.');
+                        return;
+                    }
+
+                    const newItinerary = fi.days.map((day, idx) => {
+                        const dayNum = day.day_number || (idx + 1);
+                        const dayTitle = day.title || ('Day ' + dayNum);
+
+                        const hotels = [];
+                        const transports = [];
+                        const spots = [];
+                        const activities = [];
+                        const meals = [];
+
+                        if (day.items && Array.isArray(day.items)) {
+                            day.items.forEach(item => {
+                                const type = (item.item_type || '').toLowerCase();
+                                const itemTitle = item.title || '';
+                                const itemPrice = parseFloat(item.price || 0);
+                                const suppId = item.supplier_id ? parseInt(item.supplier_id) : null;
+
+                                if (type === 'hotel') {
+                                    hotels.push({
+                                        name: itemTitle || 'Hotel Accommodation',
+                                        type: item.room_type || 'Standard',
+                                        hotel_id: item.item_id || null,
+                                        hotel_room_id: null,
+                                        price_per_night: itemPrice,
+                                        currency: fi.currency || currency,
+                                        quantity: 1,
+                                        add_on_price: 0,
+                                        service_id: null,
+                                        supplier_id: suppId
+                                    });
+                                } else if (type === 'transport') {
+                                    transports.push({
+                                        name: itemTitle || 'Vehicle / Transfer',
+                                        transport_id: item.item_id || null,
+                                        vehicle_type: item.room_type || 'Transfer',
+                                        price: itemPrice,
+                                        currency: fi.currency || currency,
+                                        service_id: null,
+                                        supplier_id: suppId
+                                    });
+                                } else if (type === 'spot' || type === 'tourist_spot') {
+                                    spots.push({
+                                        name: itemTitle || 'Attraction / Spot',
+                                        spot_id: item.item_id || null,
+                                        tourist_spot_id: item.item_id || null,
+                                        description: item.description || '',
+                                        hours: 2,
+                                        price_per_hour: 0,
+                                        service_id: null,
+                                        supplier_id: suppId
+                                    });
+                                } else if (type === 'activity' || type === 'ticket') {
+                                    activities.push({
+                                        name: itemTitle || 'Activity / Tour',
+                                        activity_id: item.item_id || null,
+                                        description: item.description || '',
+                                        entry_ticket: {
+                                            adult_price: itemPrice,
+                                            adult_qty: 1,
+                                            child_2_6_price: 0,
+                                            child_2_6_qty: 0,
+                                            child_6_11_price: 0,
+                                            child_6_11_qty: 0,
+                                            currency: fi.currency || currency
+                                        },
+                                        service_id: null,
+                                        supplier_id: suppId
+                                    });
+                                } else if (type === 'meal') {
+                                    meals.push({
+                                        name: itemTitle || 'Meal Service',
+                                        price: itemPrice,
+                                        quantity: 1,
+                                        currency: fi.currency || currency,
+                                        service_id: null,
+                                        supplier_id: suppId
+                                    });
+                                }
+                            });
+                        }
+
+                        return {
+                            day: dayNum,
+                            title: dayTitle,
+                            hotels: hotels,
+                            transport: transports,
+                            places: [],
+                            spots: spots,
+                            activities: activities,
+                            meals: meals,
+                            notes: day.description || ''
+                        };
+                    });
+
+                    window.itinerary = newItinerary;
+                    const durationInput = document.getElementById('trip-duration');
+                    if (durationInput) {
+                        durationInput.value = newItinerary.length;
+                    }
+                    const modal = getFixedItineraryModal();
+                    if (modal) modal.hide();
+                    renderBuilder();
+                    calculateDynamicTotal();
+                    isDirty = true;
+                    alert(`Successfully imported '${fi.title}' (${newItinerary.length} Days)!`);
+                })
+                .catch(err => {
+                    alert('Error importing fixed itinerary: ' + err.message);
+                    console.error(err);
+                });
+        };
+
         // Inventory Modal Logic
         const inventoryModal = new bootstrap.Modal(document.getElementById('inventoryModal'));
 
@@ -1506,11 +1957,17 @@
 
             if (currentType === 'hotels') {
                 if (!itinerary[currentDayIndex].hotels) itinerary[currentDayIndex].hotels = [];
+                const roomType = subItem ? (subItem.room_type || 'Standard') : (item.accommodation_type || 'Standard');
+                const price = subItem ? (subItem.base_price || subItem.price || 0) : (item.price || 0);
+                const roomId = subItem ? (subItem.hotel_room_id || subItem.id || null) : null;
                 itinerary[currentDayIndex].hotels.push({
                     name: item.name,
-                    type: subItem.room_type,
-                    price_per_night: subItem.base_price,
-                    currency: currency,
+                    hotel_id: item.hotel_id || item.id,
+                    hotel_room_id: roomId,
+                    star_rating: item.star_rating || 4,
+                    type: roomType,
+                    price_per_night: price,
+                    currency: item.currency || currency,
                     quantity: 1,
                     add_on_price: 0,
                     service_id: item.is_core_service ? item.id : null,
@@ -1521,15 +1978,18 @@
                 const adults = parseInt(document.getElementById('pax-adults')?.value || 0);
                 const c1 = parseInt(document.getElementById('pax-child-small')?.value || 0);
                 const c2 = parseInt(document.getElementById('pax-child-large')?.value || 0);
+                const basePrice = item.base_price || item.adult_price || 0;
                 itinerary[currentDayIndex].activities.push({
                     name: item.name,
+                    activity_id: item.activity_id || item.id,
                     description: item.description || '',
+                    duration: item.duration || '',
                     entry_ticket: {
-                        adult_price: item.base_price,
+                        adult_price: basePrice,
                         adult_qty: adults,
-                        child_2_6_price: item.child_price || (item.base_price * 0.5),
+                        child_2_6_price: item.child_2_6_price || (basePrice * 0.5),
                         child_2_6_qty: c1,
-                        child_6_11_price: item.child_price || (item.base_price * 0.75),
+                        child_6_11_price: item.child_6_11_price || (basePrice * 0.75),
                         child_6_11_qty: c2,
                         currency: currency
                     },
@@ -1541,15 +2001,18 @@
                 const adults = parseInt(document.getElementById('pax-adults')?.value || 0);
                 const c1 = parseInt(document.getElementById('pax-child-small')?.value || 0);
                 const c2 = parseInt(document.getElementById('pax-child-large')?.value || 0);
+                const adultPrice = item.adult_price || item.base_price || 0;
                 itinerary[currentDayIndex].places.push({
-                    attraction_name: item.attraction_name,
-                    description: 'Entry Ticket',
+                    attraction_name: item.attraction_name || item.name,
+                    ticket_id: item.ticket_id || item.id,
+                    entry_ticket_id: item.ticket_id || item.id,
+                    description: item.description || 'Entry Ticket',
                     entry_ticket: {
-                        adult_price: item.adult_price,
+                        adult_price: adultPrice,
                         adult_qty: adults,
-                        child_2_6_price: item.child_price || (item.adult_price * 0.5),
+                        child_2_6_price: item.child_2_6_price || (item.child_price * 0.7) || (adultPrice * 0.5),
                         child_2_6_qty: c1,
-                        child_6_11_price: item.child_price || (item.adult_price * 0.75),
+                        child_6_11_price: item.child_6_11_price || item.child_price || (adultPrice * 0.75),
                         child_6_11_qty: c2,
                         currency: currency
                     },
@@ -1560,6 +2023,8 @@
                 if (!Array.isArray(itinerary[currentDayIndex].spots)) itinerary[currentDayIndex].spots = [];
                 itinerary[currentDayIndex].spots.push({ 
                     name: item.name, 
+                    spot_id: item.spot_id || item.id,
+                    tourist_spot_id: item.spot_id || item.id,
                     description: item.description || '', 
                     hours: 2, 
                     price_per_hour: 0,
@@ -1570,8 +2035,11 @@
                 if (!Array.isArray(itinerary[currentDayIndex].transport)) itinerary[currentDayIndex].transport = [];
                 itinerary[currentDayIndex].transport.push({ 
                     name: item.name, 
-                    price: item.base_price, 
+                    transport_id: item.transport_id || item.id,
+                    vehicle_type: item.vehicle_type || item.name,
+                    price: item.base_price || item.price || 0, 
                     currency: currency,
+                    capacity: item.capacity || 'N/A',
                     service_id: item.is_core_service ? item.id : null,
                     supplier_id: item.supplier_id || null
                 });
@@ -1579,8 +2047,10 @@
                 if (!Array.isArray(itinerary[currentDayIndex].meals)) itinerary[currentDayIndex].meals = [];
                 const adults = parseInt(document.getElementById('pax-adults')?.value || 1);
                 itinerary[currentDayIndex].meals.push({ 
-                    name: `[${item.type}] ${item.name}`, 
-                    price: item.price, 
+                    name: `[${item.type || 'Meal'}] ${item.name}`, 
+                    meal_id: item.meal_id || item.id,
+                    meal_type: item.type || 'Meal',
+                    price: item.price || 0, 
                     quantity: adults, 
                     currency: currency,
                     service_id: item.is_core_service ? item.id : null,
@@ -2090,31 +2560,8 @@
                 marginEl.removeClass('text-success').addClass('text-danger');
             }
         }
-    </script>
-@endpush
 
-<!-- Vendor Share Modal -->
-<div class="modal fade" id="vendorShareModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">Share with Vendor</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-            </div>
-            <div class="modal-body p-0">
-                <div id="vendor-list-container" class="list-group list-group-flush">
-                    <!-- Populated by JS -->
-                </div>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Close</button>
-            </div>
-        </div>
-    </div>
-</div>
-
-<script>
-    let currentExpenses = [];
+        let currentExpenses = [];
 
     // --- General Vendor Share (Expenses) ---
     window.shareVendorWhatsapp = (expenseId, supplierId) => {
@@ -2321,91 +2768,4 @@
         new bootstrap.Modal(document.getElementById('vendorShareModal')).show();
     }
 </script>
-
-<!-- Expense Modal -->
-<div class="modal fade" id="expenseModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-sm">
-        <div class="modal-content">
-            <div class="modal-header py-2">
-                <h5 class="modal-title fs-6">Add Actual Expense</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-                <form id="expenseForm">
-                    <input type="hidden" name="itinerary_id" value="{{ data_get($itinerary, 'id') }}">
-                    <input type="hidden" name="itinerary_type" value="b2c">
-                    <div class="mb-2">
-                        <label class="form-label small text-muted mb-1">Category</label>
-                        <select name="category" id="expense-category" class="form-select form-select-sm" required>
-                            <option value="Hotel">Hotel Payout</option>
-                            <option value="Transport">Transport / Driver</option>
-                            <option value="Activity">Entrance / Activity</option>
-                            <option value="Meal">Meal Payment</option>
-                            <option value="Agent">Agent Commission</option>
-                            <option value="Other">Other Operational</option>
-                        </select>
-                    </div>
-                    <div class="mb-2">
-                        <label class="form-label small text-muted mb-1">Amount ({{ data_get($itinerary, 'currency') }})</label>
-                        <input type="number" step="0.01" name="amount" class="form-control form-control-sm" required>
-                    </div>
-                    <div class="mb-2">
-                        <label class="form-label small text-muted mb-1">Supplier <a href="#"
-                                class="float-end text-decoration-none" data-bs-toggle="modal"
-                                data-bs-target="#newSupplierModal">+ New</a></label>
-                        <select name="supplier_id" id="expense-supplier-id" class="form-select form-select-sm">
-                            <option value="">Select Partner (Optional)</option>
-                        </select>
-                    </div>
-                    <div class="mb-2">
-                        <label class="form-label small text-muted mb-1">Expense Date</label>
-                        <input type="date" name="expense_date" class="form-control form-control-sm"
-                            value="{{ date('Y-m-d') }}" required>
-                    </div>
-                    <div class="mb-0">
-                        <label class="form-label small text-muted mb-1">Description / Notes</label>
-                        <input type="text" name="description" class="form-control form-control-sm"
-                            placeholder="e.g. Driver payout ref #123">
-                    </div>
-                </form>
-            </div>
-            <div class="modal-footer py-1">
-                <button type="button" class="btn btn-sm btn-secondary" data-bs-dismiss="modal">Close</button>
-                <button type="button" class="btn btn-sm btn-primary" onclick="saveExpense()">Save Cost</button>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- Quick Supplier Modal -->
-<div class="modal fade" id="newSupplierModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-sm">
-        <div class="modal-content">
-            <div class="modal-header py-2">
-                <h5 class="modal-title fs-6">Quick Add Supplier</h5>
-            </div>
-            <div class="modal-body">
-                <form id="quickSupplierForm">
-                    <div class="mb-2">
-                        <label class="small text-muted mb-1">Supplier Name</label>
-                        <input type="text" name="name" class="form-control form-control-sm" required>
-                    </div>
-                    <div class="mb-2">
-                        <label class="small text-muted mb-1">Type</label>
-                        <select name="type" class="form-select form-select-sm" required>
-                            <option value="Hotel">Hotel</option>
-                            <option value="Transport">Transport</option>
-                            <option value="Activity">Activity</option>
-                            <option value="Agent">Agent</option>
-                        </select>
-                    </div>
-                </form>
-            </div>
-            <div class="modal-footer py-1">
-                <button type="button" class="btn btn-sm btn-secondary"
-                    onclick="$('#newSupplierModal').modal('hide'); $('#expenseModal').modal('show');">Back</button>
-                <button type="button" class="btn btn-sm btn-primary" onclick="quickSaveSupplier()">Save</button>
-            </div>
-        </div>
-    </div>
-</div>
+@endpush

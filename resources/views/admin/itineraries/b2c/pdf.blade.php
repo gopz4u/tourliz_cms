@@ -71,6 +71,17 @@
                     <div class="day-title">Day {{ $day->day_number }}: {{ $day->title }}</div>
                     <div class="day-content">
                         {!! nl2br(e($day->description)) !!}
+                        @if($day->items && $day->items->count() > 0)
+                            <div style="margin-top: 6px; padding-left: 10px; border-left: 2px solid #0056b3;">
+                                @foreach($day->items as $item)
+                                    <div style="font-size: 11px; margin-bottom: 2px; color: #495057;">
+                                        <strong>[{{ strtoupper($item->item_type) }}]</strong> {{ $item->title }}
+                                        @if($item->room_type) <em>({{ $item->room_type }})</em> @endif
+                                        @if($item->description) - {{ $item->description }} @endif
+                                    </div>
+                                @endforeach
+                            </div>
+                        @endif
                         @if($day->overnight_location)
                             <br><small><em>Overnight: {{ $day->overnight_location }}</em></small>
                         @endif
@@ -95,7 +106,18 @@
     </div>
 
     <div class="price-section">
-        Total Package Price: RM {{ number_format($itinerary->b2cDetail->selling_price ?? 0, 2) }}
+        <div style="font-size: 22px; font-weight: bold; margin-bottom: 6px;">
+            Total Package Price: {{ $itinerary->currency_symbol }} {{ number_format($itinerary->b2cDetail->selling_price ?? 0, 2) }}
+            <span style="font-size: 14px; color: #666; font-weight: normal;">({{ $itinerary->currency ?: 'MYR' }})</span>
+        </div>
+        <div style="font-size: 12px; font-weight: normal; color: #555;">
+            Multi-Currency Equivalents: 
+            @foreach($itinerary->converted_prices as $c)
+                @if($c['code'] !== ($itinerary->currency ?: 'MYR'))
+                    <span style="display: inline-block; margin-right: 15px;"><strong>{{ $c['code'] }}:</strong> {{ $c['symbol'] }} {{ number_format($c['amount'], 2) }}</span>
+                @endif
+            @endforeach
+        </div>
     </div>
 
     <div class="footer">

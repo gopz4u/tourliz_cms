@@ -90,10 +90,23 @@
                                 </span>
                             </td>
                             <td class="fw-bold text-secondary">
-                                ₹{{ number_format($itinerary->b2bDetail->net_rate ?? 0, 2) }}
+                                {{ $itinerary->currency_symbol }} {{ number_format($itinerary->b2bDetail->net_rate ?? 0, 2) }}
                             </td>
-                            <td class="fw-bold text-primary">
-                                ₹{{ number_format($itinerary->b2bDetail->agent_rate ?? 0, 2) }}
+                            <td>
+                                <div class="fw-bold text-primary">
+                                    {{ $itinerary->currency_symbol }} {{ number_format($itinerary->b2bDetail->agent_rate ?? 0, 2) }}
+                                    <span class="badge bg-light text-secondary border ms-1" style="font-size: 10px;">{{ $itinerary->currency ?: 'MYR' }}</span>
+                                </div>
+                                @if(!empty($itinerary->converted_prices))
+                                    <div class="small text-muted" style="font-size: 11px;">
+                                        @php
+                                            $alts = array_filter($itinerary->converted_prices, fn($cp) => $cp['code'] !== ($itinerary->currency ?: 'MYR'));
+                                        @endphp
+                                        @foreach($alts as $alt)
+                                            <span>≈ {{ $alt['symbol'] }}{{ number_format($alt['amount'], 0) }}</span>@if(!$loop->last) &bull; @endif
+                                        @endforeach
+                                    </div>
+                                @endif
                             </td>
                             <td>
                                 @if($itinerary->status === 'published')

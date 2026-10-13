@@ -40,8 +40,9 @@ class B2BItineraryController extends Controller
         $destinations = Destination::orderBy('name')->get();
         $agencies = Agency::orderBy('company_name')->get();
         $suppliers = Supplier::orderBy('name')->get();
+        $countries = \App\Models\Country::orderBy('name')->get();
 
-        return view('admin.itineraries.b2b.create', compact('destinations', 'agencies', 'suppliers'));
+        return view('admin.itineraries.b2b.create', compact('destinations', 'agencies', 'suppliers', 'countries'));
     }
 
     public function store(B2BItineraryRequest $request)
@@ -70,8 +71,9 @@ class B2BItineraryController extends Controller
         $destinations = Destination::orderBy('name')->get();
         $agencies = Agency::orderBy('company_name')->get();
         $suppliers = Supplier::orderBy('name')->get();
+        $countries = \App\Models\Country::orderBy('name')->get();
 
-        return view('admin.itineraries.b2b.edit', compact('itinerary', 'destinations', 'agencies', 'suppliers'));
+        return view('admin.itineraries.b2b.edit', compact('itinerary', 'destinations', 'agencies', 'suppliers', 'countries'));
     }
 
     public function update(B2BItineraryRequest $request, $id)

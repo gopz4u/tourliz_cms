@@ -28,6 +28,7 @@ class ItineraryB2cDetail extends Model
         'assigned_staff_id',
         'short_description',
         'selling_price',
+        'currency',
         'child_price',
         'image',
         'gallery',

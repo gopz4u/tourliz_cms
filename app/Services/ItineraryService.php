@@ -72,6 +72,7 @@ class ItineraryService
                 'title' => $data['title'],
                 'slug' => $slug,
                 'itinerary_type' => 'b2c',
+                'currency' => $data['currency'] ?? 'MYR',
                 'destination_id' => $data['destination_id'],
                 'duration_days' => $data['duration_days'],
                 'duration_nights' => $data['duration_nights'],
@@ -88,6 +89,7 @@ class ItineraryService
 
             ItineraryB2cDetail::create([
                 'itinerary_id' => $itinerary->id,
+                'currency' => $data['currency'] ?? 'MYR',
                 'short_description' => $data['short_description'] ?? null,
                 'selling_price' => $data['selling_price'] ?? 0,
                 'child_price' => $data['child_price'] ?? null,
@@ -120,8 +122,11 @@ class ItineraryService
     public function updateB2CItinerary(Itinerary $itinerary, array $data, ?string $imagePath = null): Itinerary
     {
         return DB::transaction(function () use ($itinerary, $data, $imagePath) {
+            $currency = $data['currency'] ?? ($itinerary->currency ?: 'MYR');
+
             $itinerary->update([
                 'title' => $data['title'],
+                'currency' => $currency,
                 'destination_id' => $data['destination_id'],
                 'duration_days' => $data['duration_days'],
                 'duration_nights' => $data['duration_nights'],
@@ -136,6 +141,7 @@ class ItineraryService
             ]);
 
             $b2cData = [
+                'currency' => $currency,
                 'short_description' => $data['short_description'] ?? null,
                 'selling_price' => $data['selling_price'] ?? 0,
                 'child_price' => $data['child_price'] ?? null,
@@ -186,6 +192,7 @@ class ItineraryService
                 'title' => $data['title'],
                 'slug' => $slug,
                 'itinerary_type' => 'b2b',
+                'currency' => $data['currency'] ?? 'MYR',
                 'destination_id' => $data['destination_id'],
                 'duration_days' => $data['duration_days'],
                 'duration_nights' => $data['duration_nights'],
@@ -202,6 +209,7 @@ class ItineraryService
 
             ItineraryB2bDetail::create([
                 'itinerary_id' => $itinerary->id,
+                'currency' => $data['currency'] ?? 'MYR',
                 'agency_id' => $data['agency_id'] ?? null,
                 'supplier_id' => $data['supplier_id'] ?? null,
                 'net_rate' => $data['net_rate'] ?? 0,
@@ -233,8 +241,11 @@ class ItineraryService
     public function updateB2BItinerary(Itinerary $itinerary, array $data): Itinerary
     {
         return DB::transaction(function () use ($itinerary, $data) {
+            $currency = $data['currency'] ?? ($itinerary->currency ?: 'MYR');
+
             $itinerary->update([
                 'title' => $data['title'],
+                'currency' => $currency,
                 'destination_id' => $data['destination_id'],
                 'duration_days' => $data['duration_days'],
                 'duration_nights' => $data['duration_nights'],
@@ -249,6 +260,7 @@ class ItineraryService
             ]);
 
             ItineraryB2bDetail::updateOrCreate(['itinerary_id' => $itinerary->id], [
+                'currency' => $currency,
                 'agency_id' => $data['agency_id'] ?? null,
                 'supplier_id' => $data['supplier_id'] ?? null,
                 'net_rate' => $data['net_rate'] ?? 0,
@@ -277,7 +289,7 @@ class ItineraryService
     /**
      * Helper to sync days and day items
      */
-    protected function saveDaysAndItems(Itinerary $itinerary, array $daysData)
+    public function saveDaysAndItems(Itinerary $itinerary, array $daysData)
     {
         // Delete existing days (cascade deletes day items)
         $itinerary->days()->delete();
@@ -300,8 +312,12 @@ class ItineraryService
                         'itinerary_day_id' => $day->id,
                         'item_type' => $itemData['item_type'] ?? 'activity',
                         'item_id' => $itemData['item_id'] ?? null,
-                        'title' => $itemData['title'],
+                        'title' => $itemData['title'] ?? 'Item',
                         'description' => $itemData['description'] ?? null,
+                        'price' => isset($itemData['price']) ? (float)$itemData['price'] : 0.00,
+                        'cost' => isset($itemData['cost']) ? (float)$itemData['cost'] : 0.00,
+                        'supplier_id' => !empty($itemData['supplier_id']) ? (int)$itemData['supplier_id'] : null,
+                        'room_type' => $itemData['room_type'] ?? null,
                         'start_time' => $itemData['start_time'] ?? null,
                         'end_time' => $itemData['end_time'] ?? null,
                         'sort_order' => $itemData['sort_order'] ?? $index,

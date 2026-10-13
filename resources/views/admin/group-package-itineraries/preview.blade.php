@@ -162,6 +162,49 @@
                                 </div>
                             @endif
 
+                            <!-- Attraction Entry Tickets -->
+                            @if(!empty($day['tickets']))
+                                <div class="bg-base-200/50 rounded-2xl p-6 border border-base-200/60 relative overflow-hidden group/tickets hover:bg-base-200/80 transition-colors">
+                                    <div class="absolute top-0 left-0 w-1.5 h-full bg-gradient-to-b from-rose-500 to-red-400"></div>
+                                    <h4 class="text-sm font-black uppercase tracking-widest text-rose-600 mb-5 flex items-center gap-3 m-0">
+                                        <div class="p-1.5 rounded-lg bg-rose-100 text-rose-600">
+                                            <i class="bi bi-ticket-perforated-fill text-lg"></i>
+                                        </div>
+                                        Attraction Entry Tickets
+                                    </h4>
+                                    <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
+                                        @foreach($day['tickets'] as $ticket)
+                                            @php
+                                                $tName = is_array($ticket) ? ($ticket['name'] ?? $ticket['attraction_name'] ?? 'Ticket') : $ticket;
+                                                $tPrice = is_array($ticket) ? (float)($ticket['price'] ?? $ticket['adult_price'] ?? 0) : 0;
+                                                $tCur = is_array($ticket) ? ($ticket['currency'] ?? $package->currency ?? 'MYR') : ($package->currency ?? 'MYR');
+                                                $tSup = is_array($ticket) ? ($ticket['supplier_name'] ?? null) : null;
+                                            @endphp
+                                            <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center bg-base-100 p-4 rounded-xl shadow-sm border border-base-200/50 hover:border-rose-400 transition-all hover:-translate-y-0.5 gap-3">
+                                                <div class="flex items-center gap-4">
+                                                    <div class="w-10 h-10 rounded-full bg-rose-100 flex items-center justify-center text-rose-600 shrink-0 shadow-inner">
+                                                        <i class="bi bi-ticket-perforated text-lg"></i>
+                                                    </div>
+                                                    <div>
+                                                        <span class="font-bold text-neutral text-lg">{{ $tName }}</span>
+                                                        @if($tSup)
+                                                            <div class="text-xs font-medium text-base-content/50 mt-0.5 flex items-center gap-1">
+                                                                <i class="bi bi-shop"></i> {{ $tSup }}
+                                                            </div>
+                                                        @endif
+                                                    </div>
+                                                </div>
+                                                @if($tPrice > 0)
+                                                    <div class="badge badge-error badge-outline badge-lg font-mono font-bold shadow-sm self-start sm:self-auto py-3">
+                                                        {{ $tCur }} {{ number_format($tPrice, 2) }}
+                                                    </div>
+                                                @endif
+                                            </div>
+                                        @endforeach
+                                    </div>
+                                </div>
+                            @endif
+
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
                                 <!-- Activities -->
                                 <div class="bg-base-100 rounded-2xl border border-base-200/80 p-6 shadow-sm hover:shadow-md transition-shadow">

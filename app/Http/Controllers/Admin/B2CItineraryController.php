@@ -45,13 +45,17 @@ class B2CItineraryController extends Controller
     {
         $destinations = \App\Models\Country::orderBy('name')->get();
         $admins = \App\Models\Admin::orderBy('name')->get();
-        return view('admin.b2c.create', compact('destinations', 'admins'));
+        $groupPackages = \App\Models\GroupPackage::where('status', true)->orderBy('name')->get();
+        $fixedItineraries = \App\Models\FixedItinerary::where('status', 'active')->orderBy('title')->get();
+        return view('admin.b2c.create', compact('destinations', 'admins', 'groupPackages', 'fixedItineraries'));
     }
 
     public function store(Request $request)
     {
         $request->validate([
             'destination_id' => 'required|exists:countries,id',
+            'fixed_itinerary_id' => 'nullable|exists:fixed_itineraries,id',
+            'group_package_id' => 'nullable|exists:group_packages,id',
             'country_ids' => 'nullable|array',
             'country_ids.*' => 'exists:countries,id',
             'title' => 'required|string|max:255',
@@ -61,7 +65,198 @@ class B2CItineraryController extends Controller
             'lead_source' => 'nullable|string',
         ]);
 
-        $itineraryStructure = ItineraryHelper::generateSampleItinerary($request->duration_days, $request->destination_id);
+        $itineraryStructure = null;
+
+        // 1. Check if a Fixed Itinerary (Master Package) was selected (Optional)
+        if ($request->filled('fixed_itinerary_id')) {
+            $fi = \App\Models\FixedItinerary::find($request->fixed_itinerary_id);
+            if ($fi && !empty($fi->days)) {
+                $rawDays = is_array($fi->days) ? $fi->days : (json_decode($fi->days, true) ?: []);
+                if (!empty($rawDays)) {
+                    $itineraryStructure = array_map(function ($day, $idx) use ($fi) {
+                        $dayNum = $day['day_number'] ?? ($idx + 1);
+                        $hotels = [];
+                        $transports = [];
+                        $spots = [];
+                        $activities = [];
+                        $meals = [];
+
+                        if (!empty($day['items']) && is_array($day['items'])) {
+                            foreach ($day['items'] as $item) {
+                                $type = strtolower($item['item_type'] ?? '');
+                                $itemTitle = $item['title'] ?? '';
+                                $itemPrice = (float)($item['price'] ?? 0);
+                                $suppId = !empty($item['supplier_id']) ? (int)$item['supplier_id'] : null;
+
+                                if ($type === 'hotel') {
+                                    $hotels[] = [
+                                        'name' => $itemTitle ?: 'Hotel Accommodation',
+                                        'type' => $item['room_type'] ?: 'Standard',
+                                        'hotel_id' => $item['item_id'] ?? null,
+                                        'hotel_room_id' => null,
+                                        'price_per_night' => $itemPrice,
+                                        'currency' => $fi->currency ?: 'MYR',
+                                        'quantity' => 1,
+                                        'add_on_price' => 0,
+                                        'service_id' => null,
+                                        'supplier_id' => $suppId,
+                                    ];
+                                } elseif ($type === 'transport') {
+                                    $transports[] = [
+                                        'name' => $itemTitle ?: 'Vehicle / Transfer',
+                                        'transport_id' => $item['item_id'] ?? null,
+                                        'vehicle_type' => $item['room_type'] ?: 'Transfer',
+                                        'price' => $itemPrice,
+                                        'currency' => $fi->currency ?: 'MYR',
+                                        'service_id' => null,
+                                        'supplier_id' => $suppId,
+                                    ];
+                                } elseif ($type === 'spot' || $type === 'tourist_spot') {
+                                    $spots[] = [
+                                        'name' => $itemTitle ?: 'Attraction / Spot',
+                                        'spot_id' => $item['item_id'] ?? null,
+                                        'tourist_spot_id' => $item['item_id'] ?? null,
+                                        'description' => $item['description'] ?? '',
+                                        'hours' => 2,
+                                        'price_per_hour' => 0,
+                                        'service_id' => null,
+                                        'supplier_id' => $suppId,
+                                    ];
+                                } elseif ($type === 'activity' || $type === 'ticket') {
+                                    $activities[] = [
+                                        'name' => $itemTitle ?: 'Tour / Activity',
+                                        'activity_id' => $item['item_id'] ?? null,
+                                        'description' => $item['description'] ?? '',
+                                        'entry_ticket' => [
+                                            'adult_price' => $itemPrice,
+                                            'adult_qty' => 1,
+                                            'child_2_6_price' => 0,
+                                            'child_2_6_qty' => 0,
+                                            'child_6_11_price' => 0,
+                                            'child_6_11_qty' => 0,
+                                            'currency' => $fi->currency ?: 'MYR',
+                                        ],
+                                        'service_id' => null,
+                                        'supplier_id' => $suppId,
+                                    ];
+                                } elseif ($type === 'meal') {
+                                    $meals[] = [
+                                        'name' => $itemTitle ?: 'Meal Service',
+                                        'price' => $itemPrice,
+                                        'quantity' => 1,
+                                        'currency' => $fi->currency ?: 'MYR',
+                                        'service_id' => null,
+                                        'supplier_id' => $suppId,
+                                    ];
+                                }
+                            }
+                        }
+
+                        return [
+                            'day' => $dayNum,
+                            'title' => $day['title'] ?? ('Day ' . $dayNum),
+                            'description' => $day['description'] ?? '',
+                            'hotels' => $hotels,
+                            'transport' => $transports,
+                            'places' => [],
+                            'spots' => $spots,
+                            'activities' => $activities,
+                            'meals' => $meals,
+                            'notes' => $day['notes'] ?? '',
+                        ];
+                    }, $rawDays, array_keys($rawDays));
+                }
+            }
+        }
+
+        // 2. Fallback: Check if an Operations Group Tour Master was selected (Optional)
+        if (empty($itineraryStructure) && $request->filled('group_package_id')) {
+            $gp = \App\Models\GroupPackage::find($request->group_package_id);
+            if ($gp && !empty($gp->itinerary)) {
+                $rawItin = is_array($gp->itinerary) ? $gp->itinerary : (json_decode($gp->itinerary, true) ?: []);
+                if (!empty($rawItin)) {
+                    $itineraryStructure = array_map(function ($day, $idx) {
+                        return [
+                            'day' => $day['day'] ?? ($idx + 1),
+                            'title' => $day['title'] ?? ('Day ' . ($idx + 1)),
+                            'hotels' => !empty($day['hotel']['name']) ? [[
+                                'name' => $day['hotel']['name'],
+                                'type' => $day['hotel']['type'] ?? 'Standard',
+                                'hotel_id' => $day['hotel']['hotel_id'] ?? null,
+                                'hotel_room_id' => $day['hotel']['hotel_room_id'] ?? null,
+                                'price_per_night' => (float)($day['hotel']['price_per_night'] ?? 0),
+                                'currency' => $day['hotel']['currency'] ?? 'MYR',
+                                'quantity' => 1,
+                                'add_on_price' => 0,
+                                'service_id' => null,
+                                'supplier_id' => $day['hotel']['supplier_id'] ?? null,
+                            ]] : [],
+                            'transport' => array_map(function ($t) {
+                                return [
+                                    'name' => $t['mode'] ?? $t['name'] ?? $t['type'] ?? 'Transport',
+                                    'transport_id' => $t['transport_id'] ?? null,
+                                    'vehicle_type' => $t['vehicle_type'] ?? $t['mode'] ?? 'Transfer',
+                                    'price' => (float)($t['price'] ?? 0),
+                                    'currency' => $t['currency'] ?? 'MYR',
+                                    'service_id' => null,
+                                    'supplier_id' => $t['supplier_id'] ?? null,
+                                ];
+                            }, $day['transport'] ?? []),
+                            'places' => [],
+                            'spots' => array_map(function ($p) {
+                                $name = is_string($p) ? $p : ($p['name'] ?? $p['attraction_name'] ?? 'Spot');
+                                return [
+                                    'name' => $name,
+                                    'spot_id' => is_array($p) ? ($p['spot_id'] ?? $p['id'] ?? null) : null,
+                                    'tourist_spot_id' => is_array($p) ? ($p['spot_id'] ?? $p['id'] ?? null) : null,
+                                    'description' => '',
+                                    'hours' => 2,
+                                    'price_per_hour' => 0,
+                                    'service_id' => null,
+                                    'supplier_id' => null,
+                                ];
+                            }, $day['places'] ?? []),
+                            'activities' => array_map(function ($a) {
+                                return [
+                                    'name' => $a['name'] ?? 'Activity',
+                                    'activity_id' => $a['activity_id'] ?? null,
+                                    'description' => $a['description'] ?? '',
+                                    'entry_ticket' => $a['entry_ticket'] ?? [
+                                        'adult_price' => (float)($a['price'] ?? 0),
+                                        'adult_qty' => 1,
+                                        'child_2_6_price' => 0,
+                                        'child_2_6_qty' => 0,
+                                        'child_6_11_price' => 0,
+                                        'child_6_11_qty' => 0,
+                                        'currency' => 'MYR',
+                                    ],
+                                    'service_id' => null,
+                                    'supplier_id' => $a['supplier_id'] ?? null,
+                                ];
+                            }, $day['activities'] ?? []),
+                            'meals' => !empty($day['meals']) && is_array($day['meals']) ? array_values(array_filter(array_map(function ($mType, $mDesc) {
+                                if ($mDesc && stripos($mDesc, 'included') !== false) {
+                                    return [
+                                        'name' => '[' . strtoupper($mType) . '] Operational Meal',
+                                        'price' => 0,
+                                        'quantity' => 1,
+                                        'currency' => 'MYR',
+                                        'service_id' => null,
+                                        'supplier_id' => null,
+                                    ];
+                                }
+                                return null;
+                            }, array_keys($day['meals']), array_values($day['meals'])))) : [],
+                            'notes' => $day['notes'] ?? '',
+                        ];
+                    }, $rawItin, array_keys($rawItin));
+                }
+            }
+        }
+
+        if (empty($itineraryStructure)) {
+            $itineraryStructure = ItineraryHelper::generateSampleItinerary($request->duration_days, $request->destination_id);
+        }
 
         $itinerary = B2CItinerary::create([
             'user_id' => $request->user_id ?? auth()->id(),

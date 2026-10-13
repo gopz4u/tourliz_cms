@@ -28,11 +28,13 @@ class MigrateExistingItinerariesData extends Migration
                         $c++;
                     }
 
+                    $destId = (!empty($b2c->destination_id) && DB::table('destinations')->where('id', $b2c->destination_id)->exists()) ? $b2c->destination_id : null;
+
                     $itineraryId = DB::table('itineraries')->insertGetId([
                         'title' => $b2c->title ?? 'B2C Itinerary ' . $b2c->id,
                         'slug' => $slug,
                         'itinerary_type' => 'b2c',
-                        'destination_id' => $b2c->destination_id ?? null,
+                        'destination_id' => $destId,
                         'duration_days' => $b2c->duration_days ?? 1,
                         'duration_nights' => $b2c->duration_nights ?? 0,
                         'description' => $b2c->description ?? null,
@@ -103,11 +105,15 @@ class MigrateExistingItinerariesData extends Migration
                         $c++;
                     }
 
+                    $b2bDestId = (!empty($b2b->destination_id) && DB::table('destinations')->where('id', $b2b->destination_id)->exists()) ? $b2b->destination_id : null;
+                    $b2bAgencyId = (!empty($b2b->agency_id) && DB::table('agencies')->where('id', $b2b->agency_id)->exists()) ? $b2b->agency_id : null;
+                    $b2bSupplierId = (!empty($b2b->supplier_id) && DB::table('suppliers')->where('id', $b2b->supplier_id)->exists()) ? $b2b->supplier_id : null;
+
                     $itineraryId = DB::table('itineraries')->insertGetId([
                         'title' => $b2b->title ?? 'B2B Proposal ' . $b2b->id,
                         'slug' => $slug,
                         'itinerary_type' => 'b2b',
-                        'destination_id' => $b2b->destination_id ?? null,
+                        'destination_id' => $b2bDestId,
                         'duration_days' => $b2b->duration_days ?? 1,
                         'duration_nights' => $b2b->duration_nights ?? 0,
                         'description' => $b2b->description ?? null,
@@ -121,8 +127,8 @@ class MigrateExistingItinerariesData extends Migration
 
                     DB::table('itinerary_b2b_details')->insert([
                         'itinerary_id' => $itineraryId,
-                        'agency_id' => $b2b->agency_id ?? null,
-                        'supplier_id' => $b2b->supplier_id ?? null,
+                        'agency_id' => $b2bAgencyId,
+                        'supplier_id' => $b2bSupplierId,
                         'net_rate' => $b2b->total_cost ?? $b2b->net_price ?? 0,
                         'agent_rate' => $b2b->grand_total ?? $b2b->selling_price ?? 0,
                         'markup_percentage' => $b2b->markup_percentage ?? 0,

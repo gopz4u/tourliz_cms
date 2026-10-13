@@ -223,6 +223,30 @@
                         </ul>
                     @endif
 
+                    <!-- Attraction Entry Tickets -->
+                    @if(!empty($day['tickets']))
+                        <div class="section-title">Attraction Entry Tickets</div>
+                        <ul>
+                            @foreach($day['tickets'] as $ticket)
+                                @php
+                                    $tName = is_array($ticket) ? ($ticket['name'] ?? $ticket['attraction_name'] ?? 'Ticket') : $ticket;
+                                    $tPrice = is_array($ticket) ? (float)($ticket['price'] ?? $ticket['adult_price'] ?? 0) : 0;
+                                    $tCur = is_array($ticket) ? ($ticket['currency'] ?? $package->currency ?? 'MYR') : ($package->currency ?? 'MYR');
+                                    $tSup = is_array($ticket) ? ($ticket['supplier_name'] ?? null) : null;
+                                @endphp
+                                <li>
+                                    <strong>{{ $tName }}</strong>
+                                    @if($tSup)
+                                        <span style="color: #7f8c8d; font-size: 0.85em;">(Supplier: {{ $tSup }})</span>
+                                    @endif
+                                    @if($tPrice > 0)
+                                        <span class="price-tag">{{ $tCur }} {{ number_format($tPrice, 2) }}</span>
+                                    @endif
+                                </li>
+                            @endforeach
+                        </ul>
+                    @endif
+
                     <!-- Activities -->
                     @if(!empty($day['activities']))
                         <div class="section-title">Activities</div>

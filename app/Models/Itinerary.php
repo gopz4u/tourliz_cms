@@ -25,6 +25,7 @@ class Itinerary extends Model
         'exclusions',
         'terms_conditions',
         'status', // draft, published, archived
+        'currency',
         'is_published',
         'created_by',
         'updated_by',
@@ -115,7 +116,17 @@ class Itinerary extends Model
         return $this->hasOne(ItineraryB2bDetail::class, 'itinerary_id');
     }
 
+    public function b2bDetails()
+    {
+        return $this->hasOne(ItineraryB2bDetail::class, 'itinerary_id');
+    }
+
     public function b2cDetail()
+    {
+        return $this->hasOne(ItineraryB2cDetail::class, 'itinerary_id');
+    }
+
+    public function b2cDetails()
     {
         return $this->hasOne(ItineraryB2cDetail::class, 'itinerary_id');
     }
@@ -145,4 +156,44 @@ class Itinerary extends Model
     {
         return $query->where('is_published', true)->where('status', 'published');
     }
+
+    public function getActiveCurrencyAttribute(): string
+    {
+        return $this->currency 
+            ?: ($this->b2cDetail->currency ?? null) 
+            ?: ($this->b2bDetail->currency ?? null) 
+            ?: 'MYR';
+    }
+
+    public function getCurrencySymbolAttribute(): string
+    {
+        $symbols = [
+            'MYR' => 'RM',
+            'INR' => '₹',
+            'USD' => '$',
+            'SGD' => 'S$',
+            'AED' => 'AED',
+            'EUR' => '€',
+            'GBP' => '£',
+        ];
+        return $symbols[$this->active_currency] ?? $this->active_currency;
+    }
+
+    public function getConvertedPricesAttribute(): array
+    {
+        $baseCurrency = $this->active_currency;
+        $basePrice = (float) ($this->b2cDetail->selling_price ?? $this->b2bDetail->agent_rate ?? 0);
+        $currencies = ['MYR', 'USD', 'INR'];
+        
+        $converted = [];
+        foreach ($currencies as $cur) {
+            $converted[$cur] = [
+                'code' => $cur,
+                'symbol' => $cur === 'INR' ? '₹' : ($cur === 'USD' ? '$' : 'RM'),
+                'amount' => \App\Helpers\CurrencyHelper::convert($basePrice, $baseCurrency, $cur),
+            ];
+        }
+        return $converted;
+    }
 }
+

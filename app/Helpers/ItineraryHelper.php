@@ -57,6 +57,11 @@ class ItineraryHelper
             if (isset($day['spots']) && !is_array($day['spots'])) {
                 $errors[] = "Day {$dayNum}: 'spots' must be an array";
             }
+
+            // Validate tickets structure
+            if (isset($day['tickets']) && !is_array($day['tickets'])) {
+                $errors[] = "Day {$dayNum}: 'tickets' must be an array";
+            }
         }
 
         return [
@@ -176,6 +181,15 @@ class ItineraryHelper
                 }
             }
 
+            // 5b. Calculate direct Entry Tickets costs
+            if (isset($day['tickets']) && is_array($day['tickets'])) {
+                foreach ($day['tickets'] as $ticket) {
+                    $tPrice = (float) ($ticket['price'] ?? $ticket['adult_price'] ?? 0);
+                    $tQty = (float) ($ticket['quantity'] ?? 1);
+                    $costs['entry_tickets'] += ($tPrice * $tQty);
+                }
+            }
+
             // 6. Calculate meal costs: price * quantity
             if (isset($day['meals']) && is_array($day['meals'])) {
                 foreach ($day['meals'] as $meal) {
@@ -202,76 +216,159 @@ class ItineraryHelper
     {
         $itinerary = [];
         $destination = $destinationId ? \App\Models\Country::find($destinationId) : null;
-        $destinationName = $destination ? $destination->name : 'Country';
+        $destinationName = $destination ? $destination->name : 'Malaysia';
+
+        // Query real operational inventory
+        $hotel = \App\Models\Hotel::with('rooms')
+            ->where('is_active', true)
+            ->where(function ($q) use ($destinationId, $destinationName) {
+                if ($destinationId) {
+                    $q->where('destination_id', $destinationId);
+                }
+                if ($destinationName) {
+                    $q->orWhereHas('destination', function ($dq) use ($destinationName) {
+                        $dq->withTrashed()->where('country', $destinationName)->orWhere('name', $destinationName);
+                    });
+                }
+            })->first() ?: \App\Models\Hotel::with('rooms')->where('is_active', true)->first();
+
+        $hotelRoom = $hotel && $hotel->rooms->isNotEmpty() ? $hotel->rooms->first() : null;
+
+        $spots = \App\Models\TouristSpot::where('is_active', true)
+            ->where(function ($q) use ($destinationId, $destinationName) {
+                if ($destinationId) {
+                    $q->where('country_id', $destinationId);
+                }
+                if ($destinationName) {
+                    $q->orWhereHas('destination', function ($dq) use ($destinationName) {
+                        $dq->withTrashed()->where('country', $destinationName)->orWhere('name', $destinationName);
+                    });
+                }
+            })->get();
+
+        $transports = \App\Models\Transport::where('is_active', true)->get();
+        $tickets = \App\Models\EntryTicket::where('is_active', true)->get();
+        $meals = \App\Models\Meal::where('is_active', true)->get();
 
         for ($i = 1; $i <= $days; $i++) {
+            $spotIndex = ($i - 1) % ($spots->count() ?: 1);
+            $currentSpot = $spots->isNotEmpty() ? $spots->get($spotIndex) : null;
+
+            $ticketIndex = ($i - 1) % ($tickets->count() ?: 1);
+            $currentTicket = $tickets->isNotEmpty() ? $tickets->get($ticketIndex) : null;
+
+            $transportIndex = ($i - 1) % ($transports->count() ?: 1);
+            $currentTransport = $transports->isNotEmpty() ? $transports->get($transportIndex) : null;
+
             $dayData = [
                 'day' => $i,
                 'title' => self::getDayTitle($i, $days),
-                'places' => [
-                    [
-                        'destination_id' => $destinationId,
-                        'name' => $destinationName . ' - Attraction ' . $i,
-                        'visit_duration' => '2-3 hours',
-                        'entry_ticket' => [
-                            'required' => true,
-                            'price' => 20 + ($i * 5),
-                            'currency' => 'USD',
-                            'booking_required' => false
-                        ]
-                    ]
-                ],
+                'places' => [],
+                'spots' => [],
                 'hotel' => [
-                    'name' => 'Hotel ' . $destinationName,
-                    'type' => '4-star',
+                    'name' => $hotel ? $hotel->name : ('Hotel ' . $destinationName),
+                    'hotel_id' => $hotel ? $hotel->id : null,
+                    'hotel_room_id' => $hotelRoom ? $hotelRoom->id : null,
+                    'type' => $hotelRoom ? $hotelRoom->room_type : 'Standard',
+                    'star_rating' => $hotel ? ($hotel->star_rating ?? 4) : 4,
                     'check_in' => '14:00',
                     'check_out' => '12:00',
-                    'price_per_night' => 100 + ($i * 10),
-                    'currency' => 'USD',
-                    'amenities' => ['WiFi', 'Breakfast', 'Pool', 'Gym']
+                    'price_per_night' => $hotelRoom ? (float)$hotelRoom->base_price : 120.00,
+                    'currency' => $hotel ? ($hotel->currency ?? 'MYR') : 'MYR',
+                    'amenities' => ['WiFi', 'Breakfast', 'Air Conditioning']
                 ],
+                'hotels' => $hotel ? [[
+                    'name' => $hotel->name,
+                    'hotel_id' => $hotel->id,
+                    'hotel_room_id' => $hotelRoom ? $hotelRoom->id : null,
+                    'star_rating' => $hotel->star_rating ?? 4,
+                    'type' => $hotelRoom ? $hotelRoom->room_type : 'Standard',
+                    'price_per_night' => $hotelRoom ? (float)$hotelRoom->base_price : 120.00,
+                    'currency' => $hotel->currency ?? 'MYR',
+                    'quantity' => 1,
+                    'add_on_price' => 0,
+                    'service_id' => null,
+                    'supplier_id' => $hotel->supplier_id
+                ]] : [],
                 'transport' => [
                     [
+                        'name' => $currentTransport ? $currentTransport->name : ($i === 1 ? 'Airport Transfer' : 'City Transfer'),
+                        'transport_id' => $currentTransport ? $currentTransport->id : null,
                         'type' => $i === 1 ? 'Airport Transfer' : 'Local Transport',
-                        'mode' => 'Private Car',
+                        'mode' => $currentTransport ? ($currentTransport->vehicle_type ?: $currentTransport->name) : 'Private Car',
+                        'vehicle_type' => $currentTransport ? ($currentTransport->vehicle_type ?: $currentTransport->name) : 'Private Car',
                         'from' => $i === 1 ? 'Airport' : 'Hotel',
-                        'to' => $i === 1 ? 'Hotel' : 'Attraction',
-                        'price' => $i === 1 ? 50 : 30,
-                        'currency' => 'USD',
-                        'duration' => $i === 1 ? '45 minutes' : '20 minutes'
+                        'to' => $i === 1 ? 'Hotel' : ($currentSpot ? $currentSpot->name : 'Attraction'),
+                        'price' => $currentTransport ? (float)$currentTransport->base_price : ($i === 1 ? 120.00 : 35.00),
+                        'currency' => $currentTransport ? ($currentTransport->currency ?? 'MYR') : 'MYR',
+                        'duration' => $currentTransport ? ($currentTransport->duration ?: '45 minutes') : '45 minutes',
+                        'service_id' => null,
+                        'supplier_id' => $currentTransport ? $currentTransport->supplier_id : null
                     ]
                 ],
-                'activities' => [
-                    [
-                        'name' => 'Guided Tour - Day ' . $i,
-                        'time' => '10:00 AM',
-                        'duration' => '3 hours',
-                        'entry_ticket' => [
-                            'price' => 35 + ($i * 5),
-                            'currency' => 'USD',
-                            'booking_required' => true
-                        ]
-                    ]
-                ],
+                'activities' => [],
                 'meals' => [
                     'breakfast' => 'Included at hotel',
-                    'lunch' => 'Local restaurant (own expense)',
-                    'dinner' => $i === $days ? 'Farewell dinner included' : 'Not included'
+                    'lunch' => 'Local restaurant',
+                    'dinner' => $i === $days ? 'Farewell dinner' : 'Included'
                 ],
-                'notes' => 'Comfortable walking shoes recommended. Bring sunscreen and water.'
+                'notes' => 'Comfortable walking shoes recommended. Tour program operated by Tourliz.'
             ];
 
+            // Add spot if available
+            if ($currentSpot) {
+                $dayData['spots'][] = [
+                    'name' => $currentSpot->name,
+                    'spot_id' => $currentSpot->id,
+                    'tourist_spot_id' => $currentSpot->id,
+                    'description' => $currentSpot->description ?? '',
+                    'hours' => 2,
+                    'price_per_hour' => 0,
+                    'service_id' => null,
+                    'supplier_id' => $currentSpot->supplier_id
+                ];
+            }
+
+            // Add entry ticket if available
+            if ($currentTicket) {
+                $dayData['places'][] = [
+                    'attraction_name' => $currentTicket->attraction_name,
+                    'ticket_id' => $currentTicket->id,
+                    'entry_ticket_id' => $currentTicket->id,
+                    'destination_id' => $currentTicket->destination_id,
+                    'description' => 'Entry Ticket: ' . $currentTicket->attraction_name,
+                    'entry_ticket' => [
+                        'required' => true,
+                        'adult_price' => (float)$currentTicket->adult_price,
+                        'child_price' => (float)($currentTicket->child_price ?: ($currentTicket->adult_price * 0.7)),
+                        'adult_qty' => 2,
+                        'child_2_6_qty' => 0,
+                        'child_6_11_qty' => 0,
+                        'currency' => $currentTicket->currency ?? 'MYR',
+                        'booking_required' => false
+                    ],
+                    'service_id' => null,
+                    'supplier_id' => $currentTicket->supplier_id
+                ];
+            }
+
             // Last day modifications
-            if ($i === $days) {
+            if ($i === $days && $transports->count() > 1) {
                 $dayData['title'] = 'Departure';
+                $returnTransport = $transports->last();
                 $dayData['transport'][] = [
+                    'name' => $returnTransport->name,
+                    'transport_id' => $returnTransport->id,
                     'type' => 'Airport Drop-off',
-                    'mode' => 'Private Car',
+                    'mode' => $returnTransport->vehicle_type ?: $returnTransport->name,
+                    'vehicle_type' => $returnTransport->vehicle_type ?: $returnTransport->name,
                     'from' => 'Hotel',
                     'to' => 'Airport',
-                    'price' => 50,
-                    'currency' => 'USD',
-                    'duration' => '45 minutes'
+                    'price' => (float)$returnTransport->base_price,
+                    'currency' => $returnTransport->currency ?? 'MYR',
+                    'duration' => $returnTransport->duration ?: '45 minutes',
+                    'service_id' => null,
+                    'supplier_id' => $returnTransport->supplier_id
                 ];
             }
 
@@ -312,49 +409,92 @@ class ItineraryHelper
         }
 
         foreach ($itinerary as &$day) {
-            // Enrich hotel with service data if service_id is set
-            if (isset($day['hotel']) && is_array($day['hotel']) && isset($day['hotel']['service_id'])) {
-                $service = Service::find($day['hotel']['service_id']);
-                if ($service) {
-                    $day['hotel']['name'] = $service->name;
-                    $day['hotel']['type'] = 'Core Service';
-                    $day['hotel']['price_per_night'] = $service->price;
-                    $day['hotel']['currency'] = $service->currency ?? 'MYR';
-                    $day['hotel']['image'] = $service->image ?? null;
-                    $day['hotel']['description'] = $service->short_description ?? $service->description ?? null;
+            // Enrich hotel with service or operational data
+            if (isset($day['hotel']) && is_array($day['hotel'])) {
+                if (!empty($day['hotel']['hotel_id'])) {
+                    $hModel = \App\Models\Hotel::find($day['hotel']['hotel_id']);
+                    if ($hModel) {
+                        $day['hotel']['name'] = $hModel->name;
+                        $day['hotel']['star_rating'] = $hModel->star_rating ?? 4;
+                        $day['hotel']['currency'] = $hModel->currency ?? 'MYR';
+                    }
+                    if (!empty($day['hotel']['hotel_room_id'])) {
+                        $rModel = \App\Models\HotelRoom::find($day['hotel']['hotel_room_id']);
+                        if ($rModel) {
+                            $day['hotel']['type'] = $rModel->room_type;
+                            $day['hotel']['price_per_night'] = (float)$rModel->base_price;
+                        }
+                    }
+                } elseif (isset($day['hotel']['service_id'])) {
+                    $service = Service::find($day['hotel']['service_id']);
+                    if ($service) {
+                        $day['hotel']['name'] = $service->name;
+                        $day['hotel']['type'] = 'Core Service';
+                        $day['hotel']['price_per_night'] = $service->price;
+                        $day['hotel']['currency'] = $service->currency ?? 'MYR';
+                        $day['hotel']['image'] = $service->image ?? null;
+                        $day['hotel']['description'] = $service->short_description ?? $service->description ?? null;
+                    }
                 }
             }
 
-            // Enrich hotels inside hotels array with service data if service_id is set
+            // Enrich hotels inside hotels array with service or operational data
             if (isset($day['hotels']) && is_array($day['hotels'])) {
                 foreach ($day['hotels'] as &$hotel) {
-                    if (is_array($hotel) && isset($hotel['service_id'])) {
-                        $service = Service::find($hotel['service_id']);
-                        if ($service) {
-                            $hotel['name'] = $service->name;
-                            $hotel['type'] = $service->accommodation_type ?: 'Core Service';
-                            $hotel['price_per_night'] = $service->price;
-                            $hotel['currency'] = $service->currency ?? 'MYR';
-                            $hotel['image'] = $service->image ?? null;
-                            $hotel['description'] = $service->short_description ?? $service->description ?? null;
+                    if (is_array($hotel)) {
+                        if (!empty($hotel['hotel_id'])) {
+                            $hModel = \App\Models\Hotel::find($hotel['hotel_id']);
+                            if ($hModel) {
+                                $hotel['name'] = $hModel->name;
+                                $hotel['star_rating'] = $hModel->star_rating ?? 4;
+                                $hotel['currency'] = $hModel->currency ?? 'MYR';
+                            }
+                            if (!empty($hotel['hotel_room_id'])) {
+                                $rModel = \App\Models\HotelRoom::find($hotel['hotel_room_id']);
+                                if ($rModel) {
+                                    $hotel['type'] = $rModel->room_type;
+                                    $hotel['price_per_night'] = (float)$rModel->base_price;
+                                }
+                            }
+                        } elseif (isset($hotel['service_id'])) {
+                            $service = Service::find($hotel['service_id']);
+                            if ($service) {
+                                $hotel['name'] = $service->name;
+                                $hotel['type'] = $service->accommodation_type ?: 'Core Service';
+                                $hotel['price_per_night'] = $service->price;
+                                $hotel['currency'] = $service->currency ?? 'MYR';
+                                $hotel['image'] = $service->image ?? null;
+                                $hotel['description'] = $service->short_description ?? $service->description ?? null;
+                            }
                         }
                     }
                 }
             }
 
-            // Enrich transport with service data if service_id is set
+            // Enrich transport with service or operational data
             if (isset($day['transport']) && is_array($day['transport'])) {
                 foreach ($day['transport'] as &$trans) {
-                    if (is_array($trans) && isset($trans['service_id'])) {
-                        $service = Service::find($trans['service_id']);
-                        if ($service) {
-                            $trans['name'] = $service->name;
-                            $trans['mode'] = $service->name;
-                            $trans['type'] = $service->vehicle_type ?: $service->name;
-                            $trans['price'] = $service->price;
-                            $trans['currency'] = $service->currency ?? 'MYR';
-                            $trans['image'] = $service->image ?? null;
-                            $trans['description'] = $service->short_description ?? $service->description ?? null;
+                    if (is_array($trans)) {
+                        if (!empty($trans['transport_id'])) {
+                            $tModel = \App\Models\Transport::find($trans['transport_id']);
+                            if ($tModel) {
+                                $trans['name'] = $tModel->name;
+                                $trans['mode'] = $tModel->vehicle_type ?: $tModel->name;
+                                $trans['vehicle_type'] = $tModel->vehicle_type ?: $tModel->name;
+                                $trans['price'] = (float)$tModel->base_price;
+                                $trans['currency'] = $tModel->currency ?? 'MYR';
+                            }
+                        } elseif (isset($trans['service_id'])) {
+                            $service = Service::find($trans['service_id']);
+                            if ($service) {
+                                $trans['name'] = $service->name;
+                                $trans['mode'] = $service->name;
+                                $trans['type'] = $service->vehicle_type ?: $service->name;
+                                $trans['price'] = $service->price;
+                                $trans['currency'] = $service->currency ?? 'MYR';
+                                $trans['image'] = $service->image ?? null;
+                                $trans['description'] = $service->short_description ?? $service->description ?? null;
+                            }
                         }
                     }
                 }
@@ -363,7 +503,33 @@ class ItineraryHelper
             // Enrich places with database data
             if (isset($day['places']) && is_array($day['places'])) {
                 foreach ($day['places'] as &$place) {
+                    if (is_string($place)) {
+                        $place = ['name' => $place];
+                    }
                     if (is_array($place)) {
+                        if (!empty($place['spot_id']) || !empty($place['tourist_spot_id'])) {
+                            $sId = $place['spot_id'] ?? $place['tourist_spot_id'];
+                            $tsModel = \App\Models\TouristSpot::with('supplier', 'destination')->find($sId);
+                            if ($tsModel) {
+                                $place['name'] = $tsModel->name;
+                                $place['supplier_name'] = $tsModel->supplier ? $tsModel->supplier->name : ($place['supplier_name'] ?? null);
+                                $place['destination'] = $tsModel->destination ? $tsModel->destination->name : ($place['destination'] ?? null);
+                            }
+                        }
+                        if (!empty($place['ticket_id']) || !empty($place['entry_ticket_id'])) {
+                            $tId = $place['ticket_id'] ?? $place['entry_ticket_id'];
+                            $etModel = \App\Models\EntryTicket::find($tId);
+                            if ($etModel) {
+                                $place['name'] = $etModel->attraction_name;
+                                $place['attraction_name'] = $etModel->attraction_name;
+                                $place['currency'] = $etModel->currency ?? 'MYR';
+                                if (isset($place['entry_ticket']) && is_array($place['entry_ticket'])) {
+                                    $place['entry_ticket']['adult_price'] = (float)$etModel->adult_price;
+                                    $place['entry_ticket']['child_price'] = (float)($etModel->child_price ?: ($etModel->adult_price * 0.7));
+                                    $place['entry_ticket']['currency'] = $etModel->currency ?? 'MYR';
+                                }
+                            }
+                        }
                         if (isset($place['destination_id'])) {
                             $destinationModel = Destination::find($place['destination_id']);
                             if ($destinationModel) {
@@ -393,11 +559,25 @@ class ItineraryHelper
                 }
             }
 
-            // Enrich activities with service data
+            // Enrich activities with service or operational data
             if (isset($day['activities']) && is_array($day['activities'])) {
                 foreach ($day['activities'] as &$activity) {
+                    if (is_string($activity)) {
+                        $activity = ['name' => $activity];
+                    }
                     if (is_array($activity)) {
-                        if (isset($activity['service_id'])) {
+                        if (!empty($activity['activity_id'])) {
+                            $actModel = \App\Models\Activity::find($activity['activity_id']);
+                            if ($actModel) {
+                                $activity['name'] = $actModel->name;
+                                $activity['description'] = $actModel->description;
+                                $activity['duration'] = $actModel->duration;
+                                if (isset($activity['entry_ticket']) && is_array($activity['entry_ticket'])) {
+                                    $activity['entry_ticket']['adult_price'] = (float)$actModel->base_price;
+                                    $activity['entry_ticket']['currency'] = 'MYR';
+                                }
+                            }
+                        } elseif (isset($activity['service_id'])) {
                             $service = Service::find($activity['service_id']);
                             if ($service) {
                                 $activity['name'] = $service->name;
@@ -417,11 +597,24 @@ class ItineraryHelper
                 }
             }
 
-            // Enrich spots with service data
+            // Enrich spots with service or operational data
             if (isset($day['spots']) && is_array($day['spots'])) {
                 foreach ($day['spots'] as &$spot) {
+                    if (is_string($spot)) {
+                        $spot = ['name' => $spot];
+                    }
                     if (is_array($spot)) {
-                        if (isset($spot['service_id'])) {
+                        if (!empty($spot['spot_id']) || !empty($spot['tourist_spot_id'])) {
+                            $sId = $spot['spot_id'] ?? $spot['tourist_spot_id'];
+                            $tsModel = \App\Models\TouristSpot::with('supplier', 'destination')->find($sId);
+                            if ($tsModel) {
+                                $spot['name'] = $tsModel->name;
+                                $spot['description'] = $tsModel->description ?? '';
+                                $spot['image'] = $tsModel->image_url ?? null;
+                                $spot['supplier_name'] = $tsModel->supplier ? $tsModel->supplier->name : ($spot['supplier_name'] ?? null);
+                                $spot['destination'] = $tsModel->destination ? $tsModel->destination->name : ($spot['destination'] ?? null);
+                            }
+                        } elseif (isset($spot['service_id'])) {
                             $service = Service::find($spot['service_id']);
                             if ($service) {
                                 $spot['name'] = $service->name;
@@ -459,7 +652,27 @@ class ItineraryHelper
                             $meal['name'] = '[' . ($service->accommodation_type ?: $service->vehicle_type ?: 'Meal') . '] ' . $service->name;
                             $meal['price'] = $service->price;
                             $meal['currency'] = $service->currency ?? 'MYR';
-                            $meal['description'] = $service->short_description ?? $service->description ?? null;
+                        }
+                    }
+                }
+            }
+
+            // Enrich direct tickets with operational entry ticket data
+            if (isset($day['tickets']) && is_array($day['tickets'])) {
+                foreach ($day['tickets'] as &$ticket) {
+                    if (is_string($ticket)) {
+                        $ticket = ['name' => $ticket, 'price' => 0];
+                    }
+                    if (is_array($ticket)) {
+                        if (!empty($ticket['ticket_id']) || !empty($ticket['entry_ticket_id'])) {
+                            $tId = $ticket['ticket_id'] ?? $ticket['entry_ticket_id'];
+                            $etModel = \App\Models\EntryTicket::with('supplier')->find($tId);
+                            if ($etModel) {
+                                $ticket['name'] = $etModel->attraction_name;
+                                $ticket['price'] = (float)$etModel->adult_price;
+                                $ticket['supplier_name'] = $etModel->supplier ? $etModel->supplier->name : ($ticket['supplier_name'] ?? '');
+                                $ticket['currency'] = $etModel->currency ?? 'MYR';
+                            }
                         }
                     }
                 }

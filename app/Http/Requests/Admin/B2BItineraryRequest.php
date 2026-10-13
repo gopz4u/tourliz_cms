@@ -41,6 +41,7 @@ class B2BItineraryRequest extends FormRequest
             'supplier_id' => 'nullable|exists:suppliers,id',
             'net_rate' => 'required|numeric|min:0',
             'agent_rate' => 'required|numeric|min:0',
+            'currency' => 'nullable|string|in:MYR,USD,INR,SGD',
             'markup_percentage' => 'nullable|numeric|min:0',
             'markup_amount' => 'nullable|numeric|min:0',
             'commission' => 'nullable|numeric|min:0',
@@ -64,6 +65,19 @@ class B2BItineraryRequest extends FormRequest
             'days.*.title' => 'nullable|string|max:255',
             'days.*.description' => 'nullable|string',
             'days.*.overnight_location' => 'nullable|string|max:255',
+            'days.*.highlights' => 'nullable',
+            'days.*.inclusions' => 'nullable',
+            'days.*.exclusions' => 'nullable',
+            'days.*.items' => 'nullable|array',
+            'days.*.items.*.item_type' => 'nullable|string',
+            'days.*.items.*.item_id' => 'nullable',
+            'days.*.items.*.title' => 'nullable|string',
+            'days.*.items.*.description' => 'nullable|string',
+            'days.*.items.*.price' => 'nullable|numeric',
+            'days.*.items.*.cost' => 'nullable|numeric',
+            'days.*.items.*.supplier_id' => 'nullable',
+            'days.*.items.*.room_type' => 'nullable|string',
+            'days.*.items.*.sort_order' => 'nullable',
         ];
     }
 }

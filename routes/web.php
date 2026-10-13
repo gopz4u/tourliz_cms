@@ -308,6 +308,8 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:admin'])->grou
     Route::get('group-itineraries/{id}/whatsapp', [\App\Http\Controllers\Admin\GroupItineraryController::class, 'whatsapp'])->name('group-itineraries.whatsapp');
 
     // Fixed Itineraries (Multi-country, fixed-price, single-vendor)
+    Route::get('fixed-itineraries/{id}/pdf', [\App\Http\Controllers\Admin\FixedItineraryController::class, 'pdf'])->name('fixed-itineraries.pdf');
+    Route::get('fixed-itineraries/{id}/whatsapp', [\App\Http\Controllers\Admin\FixedItineraryController::class, 'whatsapp'])->name('fixed-itineraries.whatsapp');
     Route::resource('fixed-itineraries', \App\Http\Controllers\Admin\FixedItineraryController::class);
 
     // Shared Itinerary Architecture Routes (B2C & B2B)

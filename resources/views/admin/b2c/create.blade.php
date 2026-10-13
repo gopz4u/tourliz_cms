@@ -53,6 +53,61 @@
                         <h5 class="mt-5 mb-4 border-bottom pb-2">Trip Requirements</h5>
                         <div class="row g-3">
                             <div class="col-md-12">
+                                <div class="p-3 bg-light rounded-3 border">
+                                    <div class="d-flex justify-content-between align-items-center mb-2">
+                                        <label class="form-label fw-bold small text-primary mb-0">
+                                            <i class="bi bi-pin-map-fill me-1"></i>Select Master Package / Fixed Itinerary (Optional)
+                                        </label>
+                                        <span class="badge bg-secondary-subtle text-secondary border small">Not Mandatory</span>
+                                    </div>
+                                    <div class="row g-2">
+                                        <div class="col-md-6">
+                                            <label class="form-label small text-muted mb-1 fw-semibold">
+                                                <i class="bi bi-pin-map text-primary me-1"></i>Fixed Itinerary:
+                                            </label>
+                                            <select name="fixed_itinerary_id" id="fixed_itinerary_select" class="form-select form-select-sm">
+                                                <option value="">-- None / Blank (Build Custom Day-Wise Plan) --</option>
+                                                @if(isset($fixedItineraries))
+                                                    @foreach($fixedItineraries as $fi)
+                                                        <option value="{{ $fi->id }}" 
+                                                                data-days="{{ $fi->duration_days ?: 1 }}" 
+                                                                data-title="{{ $fi->title }}" 
+                                                                data-destination="{{ $fi->destination_id }}"
+                                                                data-price="{{ $fi->fixed_price }}"
+                                                                data-currency="{{ $fi->currency ?: 'MYR' }}">
+                                                            {{ $fi->title }} ({{ $fi->duration_days }}D{{ $fi->duration_nights ?: 0 }}N - {{ $fi->currency ?: 'MYR' }} {{ number_format($fi->fixed_price, 2) }})
+                                                        </option>
+                                                    @endforeach
+                                                @endif
+                                            </select>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label class="form-label small text-muted mb-1 fw-semibold">
+                                                <i class="bi bi-box-seam text-info me-1"></i>Operations Group Tour Master:
+                                            </label>
+                                            <select name="group_package_id" id="group_package_select" class="form-select form-select-sm">
+                                                <option value="">-- None / Blank (Build Custom Day-Wise Plan) --</option>
+                                                @if(isset($groupPackages))
+                                                    @foreach($groupPackages as $gp)
+                                                        <option value="{{ $gp->id }}" 
+                                                                data-days="{{ $gp->duration_days ?: 3 }}" 
+                                                                data-title="{{ $gp->name }}" 
+                                                                data-destination="{{ $gp->destination_id }}"
+                                                                data-price="{{ $gp->price }}"
+                                                                data-currency="{{ $gp->currency ?: 'MYR' }}">
+                                                            {{ $gp->name }} ({{ $gp->duration ?: ($gp->duration_days . ' Days') }} - {{ $gp->currency ?: 'MYR' }} {{ number_format($gp->price, 2) }})
+                                                        </option>
+                                                    @endforeach
+                                                @endif
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div class="form-text small text-muted mt-2">
+                                        <i class="bi bi-info-circle me-1 text-primary"></i><strong>Flexibility Note:</strong> Selecting a Fixed Itinerary or Group Tour is <u>optional</u>. If you need to build or add a day-wise itinerary manually from scratch, leave these blank and proceed directly.
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-12">
                                 <label class="form-label fw-bold small text-muted">Trip Title <span
                                         class="text-danger">*</span></label>
                                 <input type="text" name="title" class="form-control"
@@ -116,3 +171,44 @@
         </div>
     </div>
 @endsection
+
+@push('scripts')
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const fixedSelect = document.getElementById('fixed_itinerary_select');
+    const groupSelect = document.getElementById('group_package_select');
+    const titleInput = document.querySelector('input[name="title"]');
+    const daysInput = document.querySelector('input[name="duration_days"]');
+
+    if (fixedSelect) {
+        fixedSelect.addEventListener('change', function() {
+            if (this.value) {
+                if (groupSelect) groupSelect.value = '';
+                const opt = this.options[this.selectedIndex];
+                if (titleInput && opt.getAttribute('data-title')) {
+                    titleInput.value = opt.getAttribute('data-title');
+                }
+                if (daysInput && opt.getAttribute('data-days')) {
+                    daysInput.value = opt.getAttribute('data-days');
+                }
+            }
+        });
+    }
+
+    if (groupSelect) {
+        groupSelect.addEventListener('change', function() {
+            if (this.value) {
+                if (fixedSelect) fixedSelect.value = '';
+                const opt = this.options[this.selectedIndex];
+                if (titleInput && opt.getAttribute('data-title')) {
+                    titleInput.value = opt.getAttribute('data-title');
+                }
+                if (daysInput && opt.getAttribute('data-days')) {
+                    daysInput.value = opt.getAttribute('data-days');
+                }
+            }
+        });
+    }
+});
+</script>
+@endpush

@@ -65,30 +65,53 @@ class SupplierController extends Controller
      */
     public function store(Request $request)
     {
-        $validated = $request->validate([
-            'name' => 'required|string|max:255',
-            'destination_id' => 'nullable|exists:destinations,id',
-            'type' => 'required|string',
-            'contact_person' => 'nullable|string|max:255',
-            'phone' => 'nullable|string|max:20',
-            'email' => 'nullable|email|max:255',
-            'address' => 'nullable|string',
-            'bank_name' => 'nullable|string|max:255',
-            'account_name' => 'nullable|string|max:255',
-            'account_number' => 'nullable|string|max:255',
-            'swift_ifsc' => 'nullable|string|max:50',
-            'notes' => 'nullable|string',
-            'is_active' => 'boolean',
-        ]);
+        try {
+            $validated = $request->validate([
+                'name' => 'required|string|max:255',
+                'destination_id' => 'nullable|exists:destinations,id',
+                'type' => 'required|string',
+                'contact_person' => 'nullable|string|max:255',
+                'phone' => 'nullable|string|max:50',
+                'email' => 'nullable|email|max:255',
+                'address' => 'nullable|string',
+                'bank_name' => 'nullable|string|max:255',
+                'account_name' => 'nullable|string|max:255',
+                'account_number' => 'nullable|string|max:255',
+                'swift_ifsc' => 'nullable|string|max:50',
+                'notes' => 'nullable|string',
+                'is_active' => 'nullable',
+            ]);
 
-        $validated['is_active'] = $request->has('is_active');
-        $supplier = Supplier::create($validated);
+            $validated['is_active'] = $request->boolean('is_active', true);
+            $supplier = Supplier::create($validated);
 
-        if ($request->ajax()) {
-            return response()->json(['success' => true, 'supplier' => $supplier]);
+            if ($request->ajax() || $request->wantsJson() || $request->isJson()) {
+                return response()->json([
+                    'success' => true,
+                    'supplier' => $supplier,
+                    'message' => 'Supplier created successfully'
+                ]);
+            }
+
+            return redirect()->route('admin.suppliers.index')->with('success', 'Supplier created successfully');
+        } catch (\Illuminate\Validation\ValidationException $ve) {
+            if ($request->ajax() || $request->wantsJson() || $request->isJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => collect($ve->errors())->flatten()->first() ?: 'Validation failed',
+                    'errors' => $ve->errors()
+                ], 422);
+            }
+            throw $ve;
+        } catch (\Exception $e) {
+            if ($request->ajax() || $request->wantsJson() || $request->isJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => $e->getMessage()
+                ], 500);
+            }
+            throw $e;
         }
-
-        return redirect()->route('admin.suppliers.index')->with('success', 'Supplier created successfully');
     }
 
     /**
