@@ -747,6 +747,13 @@
                         <i class="bi bi-arrow-right nav-arrow"></i>
                     </a>
                 </li>
+                <li>
+                    <a href="{{ route('admin.group-departures.index') }}" class="{{ request()->routeIs('admin.group-departures.*') ? 'active' : '' }}">
+                        <i class="bi bi-calendar2-event-fill main-icon"></i>
+                        <span>Group Departures</span>
+                        <i class="bi bi-arrow-right nav-arrow"></i>
+                    </a>
+                </li>
             </ul>
 
             <!-- 3. SALES & BOOKINGS -->
