@@ -909,7 +909,7 @@
 
             // --- Global Realtime AJAX Delete ---
             // Automatically intercepts any standard Laravel delete form and processes it via AJAX!
-            $('form:has(input[name="_method"][value="DELETE"])').on('submit', function (e) {
+            $('form:has(input[name="_method"][value="DELETE"])').not('.no-ajax-delete').on('submit', function (e) {
                 e.preventDefault();
 
                 let form = $(this);
