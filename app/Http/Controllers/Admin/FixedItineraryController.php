@@ -306,9 +306,11 @@ class FixedItineraryController extends Controller
                 foreach ($items as $rawItem) {
                     $item = (array) $rawItem;
                     if (!empty($item['title'])) {
-                        $type = ucfirst($item['item_type'] ?? 'Activity');
+                        $type = ($item['item_type'] ?? '') === 'spot'
+                            ? '📍'
+                            : ucfirst($item['item_type'] ?? 'Activity') . ':';
                         $room = !empty($item['room_type']) ? ' (' . $item['room_type'] . ')' : '';
-                        $lines[] = "  • {$type}: {$item['title']}{$room}";
+                        $lines[] = "  • {$type} {$item['title']}{$room}";
                     }
                 }
 

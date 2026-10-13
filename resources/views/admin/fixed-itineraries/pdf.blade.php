@@ -114,7 +114,7 @@
                                     @if(!empty($day['description']))<div class="day-description">{!! nl2br(e($day['description'])) !!}</div>@endif
                                     @foreach($dayItems as $rawItem)
                                         @php $item = (array) $rawItem; @endphp
-                                        <span class="item"><b>{{ strtoupper($item['item_type'] ?? 'ITEM') }}</b> &nbsp; {{ $item['title'] ?? '' }}@if(!empty($item['room_type'])) · {{ $item['room_type'] }}@endif</span>
+                                        <span class="item"><b>{{ ($item['item_type'] ?? '') === 'spot' ? '📍' : strtoupper($item['item_type'] ?? 'ITEM') }}</b> &nbsp; {{ $item['title'] ?? '' }}@if(!empty($item['room_type'])) · {{ $item['room_type'] }}@endif</span>
                                     @endforeach
                                     @if(!empty($day['overnight_location']))<div class="overnight"><span>&#9790;</span> Overnight in {{ $day['overnight_location'] }}</div>@endif
                                 </div>
