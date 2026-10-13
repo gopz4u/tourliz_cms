@@ -225,6 +225,54 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:admin'])->grou
                 }
                 $output[] = "Checked/Added highlights columns to 'itinerary_days' tables.";
 
+                // 4. Fixed Itineraries Table & Columns
+                if (\Illuminate\Support\Facades\Schema::hasTable('fixed_itineraries')) {
+                    \Illuminate\Support\Facades\Schema::table('fixed_itineraries', function (\Illuminate\Database\Schema\Blueprint $table) {
+                        if (!\Illuminate\Support\Facades\Schema::hasColumn('fixed_itineraries', 'destination_id')) {
+                            $table->foreignId('destination_id')->nullable()->after('supplier_id');
+                        }
+                        if (!\Illuminate\Support\Facades\Schema::hasColumn('fixed_itineraries', 'supplier_ids')) {
+                            $table->json('supplier_ids')->nullable()->after('supplier_id');
+                        }
+                        if (!\Illuminate\Support\Facades\Schema::hasColumn('fixed_itineraries', 'duration_days')) {
+                            $table->integer('duration_days')->default(1)->after('title');
+                        }
+                        if (!\Illuminate\Support\Facades\Schema::hasColumn('fixed_itineraries', 'duration_nights')) {
+                            $table->integer('duration_nights')->default(0)->after('duration_days');
+                        }
+                        if (!\Illuminate\Support\Facades\Schema::hasColumn('fixed_itineraries', 'short_description')) {
+                            $table->text('short_description')->nullable()->after('duration_nights');
+                        }
+                        if (!\Illuminate\Support\Facades\Schema::hasColumn('fixed_itineraries', 'highlights')) {
+                            $table->json('highlights')->nullable()->after('itinerary_description');
+                        }
+                        if (!\Illuminate\Support\Facades\Schema::hasColumn('fixed_itineraries', 'inclusions')) {
+                            $table->json('inclusions')->nullable()->after('highlights');
+                        }
+                        if (!\Illuminate\Support\Facades\Schema::hasColumn('fixed_itineraries', 'exclusions')) {
+                            $table->json('exclusions')->nullable()->after('inclusions');
+                        }
+                        if (!\Illuminate\Support\Facades\Schema::hasColumn('fixed_itineraries', 'terms_conditions')) {
+                            $table->text('terms_conditions')->nullable()->after('exclusions');
+                        }
+                        if (!\Illuminate\Support\Facades\Schema::hasColumn('fixed_itineraries', 'days')) {
+                            $table->json('days')->nullable()->after('terms_conditions');
+                        }
+                        if (!\Illuminate\Support\Facades\Schema::hasColumn('fixed_itineraries', 'image')) {
+                            $table->string('image')->nullable()->after('currency');
+                        }
+                    });
+                    $output[] = "Checked/Added missing columns to 'fixed_itineraries' table.";
+                }
+
+                // 4.1 Repair missing supplier_ids columns across all tables
+                if (file_exists(database_path('migrations/2026_10_14_000000_repair_missing_supplier_ids_columns.php'))) {
+                    require_once database_path('migrations/2026_10_14_000000_repair_missing_supplier_ids_columns.php');
+                    $repairMig = new \RepairMissingSupplierIdsColumns();
+                    $repairMig->up();
+                    $output[] = "Repaired supplier_ids columns on fixed_itineraries, itineraries, and itinerary_b2b_details.";
+                }
+
                 // 5. Leads Table
                 if (!\Illuminate\Support\Facades\Schema::hasTable('leads')) {
                     \Illuminate\Support\Facades\Schema::create('leads', function (\Illuminate\Database\Schema\Blueprint $table) {
@@ -242,6 +290,14 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:admin'])->grou
                         $table->timestamps();
                     });
                     $output[] = "Created 'leads' table.";
+                }
+
+                // Try running artisan migrate --force safely
+                try {
+                    \Illuminate\Support\Facades\Artisan::call('migrate', ['--force' => true]);
+                    $output[] = "Ran artisan migrate --force.";
+                } catch (\Throwable $migEx) {
+                    $output[] = "Artisan migrate notice: " . $migEx->getMessage();
                 }
 
                 // Clear schema cache just in case

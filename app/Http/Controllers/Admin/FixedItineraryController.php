@@ -29,9 +29,12 @@ class FixedItineraryController extends Controller
 
         if ($request->filled('supplier_id')) {
             $sId = (int) $request->supplier_id;
-            $query->where(function ($sq) use ($sId) {
-                $sq->where('supplier_id', $sId)
-                   ->orWhereJsonContains('supplier_ids', $sId);
+            $hasSupplierIds = \Illuminate\Support\Facades\Schema::hasColumn('fixed_itineraries', 'supplier_ids');
+            $query->where(function ($sq) use ($sId, $hasSupplierIds) {
+                $sq->where('supplier_id', $sId);
+                if ($hasSupplierIds) {
+                    $sq->orWhereJsonContains('supplier_ids', $sId);
+                }
             });
         }
 
@@ -98,7 +101,7 @@ class FixedItineraryController extends Controller
         $supplierIds = $this->resolveSupplierIds($rawSupplierIds, $validated['destination_id'] ?? null);
         $primarySupplierId = !empty($supplierIds) ? $supplierIds[0] : null;
 
-        $itinerary = FixedItinerary::create([
+        $itinerary = FixedItinerary::create($this->filterSupplierIdsIfMissing([
             'user_id' => auth()->id(),
             'supplier_id' => $primarySupplierId,
             'supplier_ids' => $supplierIds,
@@ -118,7 +121,7 @@ class FixedItineraryController extends Controller
             'currency' => $validated['currency'] ?? 'MYR',
             'image' => $imagePath,
             'status' => $validated['status'] ?? 'active',
-        ]);
+        ]));
 
         return redirect()->route('admin.fixed-itineraries.index')
             ->with('success', "Fixed itinerary '{$itinerary->title}' created successfully.");
@@ -183,7 +186,7 @@ class FixedItineraryController extends Controller
         $supplierIds = $this->resolveSupplierIds($rawSupplierIds, $destId);
         $primarySupplierId = !empty($supplierIds) ? $supplierIds[0] : null;
 
-        $itinerary->update([
+        $itinerary->update($this->filterSupplierIdsIfMissing([
             'supplier_id' => $primarySupplierId,
             'supplier_ids' => $supplierIds,
             'destination_id' => $validated['destination_id'] ?? $itinerary->destination_id,
@@ -202,7 +205,7 @@ class FixedItineraryController extends Controller
             'currency' => $validated['currency'] ?? $itinerary->currency,
             'image' => $imagePath,
             'status' => $validated['status'] ?? $itinerary->status,
-        ]);
+        ]));
 
         return redirect()->route('admin.fixed-itineraries.index')
             ->with('success', "Fixed itinerary '{$itinerary->title}' updated successfully.");
@@ -348,5 +351,27 @@ class FixedItineraryController extends Controller
             }
         }
         return array_values(array_unique($resolved));
+    }
+
+    /**
+     * Ensure supplier_ids column exists on fixed_itineraries table, or strip it from data if missing.
+     */
+    protected function filterSupplierIdsIfMissing(array $data): array
+    {
+        if (!\Illuminate\Support\Facades\Schema::hasColumn('fixed_itineraries', 'supplier_ids')) {
+            try {
+                \Illuminate\Support\Facades\Schema::table('fixed_itineraries', function (\Illuminate\Database\Schema\Blueprint $table) {
+                    $table->json('supplier_ids')->nullable()->after('supplier_id');
+                });
+            } catch (\Throwable $e) {
+                \Illuminate\Support\Facades\Log::warning('Could not auto-add supplier_ids to fixed_itineraries: ' . $e->getMessage());
+            }
+        }
+
+        if (!\Illuminate\Support\Facades\Schema::hasColumn('fixed_itineraries', 'supplier_ids')) {
+            unset($data['supplier_ids']);
+        }
+
+        return $data;
     }
 }

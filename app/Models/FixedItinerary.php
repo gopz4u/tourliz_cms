@@ -10,6 +10,36 @@ class FixedItinerary extends Model
 {
     use HasFactory, SoftDeletes;
 
+    protected static function boot()
+    {
+        parent::boot();
+
+        static::saving(function ($model) {
+            if (array_key_exists('supplier_ids', $model->getAttributes())) {
+                static $hasSupplierIdsCol = null;
+                if ($hasSupplierIdsCol === null) {
+                    try {
+                        if (!\Illuminate\Support\Facades\Schema::hasColumn('fixed_itineraries', 'supplier_ids')) {
+                            \Illuminate\Support\Facades\Schema::table('fixed_itineraries', function (\Illuminate\Database\Schema\Blueprint $table) {
+                                $table->json('supplier_ids')->nullable()->after('supplier_id');
+                            });
+                        }
+                        $hasSupplierIdsCol = \Illuminate\Support\Facades\Schema::hasColumn('fixed_itineraries', 'supplier_ids');
+                    } catch (\Throwable $e) {
+                        \Illuminate\Support\Facades\Log::warning('FixedItinerary auto-migration for supplier_ids skipped: ' . $e->getMessage());
+                        $hasSupplierIdsCol = false;
+                    }
+                }
+
+                if (!$hasSupplierIdsCol) {
+                    $raw = $model->getAttributes();
+                    unset($raw['supplier_ids']);
+                    $model->setRawAttributes($raw);
+                }
+            }
+        });
+    }
+
     protected $fillable = [
         'user_id',
         'supplier_id',
