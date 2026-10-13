@@ -46,7 +46,7 @@ class CreateGroupDeparturesTables extends Migration
                 $table->string('booking_status')->default('reserved');
                 $table->text('notes')->nullable();
                 $table->timestamps();
-                $table->index(['group_departure_id', 'booking_status']);
+                $table->index(['group_departure_id', 'booking_status'], 'gdc_departure_status_idx');
             });
         }
     }
