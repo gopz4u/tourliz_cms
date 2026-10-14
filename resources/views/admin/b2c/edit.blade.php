@@ -2,8 +2,90 @@
 
 @section('title', 'Edit B2C Proposal')
 
+@push('styles')
+    <style>
+        .b2c-editor {
+            --editor-primary: #4f46e5;
+            --editor-border: #e5e7eb;
+            --editor-muted: #64748b;
+        }
+
+        .b2c-editor .editor-header {
+            padding: 1rem 1.15rem;
+            margin-bottom: 1.25rem;
+            background: #fff;
+            border: 1px solid var(--editor-border);
+            border-radius: .85rem;
+            box-shadow: 0 3px 14px rgba(15, 23, 42, .05);
+        }
+
+        .b2c-editor .editor-header h2 { font-size: 1.35rem; }
+        .b2c-editor .editor-header .btn { white-space: nowrap; }
+        .b2c-editor .editor-actions { row-gap: .5rem; }
+
+        .b2c-editor .settings-panel {
+            position: sticky;
+            top: 1rem;
+            border: 1px solid var(--editor-border) !important;
+            border-radius: .85rem !important;
+            box-shadow: 0 3px 14px rgba(15, 23, 42, .05) !important;
+            overflow: hidden;
+        }
+
+        .b2c-editor .settings-panel .card-header { background: #f8fafc !important; }
+        .b2c-editor .settings-panel .nav-link { color: var(--editor-muted); }
+        .b2c-editor .settings-panel .nav-link.active {
+            color: #fff !important;
+            background: var(--editor-primary) !important;
+            box-shadow: 0 4px 10px rgba(79, 70, 229, .2);
+        }
+
+        .b2c-editor .form-control,
+        .b2c-editor .form-select,
+        .b2c-editor .input-group-text {
+            border-color: #dbe2ea;
+            border-radius: .55rem;
+        }
+
+        .b2c-editor .form-control:focus,
+        .b2c-editor .form-select:focus {
+            border-color: #818cf8;
+            box-shadow: 0 0 0 .2rem rgba(79, 70, 229, .1);
+        }
+
+        .b2c-editor #itinerary-builder > .card {
+            border: 1px solid var(--editor-border) !important;
+            border-radius: .85rem !important;
+            box-shadow: 0 3px 14px rgba(15, 23, 42, .05) !important;
+        }
+
+        .b2c-editor #itinerary-builder > .card > .card-header {
+            background: #fff !important;
+            border-bottom: 1px solid var(--editor-border) !important;
+        }
+
+        .b2c-editor #itinerary-builder > .card > .card-body { background: #f8fafc !important; }
+        .b2c-editor .border-dashed { border-style: dashed !important; }
+
+        @media (max-width: 991.98px) {
+            .b2c-editor .settings-panel { position: static; }
+            .b2c-editor .editor-header .d-flex { align-items: flex-start !important; }
+            .b2c-editor .editor-actions { width: 100%; }
+        }
+
+        @media (max-width: 767.98px) {
+            .b2c-editor .editor-header { padding: .85rem; }
+            .b2c-editor .editor-header > .d-flex { flex-direction: column; gap: .85rem; }
+            .b2c-editor .editor-actions .btn { flex: 1 1 calc(50% - .5rem); }
+            .b2c-editor .editor-actions .dropdown { flex: 1 1 100%; }
+            .b2c-editor .editor-actions .dropdown > .btn { width: 100%; }
+        }
+    </style>
+@endpush
+
 @section('content')
-    <div class="page-header">
+<div class="b2c-editor">
+    <div class="page-header editor-header">
         <div class="d-flex justify-content-between align-items-center">
             <div>
                 <h2><i class="bi bi-pencil-square me-2"></i>Edit B2C Proposal</h2>
@@ -12,7 +94,7 @@
                     ({{ data_get($itinerary, 'destination.name') }})
                 </p>
             </div>
-            <div class="d-flex gap-2">
+            <div class="d-flex gap-2 flex-wrap justify-content-end editor-actions">
                 <div class="dropdown">
                     <button type="button" class="btn btn-outline-primary dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
                         <i class="bi bi-cloud-arrow-down me-1"></i> Import Template
@@ -136,7 +218,7 @@
     <div class="row">
         <!-- Left Sidebar: Settings -->
         <div class="col-lg-3">
-            <div class="card shadow-sm border-0 mb-4 bg-white rounded-3">
+            <div class="card shadow-sm border-0 mb-4 bg-white rounded-3 settings-panel">
                 <!-- Card Header with Navigation Tabs -->
                 <div class="card-header border-bottom-0 bg-light p-2" style="border-radius: 8px 8px 0 0;">
                     <ul class="nav nav-pills nav-fill gap-1" id="sidebarTabs" role="tablist">
@@ -611,6 +693,7 @@
                 </div>
             </div>
         </div>
+</div>
 @endsection
 
 @push('scripts')
