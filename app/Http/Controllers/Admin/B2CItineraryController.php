@@ -469,6 +469,12 @@ class B2CItineraryController extends Controller
         })->all();
 
         $mealIncluded = collect($enrichedItinerary)->contains(fn ($day) => !empty($day['meals']));
+        $customerTotal = $itinerary->customer_total_price;
+        $adultCount = max(1, (int) $itinerary->adults);
+        $childSmallCount = (int) $itinerary->children_2_6;
+        $childLargeCount = (int) $itinerary->children_6_11;
+        $weightedPax = $adultCount + ($childSmallCount * 0.25) + ($childLargeCount * 0.50);
+        $adultPrice = $weightedPax > 0 ? $customerTotal / $weightedPax : 0;
         $customerProposal = (object) [
             'title' => $itinerary->title,
             'client_name' => $itinerary->client_name,
@@ -496,6 +502,12 @@ class B2CItineraryController extends Controller
             'terms_conditions' => $itinerary->terms_conditions ?: 'This proposal is valid for 7 days from the issue date. Rates and availability are subject to confirmation. Reservations are confirmed only after the required payment is received.',
             'currency' => $itinerary->customer_currency,
             'fixed_price' => $itinerary->customer_total_price,
+            'adult_count' => $adultCount,
+            'adult_price' => $adultPrice,
+            'child_2_6_count' => $childSmallCount,
+            'child_2_6_price' => $adultPrice * 0.25,
+            'child_6_11_count' => $childLargeCount,
+            'child_6_11_price' => $adultPrice * 0.50,
             'converted_prices' => [],
             'start_date' => $itinerary->start_date,
             'quote_id' => $itinerary->quote_id,
@@ -595,30 +607,17 @@ class B2CItineraryController extends Controller
         $text .= "\n❌ *PACKAGE EXCLUSIONS*\n";
         foreach ($exclusions as $item) $text .= "  × " . $item . "\n";
         $text .= "\n";
-        $text .= "💰 *TOTAL PACKAGE PRICE*\n";
-        $text .= "*" . $customerCurrency . " " . number_format($customerTotal, 2) . "*\n";
-
         $adults = (int) $itinerary->adults;
         $c1 = (int) $itinerary->children_2_6;
         $c2 = (int) $itinerary->children_6_11;
-        $hasChildren = ($c1 > 0 || $c2 > 0);
-
-        if ($hasChildren) {
-            $weightedPax = ($adults * 1.0) + ($c1 * 0.25) + ($c2 * 0.50);
-            $adultCost = $weightedPax > 0 ? ($customerTotal / $weightedPax) : 0;
-            $child26Cost = $adultCost * 0.25;
-            $child611Cost = $adultCost * 0.50;
-
-            $text .= "--- PRICING BREAKDOWN ---\n";
-            $text .= "• Adult: " . $customerCurrency . " " . number_format($adultCost, 2) . " x " . $adults . " = " . $customerCurrency . " " . number_format($adultCost * $adults, 2) . "\n";
-            if ($c1 > 0) {
-                $text .= "• Child (2-6y): " . $customerCurrency . " " . number_format($child26Cost, 2) . " x " . $c1 . " = " . $customerCurrency . " " . number_format($child26Cost * $c1, 2) . "\n";
-            }
-            if ($c2 > 0) {
-                $text .= "• Child (6-11y): " . $customerCurrency . " " . number_format($child611Cost, 2) . " x " . $c2 . " = " . $customerCurrency . " " . number_format($child611Cost * $c2, 2) . "\n";
-            }
-            $text .= "\n";
-        }
+        $weightedPax = max(1, $adults) + ($c1 * 0.25) + ($c2 * 0.50);
+        $adultCost = $weightedPax > 0 ? ($customerTotal / $weightedPax) : 0;
+        $text .= "💰 *PACKAGE PRICE*\n";
+        $text .= "• Adult: *" . $customerCurrency . " " . number_format($adultCost, 2) . " per person*\n";
+        if ($c1 > 0) $text .= "• Child (2-6 years): *" . $customerCurrency . " " . number_format($adultCost * 0.25, 2) . " per child*\n";
+        if ($c2 > 0) $text .= "• Child (6-11 years): *" . $customerCurrency . " " . number_format($adultCost * 0.50, 2) . " per child*\n";
+        $text .= "\n*TOTAL PACKAGE PRICE*\n";
+        $text .= "*" . $customerCurrency . " " . number_format($customerTotal, 2) . "*\n\n";
 
         $text .= "_" . ($itinerary->terms_conditions ?: 'Rates and availability are subject to confirmation.') . "_\n\n";
         $text .= "*Contact Tourliz:*\n";

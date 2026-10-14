@@ -2379,11 +2379,12 @@
             text += `\n❌ *PACKAGE EXCLUSIONS*\n`;
             (exclusions.length ? exclusions : ['Flights, visas and travel insurance unless listed', 'Personal expenses and optional activities'])
                 .forEach(item => text += `  × ${item}\n`);
-            text += `\n💰 *TOTAL PACKAGE PRICE*\n`;
+            text += `\n💰 *PACKAGE PRICE*\n`;
+            text += `• Adult: *${currencyStr} ${adultRate.toFixed(2)} per person*\n`;
+            if(c1 > 0) text += `• Child (2–6 years): *${currencyStr} ${childRateSmall.toFixed(2)} per child*\n`;
+            if(c2 > 0) text += `• Child (6–11 years): *${currencyStr} ${childRateLarge.toFixed(2)} per child*\n`;
+            text += `\n*TOTAL PACKAGE PRICE*\n`;
             text += `*${currencyStr} ${totalVal.toFixed(2)}*\n`;
-            text += `Adult: ${currencyStr} ${adultRate.toFixed(2)} per person\n`;
-            if(c1 > 0) text += `Child (2–6 years): ${currencyStr} ${childRateSmall.toFixed(2)}\n`;
-            if(c2 > 0) text += `Child (6–11 years): ${currencyStr} ${childRateLarge.toFixed(2)}\n`;
             text += `\n_${terms || 'Rates and availability are subject to confirmation.'}_\n`;
             text += `\n📞 *Tourliz Holidays*\nMalaysia: +60 10-233 9314 / +60 18-983 6532\nIndia: +91 96338 50694\n`;
             text += `\nThank you for choosing *Tourliz* — your travel partner. 🌴`;

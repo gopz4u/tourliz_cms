@@ -58,6 +58,9 @@
         .terms { padding: 10px 12px; background: #fff9ec; border: 1px solid #f0d9a5; color: #665a40; page-break-inside: avoid; }
         .price { margin-top: 17px; background: #12355f; color: #fff; page-break-inside: avoid; }
         .price-main { width: 58%; padding: 14px 16px; vertical-align: middle; }
+        .price-rates { margin-bottom: 10px; padding-bottom: 8px; border-bottom: 1px solid #456484; }
+        .price-rate { margin-top: 3px; color: #e3edf7; font-size: 9px; }
+        .price-rate strong { float: right; color: #fff; }
         .price-label { color: #8fdced; font-size: 7px; font-weight: bold; letter-spacing: 1px; text-transform: uppercase; }
         .price-value { margin-top: 2px; font-size: 22px; font-weight: bold; }
         .price-note { padding: 13px 15px; border-left: 1px solid #456484; color: #cbd9e7; vertical-align: middle; font-size: 8px; }
@@ -141,7 +144,14 @@
     @endif
 
     <table class="price"><tr>
-        <td class="price-main"><div class="price-label">Total Package Price</div><div class="price-value">{{ $itinerary->currency ?: 'MYR' }} {{ number_format((float) $itinerary->fixed_price, 2) }}</div></td>
+        <td class="price-main">
+            <div class="price-rates">
+                <div class="price-rate">Adult — per person <strong>{{ $itinerary->currency ?: 'MYR' }} {{ number_format((float) $itinerary->adult_price, 2) }}</strong></div>
+                @if($itinerary->child_2_6_count > 0)<div class="price-rate">Child 2–6 years — per child <strong>{{ $itinerary->currency ?: 'MYR' }} {{ number_format((float) $itinerary->child_2_6_price, 2) }}</strong></div>@endif
+                @if($itinerary->child_6_11_count > 0)<div class="price-rate">Child 6–11 years — per child <strong>{{ $itinerary->currency ?: 'MYR' }} {{ number_format((float) $itinerary->child_6_11_price, 2) }}</strong></div>@endif
+            </div>
+            <div class="price-label">Total Package Price</div><div class="price-value">{{ $itinerary->currency ?: 'MYR' }} {{ number_format((float) $itinerary->fixed_price, 2) }}</div>
+        </td>
         <td class="price-note"><strong>Your selected quotation currency</strong><br>Rates and availability remain subject to confirmation.<br>@if(!empty($itinerary->quote_id))Ref: {{ $itinerary->quote_id }}@endif</td>
     </tr></table>
 

@@ -179,6 +179,7 @@ class B2CItineraryModuleTest extends TestCase
         $this->assertStringContainsString('International airfare', $message);
         $this->assertStringContainsString('Quotation valid for seven days.', $message);
         $this->assertStringContainsString('TOTAL PACKAGE PRICE', $message);
+        $this->assertStringContainsString('Adult: *USD 141.00 per person*', $message);
         $this->assertStringContainsString('USD 282.00', $message);
         $this->assertStringNotContainsString('/admin/b2c-itineraries/', $message);
 
