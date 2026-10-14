@@ -204,6 +204,37 @@ class B2CItineraryModuleTest extends TestCase
     }
 
     /** @test */
+    public function children_are_added_to_the_established_adult_package_price()
+    {
+        $itinerary = new B2CItinerary([
+            'currency' => 'MYR',
+            'adults' => 2,
+            'children_2_6' => 1,
+            'children_6_11' => 1,
+            'markup_percentage' => 20,
+            'itinerary' => [[
+                'day' => 1,
+                'hotels' => [[
+                    'name' => 'Test Hotel',
+                    'price_per_night' => 100,
+                    'add_on_price' => 0,
+                    'quantity' => 1,
+                ]],
+            ]],
+        ]);
+
+        $itinerary->calculatePricing();
+
+        // Adult subtotal: 100 + 20% = 120; adult rate = 60.
+        // Child add-ons: 15 (25%) + 30 (50%) = 45; final = 165.
+        $this->assertSame(100.0, (float) $itinerary->base_cost);
+        $this->assertSame(20.0, (float) $itinerary->markup_amount);
+        $this->assertSame(165.0, (float) $itinerary->total_price);
+        $adultRate = (float) $itinerary->total_price / (2 + 0.25 + 0.50);
+        $this->assertSame(60.0, $adultRate);
+    }
+
+    /** @test */
     public function multiple_involved_vendors_are_retained_and_transport_copy_is_route_focused()
     {
         $this->withoutExceptionHandling();
