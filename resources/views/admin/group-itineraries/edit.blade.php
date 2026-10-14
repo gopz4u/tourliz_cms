@@ -291,6 +291,10 @@
                             <span>Markup Cost (<span id="preview-markup-perc">0</span>%):</span>
                             <span id="preview-markup">0.00</span>
                         </div>
+                        <div class="d-flex justify-content-between mb-1 small text-success">
+                            <span>Children Add-on:</span>
+                            <span id="preview-child-addon">0.00</span>
+                        </div>
                         <div class="d-flex justify-content-between fw-bold border-top pt-2 text-dark fs-6">
                             <span>TOTAL QUOTE:</span>
                             <span id="preview-grand-total">0.00</span>
@@ -845,7 +849,13 @@
             const baseCost = totals.hotels + totals.transport + totals.activities + totals.tickets + totals.meals;
             const markupPerc = parseFloat(document.getElementById('markup-percentage')?.value || 0);
             const markupAmount = (baseCost * markupPerc) / 100;
-            const grandTotal = baseCost + markupAmount;
+            const adultPackageSubtotal = baseCost + markupAmount;
+            const adults = Math.max(1, parseInt(document.getElementById('pax-adults')?.value || 1));
+            const c1 = Math.max(0, parseInt(document.getElementById('pax-child-small')?.value || 0));
+            const c2 = Math.max(0, parseInt(document.getElementById('pax-child-large')?.value || 0));
+            const adultPerPerson = adultPackageSubtotal / adults;
+            const childAddOn = (adultPerPerson * 0.25 * c1) + (adultPerPerson * 0.50 * c2);
+            const grandTotal = adultPackageSubtotal + childAddOn;
 
             const safeSet = (id, val) => { const el = document.getElementById(id); if (el) el.innerText = currency + val.toFixed(2); };
             safeSet('preview-hotels', totals.hotels);
@@ -855,20 +865,16 @@
             safeSet('preview-base-total', baseCost);
             safeSet('preview-markup-perc', markupPerc);
             safeSet('preview-markup', markupAmount);
-            safeSet('preview-markup', markupAmount);
+            safeSet('preview-child-addon', childAddOn);
             safeSet('preview-grand-total', grandTotal);
 
             // Per Pax Calculation
-            const adults = parseInt(document.getElementById('pax-adults')?.value || 1);
-            const c1 = parseInt(document.getElementById('pax-child-small')?.value || 0);
-            const c2 = parseInt(document.getElementById('pax-child-large')?.value || 0);
             const totalPax = adults + c1 + c2;
             
             const paxLabel = document.getElementById('preview-perpax-label');
             let perPax = 0;
             if (c1 > 0 || c2 > 0) {
-                const weightedPax = (adults * 1.0) + (c1 * 0.25) + (c2 * 0.50);
-                perPax = weightedPax > 0 ? (grandTotal / weightedPax) : 0;
+                perPax = adultPerPerson;
                 if (paxLabel) paxLabel.innerText = "Per Adult Estimate:";
             } else {
                 perPax = totalPax > 0 ? (grandTotal / totalPax) : 0;

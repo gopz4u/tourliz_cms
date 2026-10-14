@@ -164,9 +164,13 @@ class CustomItinerary extends Model
             $this->markup_amount = 0;
         }
 
-        // total_price is simply base_cost + markup_amount
-        // We do NOT multiply by adults because the helper already accounts for pax-specific quantities
-        $this->total_price = (float) $this->base_cost + (float) $this->markup_amount;
+        $adultPackageSubtotal = (float) $this->base_cost + (float) $this->markup_amount;
+        $adultCount = max(1, (int) $this->adults);
+        $adultPerPerson = $adultPackageSubtotal / $adultCount;
+        $childAddOn = ($adultPerPerson * 0.25 * max(0, (int) $this->children_2_6))
+            + ($adultPerPerson * 0.50 * max(0, (int) $this->children_6_11));
+
+        $this->total_price = round($adultPackageSubtotal + $childAddOn, 2);
 
         return $this;
     }

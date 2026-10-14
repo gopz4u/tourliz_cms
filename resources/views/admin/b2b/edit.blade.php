@@ -309,6 +309,10 @@
                                         <span>Markup Cost (<span id="preview-markup-perc">0</span>%):</span>
                                         <span id="preview-markup">0.00</span>
                                     </div>
+                                    <div class="d-flex justify-content-between mb-1 small text-success">
+                                        <span>Children Add-on:</span>
+                                        <span id="preview-child-addon">0.00</span>
+                                    </div>
                                     <div class="bg-light p-3 rounded text-center my-3 border shadow-sm">
                                         <div class="small text-muted fw-bold text-uppercase"
                                             style="font-size: 0.7rem; letter-spacing: 0.5px;">TOTAL QUOTE</div>
@@ -796,7 +800,13 @@
                     const baseCost = hotels + transport + activities + meals;
                     const markupPerc = safeFloat(document.getElementById('markup-percentage')?.value);
                     const markupAmount = (baseCost * markupPerc) / 100;
-                    const grandTotal = baseCost + markupAmount;
+                    const adultPackageSubtotal = baseCost + markupAmount;
+                    const adults = Math.max(1, safeFloat(document.getElementById('pax-adults')?.value));
+                    const c1 = Math.max(0, safeFloat(document.getElementById('pax-child-small')?.value));
+                    const c2 = Math.max(0, safeFloat(document.getElementById('pax-child-large')?.value));
+                    const adultPerPerson = adultPackageSubtotal / adults;
+                    const childAddOn = (adultPerPerson * 0.25 * c1) + (adultPerPerson * 0.50 * c2);
+                    const grandTotal = adultPackageSubtotal + childAddOn;
                     const quoteCurrency = document.getElementById('quote-currency')?.value || currency;
                     const exchangeRate = Math.max(safeFloat(document.getElementById('exchange-rate')?.value) || 1, 0.00000001);
                     const roundQuote = document.getElementById('round-quote')?.checked || false;
@@ -816,19 +826,16 @@
                     safeSet('preview-base-total', baseCost);
                     safeSet('preview-markup-perc', markupPerc);
                     safeSet('preview-markup', markupAmount);
+                    safeSet('preview-child-addon', childAddOn);
                     const customerTotalEl = document.getElementById('preview-grand-total');
                     if (customerTotalEl) customerTotalEl.innerText = quoteCurrency + ' ' + customerTotal.toFixed(2);
 
-                    const adults = safeFloat(document.getElementById('pax-adults')?.value);
-                    const c1 = safeFloat(document.getElementById('pax-child-small')?.value);
-                    const c2 = safeFloat(document.getElementById('pax-child-large')?.value);
                     const totalPax = adults + c1 + c2;
 
                     const paxLabel = document.getElementById('preview-perpax-label');
                     let perPax = 0;
                     if (c1 > 0 || c2 > 0) {
-                        const weightedPax = (adults * 1.0) + (c1 * 0.25) + (c2 * 0.50);
-                        perPax = weightedPax > 0 ? (customerTotal / weightedPax) : 0;
+                        perPax = adultPerPerson * exchangeRate;
                         if (paxLabel) paxLabel.innerText = "Per Adult Estimate:";
                     } else {
                         perPax = totalPax > 0 ? (customerTotal / totalPax) : 0;

@@ -235,6 +235,27 @@ class B2BItineraryModuleTest extends TestCase
     }
 
     /** @test */
+    public function b2b_children_are_added_without_reducing_the_adult_rate()
+    {
+        $itinerary = new CustomItinerary([
+            'currency' => 'MYR',
+            'adults' => 2,
+            'children_2_6' => 1,
+            'children_6_11' => 1,
+            'markup_percentage' => 20,
+            'itinerary' => [[
+                'day' => 1,
+                'hotels' => [['price_per_night' => 100, 'quantity' => 1]],
+            ]],
+        ]);
+
+        $itinerary->calculatePricing();
+
+        $this->assertSame(165.0, (float) $itinerary->total_price);
+        $this->assertSame(60.0, (float) $itinerary->total_price / (2 + 0.25 + 0.50));
+    }
+
+    /** @test */
     public function b2b_retains_multiple_vendors_and_transport_voucher_lists_days_and_places()
     {
         $transportVendor = Supplier::create(['name' => 'Agency Wheels', 'type' => 'Transport', 'phone' => '60111111111']);
