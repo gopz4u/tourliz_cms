@@ -2830,16 +2830,36 @@
                 if(parseInt(c1)+parseInt(c2) > 0) text += `, ${parseInt(c1)+parseInt(c2)} Kids`;
                 text += `\n\n*ITINERARY DETAILS:*\n`;
 
-                itinerary.forEach((d) => {
-                    text += `*Day ${d.day}:* ${d.program || 'Itinerary flow'}\n`;
+                itinerary.forEach((d, dayIndex) => {
+                    const dayNumber = d.day || (dayIndex + 1);
+                    const dayTitle = d.title || `Day ${dayNumber} Program`;
+                    const dayDescription = (d.notes || d.description || d.program || '').trim();
+                    const visitNames = [...ensureArray(d.places), ...ensureArray(d.spots), ...ensureArray(d.activities)]
+                        .map(place => typeof place === 'string' ? place : (place.name || place.attraction_name || place.title || ''))
+                        .filter(Boolean)
+                        .filter((name, index, values) => values.indexOf(name) === index);
+                    const transportNames = [...ensureArray(d.transport), ...ensureArray(d.transports)]
+                        .map(service => service.vehicle_type || service.mode || service.name || '')
+                        .filter(Boolean)
+                        .filter((name, index, values) => values.indexOf(name) === index);
+
+                    text += `\n*DAY ${dayNumber} — ${dayTitle}*\n`;
+                    if (dayDescription) text += `${dayDescription}\n`;
+                    if (visitNames.length) {
+                        text += `*Tourist Spots / Places:*\n`;
+                        visitNames.forEach(name => text += `- ${name}\n`);
+                    } else {
+                        text += `*Tourist Spots / Places:* As per final guest program\n`;
+                    }
+                    if (transportNames.length) text += `*Vehicle / Service:* ${transportNames.join(', ')}\n`;
                     let hName = 'Own Arrangement';
                     if(d.hotels && d.hotels.length > 0 && d.hotels[0].name) {
                         hName = d.hotels[0].name;
                     }
-                    text += `📍 *Stay:* ${hName}\n\n`;
+                    text += `*Drop / Stay:* ${hName}\n`;
                 });
 
-                text += `*Auth by:* {{ Auth::user()->name }}\n`;
+                text += `\n*Auth by:* {{ Auth::user()->name }}\n`;
                 window.openWhatsApp(text);
             } else if (vendorType.toLowerCase().includes('activity') || vendorType.toLowerCase().includes('ticket') || vendorType.toLowerCase().includes('attraction') || vendorType.toLowerCase().includes('entry') || vendorType.toLowerCase().includes('sightseeing')) {
                 // Template: Activity/Ticket (Hotel Style)
