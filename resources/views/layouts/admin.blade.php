@@ -12,7 +12,7 @@
     <meta name="theme-color" content="#5a52e5">
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
     <meta name="apple-mobile-web-app-title" content="Tourliz">
     <meta name="format-detection" content="telephone=no">
     <link rel="apple-touch-icon" href="/img/apple-touch-icon.png">
@@ -593,10 +593,31 @@
         .dropdown-item { border-radius:7px; font-size:.82rem; } .alert { padding:.75rem 1rem; border-radius:10px; font-size:.82rem; }
         @media (max-width:991.98px) {
             body.sidebar-collapsed .sidebar { width:var(--sidebar-width); }
-            .sidebar { position:fixed; width:min(86vw,280px); padding:1rem .8rem; }
-            .main-content { padding:.85rem; }
-            .mobile-header { position:sticky; top:0; z-index:95; min-height:56px; padding:.55rem .85rem; border-bottom:1px solid #e8ecf2; box-shadow:none; }
+            .sidebar {
+                position:fixed;
+                width:min(86vw,280px);
+                height:100vh;
+                height:100dvh;
+                padding:calc(1rem + env(safe-area-inset-top, 0px)) .8rem calc(1rem + env(safe-area-inset-bottom, 0px));
+            }
+            .main-content {
+                padding:.85rem max(.85rem, env(safe-area-inset-right, 0px)) calc(.85rem + env(safe-area-inset-bottom, 0px)) max(.85rem, env(safe-area-inset-left, 0px));
+            }
+            .mobile-header {
+                position:sticky;
+                top:0;
+                z-index:95;
+                min-height:calc(56px + env(safe-area-inset-top, 0px));
+                padding:calc(.55rem + env(safe-area-inset-top, 0px)) max(.85rem, env(safe-area-inset-right, 0px)) .55rem max(.85rem, env(safe-area-inset-left, 0px));
+                border-bottom:1px solid #e8ecf2;
+                box-shadow:none;
+            }
+            .mobile-header > .d-flex { min-width:0; }
+            .mobile-header #sidebarToggle { flex:0 0 auto; margin-right:.75rem !important; }
+            .mobile-header img { display:block; width:auto; max-width:138px; height:32px !important; object-fit:contain; }
+            .mobile-header .user-avatar { flex:0 0 36px; margin-left:.75rem; }
             .mobile-header .bi-list { font-size:1.65rem !important; }
+            .fab-container { right:max(20px, env(safe-area-inset-right, 0px)); bottom:calc(20px + env(safe-area-inset-bottom, 0px)); }
             .page-header h1 { font-size:1.3rem; }
             .page-header .d-flex { align-items:flex-start !important; gap:.75rem; flex-wrap:wrap; }
             .card-body,.card-header { padding:.85rem; }
