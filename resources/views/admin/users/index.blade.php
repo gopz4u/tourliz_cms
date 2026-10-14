@@ -67,12 +67,16 @@
                             roleBadge = '<span class="badge bg-warning text-dark">Employee</span>';
                         }
 
+                        const whatsappBadge = user.whatsapp_number && user.whatsapp_notifications
+                            ? '<span class="badge bg-success"><i class="bi bi-whatsapp me-1"></i>' + user.whatsapp_number + '</span>'
+                            : '<span class="text-muted small">Disabled</span>';
+
                         const row = `
                             <tr>
                                 <td>${user.id}</td>
                                 <td><strong>${user.name}</strong></td>
                                 <td>${user.email}</td>
-                                <td>${user.whatsapp_number && user.whatsapp_notifications ? `<span class="badge bg-success"><i class="bi bi-whatsapp me-1"></i>${user.whatsapp_number}</span>` : '<span class="text-muted small">Disabled</span>'}</td>
+                                <td>${whatsappBadge}</td>
                                 <td>${roleBadge}</td>
                                 <td>${new Date(user.created_at).toLocaleDateString()}</td>
                                 <td>
