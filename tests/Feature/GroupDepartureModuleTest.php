@@ -99,10 +99,11 @@ class GroupDepartureModuleTest extends TestCase
         ]);
 
         $response = $this->actingAs($this->admin)->get(route('admin.group-departures.whatsapp', $departure));
-        $response->assertRedirect();
-        $location = urldecode($response->headers->get('Location'));
-        $this->assertStringContainsString('WhatsApp Group Trip', $location);
-        $this->assertStringContainsString('GROUP TRIP RATE', $location);
-        $this->assertStringNotContainsString('/admin/group-departures/', $location);
+        $response->assertOk()->assertSee('Opening WhatsApp');
+        $launcher = rawurldecode($response->getContent());
+        $this->assertStringContainsString('whatsapp://send?text=', $launcher);
+        $this->assertStringContainsString('WhatsApp Group Trip', $launcher);
+        $this->assertStringContainsString('GROUP TRIP RATE', $launcher);
+        $this->assertStringNotContainsString('/admin/group-departures/', $launcher);
     }
 }

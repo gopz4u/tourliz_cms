@@ -569,7 +569,7 @@ function shareItineraryWhatsapp(type = 'customer') {
     
     text += "\n\uD83D\uDE4F *Thank you from the Tourliz Team!*";
 
-    window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank');
+    window.openWhatsApp(text);
 }
 </script>
 @endpush

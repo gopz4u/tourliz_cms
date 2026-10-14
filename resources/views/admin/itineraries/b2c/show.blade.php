@@ -27,7 +27,7 @@
             <i class="bi bi-file-earmark-pdf me-1"></i> Printable PDF
         </a>
         @if(!empty($itinerary->b2cDetail->customer_whatsapp))
-            <a href="{{ route('admin.itineraries.b2c.whatsapp', $itinerary->id) }}" target="_blank" class="btn btn-outline-success">
+            <a href="{{ route('admin.itineraries.b2c.whatsapp', $itinerary->id) }}" class="btn btn-outline-success">
                 <i class="bi bi-whatsapp me-1"></i> WhatsApp
             </a>
         @endif

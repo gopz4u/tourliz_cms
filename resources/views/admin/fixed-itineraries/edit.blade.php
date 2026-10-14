@@ -419,7 +419,7 @@
                     <a href="{{ route('admin.fixed-itineraries.pdf', $itinerary->id) }}" target="_blank" class="btn btn-outline-danger btn-sm">
                         <i class="bi bi-printer me-1"></i> Export / Print Branded PDF
                     </a>
-                    <a href="{{ route('admin.fixed-itineraries.whatsapp', $itinerary->id) }}" target="_blank" class="btn btn-outline-success btn-sm">
+                    <a href="{{ route('admin.fixed-itineraries.whatsapp', $itinerary->id) }}" class="btn btn-outline-success btn-sm">
                         <i class="bi bi-whatsapp me-1"></i> Share via WhatsApp
                     </a>
                 </div>
@@ -784,4 +784,3 @@
 </script>
 @endpush
 @endsection
-

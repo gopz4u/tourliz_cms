@@ -1247,6 +1247,47 @@
         });
     </script>
 
+    <!-- Native app launch helpers -->
+    <script>
+        window.openWhatsApp = function (message, phone = '') {
+            const text = encodeURIComponent(message || '');
+            const number = String(phone || '').replace(/[^0-9]/g, '');
+            const query = `${number ? `phone=${number}&` : ''}text=${text}`;
+            const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+            const isStandalone = window.navigator.standalone === true ||
+                window.matchMedia('(display-mode: standalone)').matches;
+
+            if (isIOS && isStandalone) {
+                // A custom URL scheme is required to leave an installed iOS PWA
+                // and hand the prepared message directly to the WhatsApp app.
+                window.location.href = `whatsapp://send?${query}`;
+                return;
+            }
+
+            window.open(`https://wa.me/${number}?text=${text}`, '_blank', 'noopener');
+        };
+
+        document.addEventListener('click', event => {
+            const link = event.target.closest('a[href*="wa.me"], a[href*="api.whatsapp.com"]');
+            if (!link) return;
+
+            const isIOSStandalone = /iPad|iPhone|iPod/.test(navigator.userAgent) &&
+                !window.MSStream &&
+                (window.navigator.standalone === true || window.matchMedia('(display-mode: standalone)').matches);
+
+            if (!isIOSStandalone) return;
+
+            try {
+                const url = new URL(link.href);
+                const pathNumber = url.hostname === 'wa.me' ? url.pathname.replace(/\D/g, '') : '';
+                event.preventDefault();
+                window.openWhatsApp(url.searchParams.get('text') || '', url.searchParams.get('phone') || pathNumber);
+            } catch (error) {
+                // Leave malformed or unexpected links to the browser.
+            }
+        });
+    </script>
+
     <!-- PWA Scripts & iOS Install Banner -->
     <script>
         if ('serviceWorker' in navigator) {

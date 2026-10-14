@@ -33,7 +33,7 @@
         <a href="{{ route('admin.fixed-itineraries.pdf', $itinerary->id) }}" target="_blank" class="btn btn-outline-danger">
             <i class="bi bi-file-earmark-pdf me-1"></i> Printable PDF
         </a>
-        <a href="{{ route('admin.fixed-itineraries.whatsapp', $itinerary->id) }}" target="_blank" class="btn btn-outline-success">
+        <a href="{{ route('admin.fixed-itineraries.whatsapp', $itinerary->id) }}" class="btn btn-outline-success">
             <i class="bi bi-whatsapp me-1"></i> WhatsApp
         </a>
         <a href="{{ route('admin.fixed-itineraries.index') }}" class="btn btn-outline-secondary">
@@ -318,4 +318,3 @@
 </script>
 @endpush
 @endsection
-

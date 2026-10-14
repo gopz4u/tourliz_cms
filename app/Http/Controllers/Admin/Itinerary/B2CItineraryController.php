@@ -127,8 +127,9 @@ class B2CItineraryController extends Controller
         $message .= "Please let us know if you have any questions!\n\n";
         $message .= "Best regards,\nTourliz Holidays";
 
-        $url = "https://wa.me/" . preg_replace('/[^0-9]/', '', $itinerary->b2cDetail->customer_whatsapp) . "?text=" . urlencode($message);
+        $phone = preg_replace('/[^0-9]/', '', $itinerary->b2cDetail->customer_whatsapp);
+        $nativeUrl = "whatsapp://send?phone={$phone}&text=" . rawurlencode($message);
 
-        return redirect()->away($url);
+        return view('admin.whatsapp-launcher', compact('nativeUrl'));
     }
 }

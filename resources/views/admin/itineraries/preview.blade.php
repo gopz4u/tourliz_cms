@@ -566,7 +566,7 @@ function shareItineraryWhatsapp() {
     text += "\uD83D\uDCA1 Let us know if you would like the full PDF or have any questions!\n\n";
     text += "\uD83D\uDE4F *Thank you from the Tourliz Team!*";
 
-    window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank');
+    window.openWhatsApp(text);
 }
 </script>
 @endpush

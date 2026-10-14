@@ -349,7 +349,9 @@ class FixedItineraryController extends Controller
         $lines[] = '_Rates and availability are subject to confirmation._';
         $lines[] = 'Thank you for choosing *Tourliz Holidays!* 🌴';
 
-        return redirect()->away('https://wa.me/?text=' . rawurlencode(implode("\n", $lines)));
+        $nativeUrl = 'whatsapp://send?text=' . rawurlencode(implode("\n", $lines));
+
+        return view('admin.whatsapp-launcher', compact('nativeUrl'));
     }
 
     /**

@@ -125,7 +125,7 @@
                                     <a href="{{ route('admin.itineraries.b2c.pdf', $itinerary->id) }}" class="btn btn-outline-danger" title="Generate PDF" target="_blank">
                                         <i class="bi bi-file-earmark-pdf"></i>
                                     </a>
-                                    <a href="{{ route('admin.itineraries.b2c.whatsapp', $itinerary->id) }}" class="btn btn-outline-success" title="Share via WhatsApp" target="_blank">
+                                    <a href="{{ route('admin.itineraries.b2c.whatsapp', $itinerary->id) }}" class="btn btn-outline-success" title="Share via WhatsApp">
                                         <i class="bi bi-whatsapp"></i>
                                     </a>
                                     <a href="{{ route('admin.itineraries.b2c.edit', $itinerary->id) }}" class="btn btn-outline-primary" title="Edit">

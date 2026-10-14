@@ -196,7 +196,9 @@ class GroupDepartureController extends Controller
         $lines[] = '_Rates and availability are subject to confirmation._';
         $lines[] = 'Contact *Tourliz Holidays* to reserve your seat.';
 
-        return redirect()->away('https://wa.me/?text=' . rawurlencode(implode("\n", $lines)));
+        $nativeUrl = 'whatsapp://send?text=' . rawurlencode(implode("\n", $lines));
+
+        return view('admin.whatsapp-launcher', compact('nativeUrl'));
     }
 
     private function validateDeparture(Request $request): array
