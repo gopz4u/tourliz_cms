@@ -121,12 +121,16 @@ class B2BItineraryController extends Controller
     public function edit($id)
     {
         $itinerary = CustomItinerary::with(['agency', 'destination'])->findOrFail($id);
+        $involvedVendorIds = \App\Models\ItineraryExpense::where('itinerary_id', $itinerary->id)
+            ->where('itinerary_type', 'b2b')
+            ->whereNotNull('supplier_id')
+            ->pluck('supplier_id')->map(fn ($vendorId) => (int) $vendorId)->unique()->values();
         $countries = \App\Models\Country::orderBy('name')->get();
         // Here destinations refers to cities in our destinations table
         $destinations = \App\Models\Destination::orderBy('city')->get();
         $admins = \App\Models\Admin::orderBy('name')->get();
 
-        return view('admin.b2b.edit', compact('itinerary', 'countries', 'destinations', 'admins'));
+        return view('admin.b2b.edit', compact('itinerary', 'countries', 'destinations', 'admins', 'involvedVendorIds'));
     }
 
     /**
@@ -304,32 +308,30 @@ class B2BItineraryController extends Controller
 
                 // 1. Create/Ensure Exists & Update Cost
                 foreach ($vendorIds as $vid) {
+                    $supplier = \App\Models\Supplier::find($vid);
+                    if (!$supplier) continue;
                     $calculatedCost = $vendorCosts[$vid] ?? 0;
 
-                    $expense = \App\Models\ItineraryExpense::firstOrCreate([
+                    $expense = \App\Models\ItineraryExpense::updateOrCreate([
                         'itinerary_id' => $itinerary->id,
                         'itinerary_type' => 'b2b',
-                        'supplier_id' => $vid
+                        'supplier_id' => $vid,
+                        'description' => 'Involved Vendor',
                     ], [
                         'amount' => $calculatedCost,
-                        'category' => 'Involved Vendor',
-                        'description' => 'Involved Vendor Cost',
+                        'category' => $supplier->category_label,
                         'expense_date' => now(),
                         'status' => 'pending'
                     ]);
-
-                    // If expense exists but amount is 0 (probably auto-created before customization), update it
-                    // Only update if it's strictly "Involved Vendor" category to avoid overwriting specific expenses
-                    if ($expense->wasRecentlyCreated || ($expense->category === 'Involved Vendor' && $expense->amount == 0 && $calculatedCost > 0)) {
-                        $expense->amount = $calculatedCost;
-                        $expense->save();
-                    }
                 }
 
-                // 2. Cleanup Unchecked (Only 0-cost auto-added ones or Involved Vendor ones)
+                // 2. Cleanup only the automatically managed vendor rows.
                 \App\Models\ItineraryExpense::where('itinerary_id', $itinerary->id)
                     ->where('itinerary_type', 'b2b')
-                    ->where('category', 'Involved Vendor')
+                    ->where(function ($query) {
+                        $query->where('description', 'Involved Vendor')
+                            ->orWhere('category', 'Involved Vendor');
+                    })
                     ->whereNotIn('supplier_id', $vendorIds)
                     ->delete();
             }

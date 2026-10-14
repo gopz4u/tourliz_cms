@@ -10,6 +10,8 @@ use App\Models\Agency;
 use App\Models\Country;
 use App\Models\Destination;
 use App\Models\CustomItinerary;
+use App\Models\ItineraryExpense;
+use App\Models\Supplier;
 
 class B2BItineraryModuleTest extends TestCase
 {
@@ -230,5 +232,60 @@ class B2BItineraryModuleTest extends TestCase
         $this->assertSame('Imported day description', $itinerary->itinerary[0]['notes']);
         $this->assertSame('USD', $itinerary->customer_currency);
         $this->assertSame(0.25, (float) $itinerary->exchange_rate);
+    }
+
+    /** @test */
+    public function b2b_retains_multiple_vendors_and_transport_voucher_lists_days_and_places()
+    {
+        $transportVendor = Supplier::create(['name' => 'Agency Wheels', 'type' => 'Transport', 'phone' => '60111111111']);
+        $hotelVendor = Supplier::create(['name' => 'Agency Hotel', 'type' => 'Hotel', 'phone' => '60222222222']);
+        $itinerary = CustomItinerary::create([
+            'user_id' => $this->admin->id,
+            'agency_id' => $this->agency->id,
+            'destination_id' => $this->country->id,
+            'title' => 'B2B Vendor Trip',
+            'client_name' => 'Agency Guest',
+            'duration_days' => 1,
+            'adults' => 2,
+            'itinerary' => [],
+            'currency' => 'MYR',
+            'status' => 'draft',
+        ]);
+        $dayPlan = [[
+            'day' => 1,
+            'title' => 'Kuala Lumpur Discovery',
+            'notes' => 'Airport pickup followed by city sightseeing.',
+            'places' => [['name' => 'Royal Palace']],
+            'spots' => [['name' => 'Petronas Twin Towers']],
+            'transport' => [['name' => 'Private Van', 'vehicle_type' => '12 Seater Van', 'supplier_id' => $transportVendor->id]],
+            'hotels' => [['name' => 'Agency Hotel', 'type' => 'Deluxe', 'supplier_id' => $hotelVendor->id]],
+        ]];
+
+        $this->actingAs($this->admin)->put(route('admin.b2b-itineraries.update', $itinerary->id), [
+            'itinerary' => json_encode($dayPlan),
+            'title' => $itinerary->title,
+            'client_name' => $itinerary->client_name,
+            'adults' => 2,
+            'supplier_id' => $transportVendor->id,
+            'involved_vendors' => json_encode([$transportVendor->id, $hotelVendor->id]),
+        ])->assertSessionHasNoErrors();
+
+        $expenses = ItineraryExpense::where('itinerary_id', $itinerary->id)
+            ->where('itinerary_type', 'b2b')->where('description', 'Involved Vendor')->get();
+        $this->assertCount(2, $expenses);
+        $this->assertSame('Transport', $expenses->firstWhere('supplier_id', $transportVendor->id)->category);
+        $this->assertSame('Hotel', $expenses->firstWhere('supplier_id', $hotelVendor->id)->category);
+
+        $transportExpense = $expenses->firstWhere('supplier_id', $transportVendor->id);
+        $message = $this->actingAs($this->admin)
+            ->get(route('admin.expenses.whatsapp-vendor', $transportExpense->id))
+            ->assertOk()->json('text');
+        $this->assertStringContainsString('Day 1: Kuala Lumpur Discovery', $message);
+        $this->assertStringContainsString('Places: Royal Palace, Petronas Twin Towers', $message);
+        $this->assertStringContainsString('12 Seater Van', $message);
+
+        $this->actingAs($this->admin)
+            ->get(route('admin.expenses.pdf-vendor', $transportExpense->id))
+            ->assertOk()->assertHeader('content-type', 'application/pdf');
     }
 }

@@ -176,7 +176,7 @@
                                 </div>
                                 <div class="mb-3">
                                     <label class="form-label small text-muted mb-1">Source Vendor</label>
-                                    <select id="supplier_id" class="form-select form-select-sm">
+                                    <select id="source-supplier-id" class="form-select form-select-sm">
                                         <option value="">Select Vendor (Optional)</option>
                                     </select>
                                 </div>
@@ -251,7 +251,6 @@
                                         onclick="loadSuppliers()">
                                         <i class="bi bi-arrow-clockwise"></i> Refresh List
                                     </button>
-                                    <input type="hidden" id="supplier_id" value="{{ $itinerary['supplier_id'] ?? '' }}">
                                 </div>
 
                                 <div class="mb-3">
@@ -2444,9 +2443,10 @@
                 checkboxContainer.empty();
 
                 const currentVendorId = parseInt("{{ $itinerary['supplier_id'] ?? 0 }}");
+                const involvedVendorIds = @json($involvedVendorIds ?? collect());
 
                 data.forEach(s => {
-                    const isChecked = ((s.id == currentVendorId) || (currentExpenses && currentExpenses.some(e => e.supplier_id == s.id))) ? 'checked' : '';
+                    const isChecked = ((s.id == currentVendorId) || involvedVendorIds.includes(Number(s.id)) || (currentExpenses && currentExpenses.some(e => e.supplier_id == s.id))) ? 'checked' : '';
                     const cbHtml = `
                                                                                                                      <div class="form-check small mb-1">
                                                                                                                      <input class="form-check-input vendor-cb" type="checkbox" value="${s.id}" id="vcb-${s.id}" ${isChecked}>
