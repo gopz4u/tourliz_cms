@@ -217,6 +217,10 @@ class B2BItineraryModuleTest extends TestCase
             'inclusions' => "Hotel\nTransfers",
             'exclusions' => "Flights\nInsurance",
             'terms_conditions' => 'Saved agency terms.',
+            'quote_currency' => 'USD',
+            'exchange_rate' => 0.25,
+            'exchange_rate_date' => '2026-10-15',
+            'round_quote' => '0',
         ]);
 
         $response->assertSessionHasNoErrors()->assertRedirect();
@@ -224,5 +228,7 @@ class B2BItineraryModuleTest extends TestCase
         $this->assertSame('Saved Agency Proposal', $itinerary->title);
         $this->assertSame(['First highlight', 'Second highlight'], $itinerary->highlights);
         $this->assertSame('Imported day description', $itinerary->itinerary[0]['notes']);
+        $this->assertSame('USD', $itinerary->customer_currency);
+        $this->assertSame(0.25, (float) $itinerary->exchange_rate);
     }
 }

@@ -163,6 +163,12 @@
                                     <input type="text" id="proposal-title" class="form-control form-control-sm"
                                         value="{{ $itinerary['title'] }}">
                                 </div>
+                                <div class="p-2 mb-3 rounded border bg-light">
+                                    <div class="mb-2"><label class="form-label small text-muted mb-1">Customer Currency</label><select id="quote-currency" class="form-select form-select-sm">@foreach(['MYR','USD','SGD','INR','AED','EUR','GBP'] as $code)<option value="{{ $code }}" {{ $itinerary->customer_currency === $code ? 'selected' : '' }}>{{ $code }}</option>@endforeach</select></div>
+                                    <div class="row g-2"><div class="col-7"><label class="form-label small text-muted mb-1">Exchange Rate</label><input id="exchange-rate" type="number" min="0.00000001" step="0.00000001" class="form-control form-control-sm" value="{{ $itinerary->exchange_rate ?: 1 }}"></div><div class="col-5"><label class="form-label small text-muted mb-1">Rate Date</label><input id="exchange-rate-date" type="date" class="form-control form-control-sm" value="{{ optional($itinerary->exchange_rate_date)->format('Y-m-d') ?: now()->format('Y-m-d') }}"></div></div>
+                                    <div class="form-check mt-2"><input id="round-quote" class="form-check-input" type="checkbox" {{ $itinerary->round_quote ? 'checked' : '' }}><label for="round-quote" class="form-check-label small">Round final customer quote</label></div>
+                                    <div class="form-text">Internal costs remain in {{ $itinerary->currency ?: 'MYR' }}.</div>
+                                </div>
                                 <div class="mb-3">
                                     <label class="form-label small text-muted mb-1">Client Name</label>
                                     <input type="text" id="client-name" class="form-control form-control-sm"
@@ -545,6 +551,10 @@
             <input type="hidden" name="inclusions" id="formInclusions">
             <input type="hidden" name="exclusions" id="formExclusions">
             <input type="hidden" name="terms_conditions" id="formTerms">
+            <input type="hidden" name="quote_currency" id="formQuoteCurrency">
+            <input type="hidden" name="exchange_rate" id="formExchangeRate">
+            <input type="hidden" name="exchange_rate_date" id="formExchangeRateDate">
+            <input type="hidden" name="round_quote" id="formRoundQuote">
 
             <!-- Pax & Payment -->
             <input type="hidden" name="adults" id="formAdults">
@@ -788,6 +798,11 @@
                     const markupPerc = safeFloat(document.getElementById('markup-percentage')?.value);
                     const markupAmount = (baseCost * markupPerc) / 100;
                     const grandTotal = baseCost + markupAmount;
+                    const quoteCurrency = document.getElementById('quote-currency')?.value || currency;
+                    const exchangeRate = Math.max(safeFloat(document.getElementById('exchange-rate')?.value) || 1, 0.00000001);
+                    const roundQuote = document.getElementById('round-quote')?.checked || false;
+                    const customerTotalRaw = grandTotal * exchangeRate;
+                    const customerTotal = roundQuote ? Math.round(customerTotalRaw) : Math.round(customerTotalRaw * 100) / 100;
 
                     const safeSet = (id, val) => {
                         const el = document.getElementById(id);
@@ -802,7 +817,8 @@
                     safeSet('preview-base-total', baseCost);
                     safeSet('preview-markup-perc', markupPerc);
                     safeSet('preview-markup', markupAmount);
-                    safeSet('preview-grand-total', grandTotal);
+                    const customerTotalEl = document.getElementById('preview-grand-total');
+                    if (customerTotalEl) customerTotalEl.innerText = quoteCurrency + ' ' + customerTotal.toFixed(2);
 
                     const adults = safeFloat(document.getElementById('pax-adults')?.value);
                     const c1 = safeFloat(document.getElementById('pax-child-small')?.value);
@@ -813,13 +829,14 @@
                     let perPax = 0;
                     if (c1 > 0 || c2 > 0) {
                         const weightedPax = (adults * 1.0) + (c1 * 0.25) + (c2 * 0.50);
-                        perPax = weightedPax > 0 ? (grandTotal / weightedPax) : 0;
+                        perPax = weightedPax > 0 ? (customerTotal / weightedPax) : 0;
                         if (paxLabel) paxLabel.innerText = "Per Adult Estimate:";
                     } else {
-                        perPax = totalPax > 0 ? (grandTotal / totalPax) : 0;
+                        perPax = totalPax > 0 ? (customerTotal / totalPax) : 0;
                         if (paxLabel) paxLabel.innerText = "Per Pax Estimate:";
                     }
-                    safeSet('preview-perpax-total', perPax);
+                    const perPaxEl = document.getElementById('preview-perpax-total');
+                    if (perPaxEl) perPaxEl.innerText = quoteCurrency + ' ' + perPax.toFixed(2);
                     const summaryQuotedEl = document.getElementById('summary-quoted-total');
                     if (summaryQuotedEl) summaryQuotedEl.innerText = currency + ' ' + grandTotal.toFixed(2);
 
@@ -1726,7 +1743,7 @@
                         const adultsCount = parseInt(adults || 0);
                         const c1Count = parseInt(c1 || 0);
                         const c2Count = parseInt(c2 || 0);
-                        const currencyStr = "{{ $itinerary['currency'] ?? 'INR' }}";
+                        const currencyStr = document.getElementById('quote-currency')?.value || "{{ $itinerary['currency'] ?? 'MYR' }}";
 
                         let adultRate = 0;
                         let childRateSmall = 0;
@@ -2024,6 +2041,10 @@
                             document.getElementById('formInclusions').value = getFieldValue('proposal-inclusions');
                             document.getElementById('formExclusions').value = getFieldValue('proposal-exclusions');
                             document.getElementById('formTerms').value = getFieldValue('proposal-terms');
+                            document.getElementById('formQuoteCurrency').value = getFieldValue('quote-currency', currency);
+                            document.getElementById('formExchangeRate').value = getFieldValue('exchange-rate', 1);
+                            document.getElementById('formExchangeRateDate').value = getFieldValue('exchange-rate-date');
+                            document.getElementById('formRoundQuote').value = document.getElementById('round-quote')?.checked ? 1 : 0;
                             document.getElementById('formAdults').value = getFieldValue('pax-adults');
                             document.getElementById('formChildSmall').value = getFieldValue('pax-child-small');
                             document.getElementById('formChildLarge').value = getFieldValue('pax-child-large');
@@ -2405,6 +2426,9 @@
             document.getElementById('pax-child-large').addEventListener('change', syncPax);
             document.getElementById('markup-percentage').addEventListener('change', calculateDynamicTotal);
             document.getElementById('trip-duration').addEventListener('change', calculateDynamicTotal);
+            document.getElementById('quote-currency')?.addEventListener('change', calculateDynamicTotal);
+            document.getElementById('exchange-rate')?.addEventListener('input', calculateDynamicTotal);
+            document.getElementById('round-quote')?.addEventListener('change', calculateDynamicTotal);
         });
 
         function loadSuppliers() {

@@ -153,6 +153,9 @@ class B2BItineraryController extends Controller
             'next_followup_date' => 'nullable|date',
             'status' => 'nullable|string',
             'user_id' => 'nullable|exists:admins,id',
+            'quote_currency' => 'nullable|in:MYR,USD,SGD,INR,AED,EUR,GBP',
+            'exchange_rate' => 'nullable|numeric|min:0.00000001',
+            'exchange_rate_date' => 'nullable|date',
             'short_description' => 'nullable|string',
             'highlights' => 'nullable|string',
             'inclusions' => 'nullable|string',
@@ -184,6 +187,10 @@ class B2BItineraryController extends Controller
             'inclusions' => $this->parseProposalList($request->inclusions),
             'exclusions' => $this->parseProposalList($request->exclusions),
             'terms_conditions' => $request->terms_conditions,
+            'quote_currency' => $request->quote_currency ?: $itinerary->currency,
+            'exchange_rate' => $request->exchange_rate ?: 1,
+            'exchange_rate_date' => $request->exchange_rate_date ?: now()->toDateString(),
+            'round_quote' => $request->boolean('round_quote'),
             'country_ids' => is_string($request->country_ids) ? json_decode($request->country_ids, true) : ($request->country_ids ?? $itinerary->country_ids),
             'adults' => $request->adults,
             'children_2_6' => $request->children_2_6 ?? 0,
@@ -376,7 +383,7 @@ class B2BItineraryController extends Controller
             ];
         })->all();
 
-        $total = (float) $customItinerary->total_price;
+        $total = $customItinerary->customer_total_price;
         $adults = max(1, (int) $customItinerary->adults);
         $childSmall = (int) $customItinerary->children_2_6;
         $childLarge = (int) $customItinerary->children_6_11;
@@ -394,7 +401,7 @@ class B2BItineraryController extends Controller
             'inclusions' => $customItinerary->inclusions ?: ['Accommodation listed in the itinerary', 'Listed transportation and transfers', 'Sightseeing and activities shown above'],
             'exclusions' => $customItinerary->exclusions ?: ['Flights, visas and insurance unless listed', 'Personal expenses and optional activities'],
             'terms_conditions' => $customItinerary->terms_conditions ?: 'Rates and availability are subject to confirmation. Reservations are confirmed after the required payment is received.',
-            'currency' => $customItinerary->currency ?: 'MYR',
+            'currency' => $customItinerary->customer_currency,
             'fixed_price' => $total,
             'adult_price' => $adultPrice,
             'adult_count' => $adults,
@@ -543,13 +550,15 @@ class B2BItineraryController extends Controller
         $adults = (int) $itinerary->adults;
         $c1 = (int) $itinerary->children_2_6;
         $c2 = (int) $itinerary->children_6_11;
+        $customerCurrency = $itinerary->customer_currency;
+        $customerTotal = $itinerary->customer_total_price;
         $weightedPax = max(1, $adults) + ($c1 * .25) + ($c2 * .5);
-        $adultCost = $weightedPax > 0 ? ((float) $itinerary->total_price / $weightedPax) : 0;
+        $adultCost = $weightedPax > 0 ? ($customerTotal / $weightedPax) : 0;
         $text .= "\n💰 *PACKAGE PRICE*\n";
-        $text .= "• Adult: *{$itinerary->currency} " . number_format($adultCost, 2) . " per person*\n";
-        if ($c1 > 0) $text .= "• Child (2-6 years): *{$itinerary->currency} " . number_format($adultCost * .25, 2) . " per child*\n";
-        if ($c2 > 0) $text .= "• Child (6-11 years): *{$itinerary->currency} " . number_format($adultCost * .5, 2) . " per child*\n";
-        $text .= "\n*TOTAL PACKAGE PRICE*\n*{$itinerary->currency} " . number_format($itinerary->total_price, 2) . "*\n";
+        $text .= "• Adult: *{$customerCurrency} " . number_format($adultCost, 2) . " per person*\n";
+        if ($c1 > 0) $text .= "• Child (2-6 years): *{$customerCurrency} " . number_format($adultCost * .25, 2) . " per child*\n";
+        if ($c2 > 0) $text .= "• Child (6-11 years): *{$customerCurrency} " . number_format($adultCost * .5, 2) . " per child*\n";
+        $text .= "\n*TOTAL PACKAGE PRICE*\n*{$customerCurrency} " . number_format($customerTotal, 2) . "*\n";
         $text .= "\n_" . ($itinerary->terms_conditions ?: 'Rates and availability are subject to confirmation.') . "_\n\n";
         $text .= "Thank you for choosing *Tourliz Holidays*.";
 

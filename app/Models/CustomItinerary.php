@@ -35,6 +35,10 @@ class CustomItinerary extends Model
         'markup_amount',
         'total_price',
         'currency',
+        'quote_currency',
+        'exchange_rate',
+        'exchange_rate_date',
+        'round_quote',
         'status',
         'payment_status',
         'followup_status',
@@ -77,6 +81,9 @@ class CustomItinerary extends Model
         'children_2_6' => 'integer',
         'children_6_11' => 'integer',
         'total_amount_received' => 'decimal:2',
+        'exchange_rate' => 'decimal:8',
+        'exchange_rate_date' => 'date',
+        'round_quote' => 'boolean',
     ];
 
     /**
@@ -167,6 +174,22 @@ class CustomItinerary extends Model
     public function getActiveCurrencyAttribute(): string
     {
         return $this->currency ?: 'MYR';
+    }
+
+    public function getCustomerCurrencyAttribute(): string
+    {
+        return $this->quote_currency ?: ($this->currency ?: 'MYR');
+    }
+
+    public function convertForCustomer($amount): float
+    {
+        $value = (float) $amount * max((float) ($this->exchange_rate ?: 1), 0.00000001);
+        return $this->round_quote ? round($value) : round($value, 2);
+    }
+
+    public function getCustomerTotalPriceAttribute(): float
+    {
+        return $this->convertForCustomer($this->total_price);
     }
 
     public function getCurrencySymbolAttribute(): string
