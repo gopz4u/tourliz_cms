@@ -2271,7 +2271,7 @@
         };
         window.shareCustomerQuote = () => {
             if (isDirty) {
-                if (!confirm("Warning: You have unsaved changes. The WhatsApp summary text will reflect your current screen inputs, but the itinerary PDF link in the message will download the old saved proposal. We highly recommend clicking 'Save Proposal' first. Share anyway?")) {
+                if (!confirm("You have unsaved changes. Save the proposal first to keep the PDF and WhatsApp quotation consistent. Share the current on-screen values anyway?")) {
                     return;
                 }
             }
@@ -2301,17 +2301,20 @@
                 adultRate = adultsCount > 0 ? (totalVal / adultsCount) : 0;
             }
 
-            let text = `*📋 BOOKING PROPOSAL: ${title.toUpperCase()}*\n`;
-            text += `🏢 *Company:* Tourliz\n`;
-            text += `👤 *Guest:* ${clientName}\n`;
-            text += `👥 *Pax:* ${adults} Adults`;
+            let text = `✨ *TOURLIZ TRAVEL PROPOSAL* ✨\n`;
+            text += `━━━━━━━━━━━━━━━━━━\n`;
+            text += `*${title}*\n\n`;
+            text += `👤 *Prepared for:* ${clientName}\n`;
+            text += `📅 *Travel date:* ${document.getElementById('arrival-date').value || 'To be confirmed'}\n`;
+            text += `🗓️ *Duration:* ${document.getElementById('trip-duration').value || itinerary.length} Days\n`;
+            text += `👥 *Travelers:* ${adults} Adults`;
             if(c1 > 0) text += `, ${c1} Child(2-6y)`;
             if(c2 > 0) text += `, ${c2} Child(6-11y)`;
-            text += `\n\n`;
+            text += `\n\n━━━━━━━━━━━━━━━━━━\n`;
             
-            text += `*Full Itinerary Summary:*\n`;
+            text += `🧭 *YOUR ITINERARY*\n`;
             itinerary.forEach(day => {
-                text += `*Day ${day.day}: ${day.title || ''}*\n`;
+                text += `\n*DAY ${day.day} — ${day.title || 'Explore & Experience'}*\n`;
                 const spots = [...ensureArray(day.spots), ...ensureArray(day.activities), ...ensureArray(day.places)];
                 if(spots.length > 0) {
                     spots.forEach(s => {
@@ -2319,17 +2322,23 @@
                         if(name) text += `📍 ${name}\n`;
                     });
                 }
-                text += `\n`;
+                const hotels = [...ensureArray(day.hotels)];
+                if (day.hotel?.name && hotels.length === 0) hotels.push(day.hotel);
+                hotels.forEach(h => { if (h.name) text += `🏨 ${h.name}${h.type ? ` — ${h.type}` : ''}\n`; });
+                ensureArray(day.transport).forEach(t => { if (t.name) text += `🚗 ${t.name}\n`; });
+                const mealNames = ensureArray(day.meals).map(m => m.name).filter(Boolean);
+                if (mealNames.length) text += `🍽️ ${mealNames.join(', ')}\n`;
             });
 
-            text += `*Pricing Details:*\n`;
-            text += `Total Final Quote: ${total}\n`;
-            text += `Rate Per Adult: ${currencyStr} ${adultRate.toFixed(2)}\n`;
-            if(c1 > 0) text += `Rate Child (2-6y): ${currencyStr} ${childRateSmall.toFixed(2)}\n`;
-            if(c2 > 0) text += `Rate Child (6-11y): ${currencyStr} ${childRateLarge.toFixed(2)}\n`;
-
-            text += `\n🔗 *Full Itinerary Link:* {{ route('admin.b2c-itineraries.pdf', data_get($itinerary, 'id')) }}?public=1\n`;
-            text += `\n_Thank you for choosing Tourliz Team!_ 🙏✨\n`;
+            text += `\n━━━━━━━━━━━━━━━━━━\n`;
+            text += `💰 *PACKAGE INVESTMENT*\n`;
+            text += `*Total Package: ${currencyStr} ${totalVal.toFixed(2)}*\n`;
+            text += `Adult: ${currencyStr} ${adultRate.toFixed(2)} per person\n`;
+            if(c1 > 0) text += `Child (2–6 years): ${currencyStr} ${childRateSmall.toFixed(2)}\n`;
+            if(c2 > 0) text += `Child (6–11 years): ${currencyStr} ${childRateLarge.toFixed(2)}\n`;
+            text += `\n_Rates and availability are subject to confirmation._\n`;
+            text += `\n📞 *Tourliz Holidays*\nMalaysia: +60 10-233 9314 / +60 18-983 6532\nIndia: +91 96338 50694\n`;
+            text += `\nThank you for choosing *Tourliz* — your travel partner. 🌴`;
             
             window.openWhatsApp(text);
         };

@@ -19,14 +19,15 @@
             color: #334155;
             font-size: 10pt;
             line-height: 1.6;
+            border-top: 5px solid #4338ca;
         }
 
         /* ── HEADER ── */
         .header-table {
             width: 100%;
             margin-bottom: 25px;
-            border-bottom: 2px solid #cbd5e1;
-            padding-bottom: 18px;
+            border-bottom: 1px solid #dbe3ee;
+            padding: 10px 0 15px;
         }
 
         .logo-cell {
@@ -66,6 +67,28 @@
             color: #0f172a;
             letter-spacing: -0.5px;
             margin-bottom: 4px;
+        }
+
+        .proposal-kicker {
+            color: #4338ca;
+            font-size: 8pt;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            margin-bottom: 5px;
+        }
+
+        .currency-badge {
+            display: inline-block;
+            margin-left: 8px;
+            padding: 3px 8px;
+            background: #eef2ff;
+            border: 1px solid #c7d2fe;
+            border-radius: 3px;
+            color: #3730a3;
+            font-size: 7.5pt;
+            font-weight: 800;
+            vertical-align: middle;
         }
 
         .proposal-subtitle {
@@ -123,15 +146,16 @@
 
         /* ── DAY BLOCK ── */
         .day-block {
-            margin-bottom: 20px;
+            margin-bottom: 12px;
             border: 1px solid #e2e8f0;
             border-radius: 4px;
+            page-break-inside: avoid;
         }
 
         .day-head {
             background: #0f172a;
             color: #ffffff;
-            padding: 10px 16px;
+            padding: 8px 14px;
             font-weight: 700;
             font-size: 11.5pt;
             letter-spacing: 0.5px;
@@ -148,12 +172,12 @@
         }
 
         .day-body {
-            padding: 14px 16px;
+            padding: 9px 14px;
         }
 
         .day-section {
-            padding: 6px 0 6px 16px;
-            margin-bottom: 14px;
+            padding: 3px 0 3px 12px;
+            margin-bottom: 7px;
             border-left: 3px solid #0284c7;
         }
 
@@ -229,12 +253,13 @@
 
         /* ── GRAND TOTAL BOX ── */
         .grand-total-box {
-            background: #0f172a;
+            background: #111827;
             color: #fff;
             padding: 22px 26px;
             margin-top: 24px;
             page-break-inside: avoid;
-            border-radius: 4px;
+            border-radius: 6px;
+            border-left: 6px solid #4f46e5;
         }
 
         .grand-total-table {
@@ -435,7 +460,11 @@
     {{-- ═══════════════════════════════════════════ --}}
     {{-- TITLE --}}
     {{-- ═══════════════════════════════════════════ --}}
-    <div class="proposal-title">{{ data_get($itinerary, 'title', 'Travel Proposal') }}</div>
+    <div class="proposal-kicker">Curated Travel Proposal</div>
+    <div class="proposal-title">
+        {{ data_get($itinerary, 'title', 'Travel Proposal') }}
+        <span class="currency-badge">PRICED IN {{ $customerCurrency ?? data_get($itinerary, 'currency', 'MYR') }}</span>
+    </div>
     <div class="proposal-subtitle">
         Prepared for <strong>{{ ucwords(strtolower(data_get($itinerary, 'client_name', 'Valued Guest'))) }}</strong>
     </div>
@@ -931,6 +960,10 @@
                     <tr>
                         <td>Payment Status</td>
                         <td>{{ ucfirst(data_get($itinerary, 'payment_status', 'pending')) }}</td>
+                    </tr>
+                    <tr>
+                        <td>Customer Currency</td>
+                        <td><strong>{{ $displayCurrency }}</strong> (1 {{ $baseCurrency }} = {{ rtrim(rtrim(number_format((float) data_get($itinerary, 'exchange_rate', 1), 8, '.', ''), '0'), '.') }} {{ $displayCurrency }})</td>
                     </tr>
                     @if(data_get($itinerary, 'total_amount_received', 0) > 0)
                         <tr>
