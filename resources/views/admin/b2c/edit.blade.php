@@ -2301,18 +2301,19 @@
                 adultRate = adultsCount > 0 ? (totalVal / adultsCount) : 0;
             }
 
-            let text = `✨ *TOURLIZ TRAVEL PROPOSAL* ✨\n`;
-            text += `━━━━━━━━━━━━━━━━━━\n`;
-            text += `*${title}*\n\n`;
+            let text = `✈️ *TOURLIZ HOLIDAYS*\n`;
+            text += `_Curated Travel Proposal_\n\n`;
+            text += `🌟 *${title}*\n`;
             text += `👤 *Prepared for:* ${clientName}\n`;
-            text += `📅 *Travel date:* ${document.getElementById('arrival-date').value || 'To be confirmed'}\n`;
             text += `🗓️ *Duration:* ${document.getElementById('trip-duration').value || itinerary.length} Days\n`;
+            text += `📅 *Travel date:* ${document.getElementById('arrival-date').value || 'To be confirmed'}\n`;
             text += `👥 *Travelers:* ${adults} Adults`;
             if(c1 > 0) text += `, ${c1} Child(2-6y)`;
             if(c2 > 0) text += `, ${c2} Child(6-11y)`;
-            text += `\n\n━━━━━━━━━━━━━━━━━━\n`;
+            text += `\n\n📝 *JOURNEY OVERVIEW*\n`;
+            text += `A thoughtfully planned journey prepared especially for ${clientName}.\n`;
             
-            text += `🧭 *YOUR ITINERARY*\n`;
+            text += `\n🗺️ *DAY-BY-DAY ITINERARY*\n`;
             itinerary.forEach(day => {
                 text += `\n*DAY ${day.day} — ${day.title || 'Explore & Experience'}*\n`;
                 const spots = [...ensureArray(day.spots), ...ensureArray(day.activities), ...ensureArray(day.places)];
@@ -2330,9 +2331,15 @@
                 if (mealNames.length) text += `🍽️ ${mealNames.join(', ')}\n`;
             });
 
-            text += `\n━━━━━━━━━━━━━━━━━━\n`;
-            text += `💰 *PACKAGE INVESTMENT*\n`;
-            text += `*Total Package: ${currencyStr} ${totalVal.toFixed(2)}*\n`;
+            text += `\n✅ *PACKAGE INCLUSIONS*\n`;
+            text += `  ✓ Accommodation listed in the itinerary\n`;
+            text += `  ✓ Listed transportation and transfers\n`;
+            text += `  ✓ Sightseeing and activities shown above\n`;
+            text += `\n❌ *PACKAGE EXCLUSIONS*\n`;
+            text += `  × Flights, visas and travel insurance unless listed\n`;
+            text += `  × Personal expenses and optional activities\n`;
+            text += `\n💰 *TOTAL PACKAGE PRICE*\n`;
+            text += `*${currencyStr} ${totalVal.toFixed(2)}*\n`;
             text += `Adult: ${currencyStr} ${adultRate.toFixed(2)} per person\n`;
             if(c1 > 0) text += `Child (2–6 years): ${currencyStr} ${childRateSmall.toFixed(2)}\n`;
             if(c2 > 0) text += `Child (6–11 years): ${currencyStr} ${childRateLarge.toFixed(2)}\n`;

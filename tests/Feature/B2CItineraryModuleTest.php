@@ -156,9 +156,14 @@ class B2CItineraryModuleTest extends TestCase
         $response = $this->actingAs($this->admin)
             ->get(route('admin.b2c-itineraries.whatsapp', $itinerary->id));
 
-        $response->assertOk()->assertJsonFragment([
-            'text' => "*PROPOSAL: USD CUSTOMER QUOTE*\nRef ID: {$itinerary->quote_id}\nDestination: Thailand\nDuration: 2 Days\nClient: Currency Customer\nPax: 2 Adults\n\n*Total Final Quote:* USD 282.00\nPayment Status: PENDING\n\n*Contact Tourliz:*\n📞 WhatsApp:\n  - Malaysia: +60102339314 / +60189836532\n  - India: +91 96338 50694\n🌐 Website: www.tourliz.com\n📸 Socials: @tourliz\n\nThank you for choosing Tourliz!"
-        ]);
+        $response->assertOk();
+        $message = $response->json('text');
+        $this->assertStringContainsString('TOURLIZ HOLIDAYS', $message);
+        $this->assertStringContainsString('DAY-BY-DAY ITINERARY', $message);
+        $this->assertStringContainsString('PACKAGE INCLUSIONS', $message);
+        $this->assertStringContainsString('TOTAL PACKAGE PRICE', $message);
+        $this->assertStringContainsString('USD 282.00', $message);
+        $this->assertStringNotContainsString('/admin/b2c-itineraries/', $message);
 
         $pdfResponse = $this->actingAs($this->admin)
             ->get(route('admin.b2c-itineraries.pdf', $itinerary->id) . '?public=1');
