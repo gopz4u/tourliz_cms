@@ -363,6 +363,39 @@
 
                         <!-- TAB 2: PRICING -->
                         <div class="tab-pane fade" id="pricing-pane" role="tabpanel" aria-labelledby="pricing-tab">
+                            <div class="p-3 mb-3 rounded border bg-light">
+                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                    <h6 class="fw-bold mb-0" style="font-size:.8rem;"><i class="bi bi-currency-exchange me-1 text-primary"></i> Customer Currency</h6>
+                                    <span class="badge bg-white text-dark border">Base: {{ data_get($itinerary, 'currency', 'MYR') }}</span>
+                                </div>
+                                <div class="row g-2">
+                                    <div class="col-5">
+                                        <label class="form-label small mb-1">Quote in</label>
+                                        <select id="quote-currency" class="form-select form-select-sm">
+                                            @foreach(['MYR','USD','SGD','INR','AED','EUR','GBP'] as $code)
+                                                <option value="{{ $code }}" {{ (data_get($itinerary, 'quote_currency') ?: data_get($itinerary, 'currency', 'MYR')) === $code ? 'selected' : '' }}>{{ $code }}</option>
+                                            @endforeach
+                                        </select>
+                                    </div>
+                                    <div class="col-7">
+                                        <label class="form-label small mb-1">1 {{ data_get($itinerary, 'currency', 'MYR') }} equals</label>
+                                        <input id="exchange-rate" type="number" min="0.00000001" step="0.00000001" class="form-control form-control-sm"
+                                            value="{{ data_get($itinerary, 'exchange_rate', 1) }}">
+                                    </div>
+                                    <div class="col-7">
+                                        <label class="form-label small mb-1">Rate date</label>
+                                        <input id="exchange-rate-date" type="date" class="form-control form-control-sm"
+                                            value="{{ data_get($itinerary, 'exchange_rate_date') ? \Carbon\Carbon::parse(data_get($itinerary, 'exchange_rate_date'))->format('Y-m-d') : now()->format('Y-m-d') }}">
+                                    </div>
+                                    <div class="col-5 d-flex align-items-end pb-1">
+                                        <div class="form-check form-switch">
+                                            <input id="round-quote" class="form-check-input" type="checkbox" {{ data_get($itinerary, 'round_quote') ? 'checked' : '' }}>
+                                            <label class="form-check-label small" for="round-quote">Round total</label>
+                                        </div>
+                                    </div>
+                                </div>
+                                <small class="text-muted d-block mt-2">The saved rate is locked for this customer proposal.</small>
+                            </div>
                             <!-- Customer Quote -->
                             <div class="d-flex justify-content-between align-items-center mb-2 pb-1 border-bottom">
                                 <h6 class="fw-bold mb-0 text-dark" style="font-size: 0.85rem;"><i class="bi bi-receipt me-1 text-info"></i> Customer Quote</h6>
@@ -566,6 +599,10 @@
             <input type="hidden" name="secondary_phone" id="formPhoneSecondary">
             <input type="hidden" name="lead_source" id="formLeadSource">
             <input type="hidden" name="markup_percentage" id="formMarkup">
+            <input type="hidden" name="quote_currency" id="formQuoteCurrency">
+            <input type="hidden" name="exchange_rate" id="formExchangeRate">
+            <input type="hidden" name="exchange_rate_date" id="formExchangeRateDate">
+            <input type="hidden" name="round_quote" id="formRoundQuote">
             <input type="hidden" name="adults" id="formAdults">
             <input type="hidden" name="children_2_6" id="formChildSmall">
             <input type="hidden" name="children_6_11" id="formChildLarge">
@@ -814,7 +851,10 @@
             document.getElementById('pax-adults').addEventListener('change', syncPax);
             document.getElementById('pax-child-small').addEventListener('change', syncPax);
             document.getElementById('pax-child-large').addEventListener('change', syncPax);
-            document.getElementById('markup-percentage')?.addEventListener('change', calculateDynamicTotal);
+            document.getElementById('markup-percentage')?.addEventListener('input', calculateDynamicTotal);
+            document.getElementById('quote-currency')?.addEventListener('change', calculateDynamicTotal);
+            document.getElementById('exchange-rate')?.addEventListener('input', calculateDynamicTotal);
+            document.getElementById('round-quote')?.addEventListener('change', calculateDynamicTotal);
         });
 
         function loadSuppliers() {
@@ -968,7 +1008,15 @@
 
         function calculateDynamicTotal() {
             let totals = { hotels: 0, transport: 0, activities: 0, tickets: 0, meals: 0 };
-            const currency = "{{ data_get($itinerary, 'currency', 'INR') }} ";
+            const baseCurrency = "{{ data_get($itinerary, 'currency', 'MYR') }}";
+            const quoteCurrency = document.getElementById('quote-currency')?.value || baseCurrency;
+            const exchangeRate = Math.max(parseFloat(document.getElementById('exchange-rate')?.value || 1), 0.00000001);
+            const roundQuote = document.getElementById('round-quote')?.checked || false;
+            const convert = value => {
+                const converted = value * exchangeRate;
+                return roundQuote ? Math.round(converted) : Math.round(converted * 100) / 100;
+            };
+            const currency = quoteCurrency + " ";
 
             itinerary.forEach(day => {
                 // 1. Hotels
@@ -1029,17 +1077,17 @@
             const markupPerc = parseFloat(document.getElementById('markup-percentage')?.value || 0);
             const markupAmount = (baseCost * markupPerc) / 100;
             const grandTotal = baseCost + markupAmount;
+            const customerGrandTotal = convert(grandTotal);
 
             const safeSet = (id, val) => { const el = document.getElementById(id); if (el) el.innerText = currency + val.toFixed(2); };
-            safeSet('preview-hotels', totals.hotels);
-            safeSet('preview-transport', totals.transport);
-            safeSet('preview-activities', totals.activities + totals.tickets);
-            safeSet('preview-meals', totals.meals);
-            safeSet('preview-base-total', baseCost);
+            safeSet('preview-hotels', convert(totals.hotels));
+            safeSet('preview-transport', convert(totals.transport));
+            safeSet('preview-activities', convert(totals.activities + totals.tickets));
+            safeSet('preview-meals', convert(totals.meals));
+            safeSet('preview-base-total', convert(baseCost));
             safeSet('preview-markup-perc', markupPerc);
-            safeSet('preview-markup', markupAmount);
-            safeSet('preview-markup', markupAmount);
-            safeSet('preview-grand-total', grandTotal);
+            safeSet('preview-markup', convert(markupAmount));
+            safeSet('preview-grand-total', customerGrandTotal);
 
             // Per Pax Calculation
             const adults = parseInt(document.getElementById('pax-adults')?.value || 1);
@@ -1051,17 +1099,17 @@
             let perPax = 0;
             if (c1 > 0 || c2 > 0) {
                 const weightedPax = (adults * 1.0) + (c1 * 0.25) + (c2 * 0.50);
-                perPax = weightedPax > 0 ? (grandTotal / weightedPax) : 0;
+                perPax = weightedPax > 0 ? (customerGrandTotal / weightedPax) : 0;
                 if (paxLabel) paxLabel.innerText = "Per Adult Estimate:";
             } else {
-                perPax = totalPax > 0 ? (grandTotal / totalPax) : 0;
+                perPax = totalPax > 0 ? (customerGrandTotal / totalPax) : 0;
                 if (paxLabel) paxLabel.innerText = "Per Pax Estimate:";
             }
             safeSet('preview-perpax-total', perPax);
 
             // Update Financial Summary Card Live
             const summaryQuotedEl = document.getElementById('summary-quoted-total');
-            if (summaryQuotedEl) summaryQuotedEl.innerText = currency + grandTotal.toFixed(2);
+            if (summaryQuotedEl) summaryQuotedEl.innerText = baseCurrency + ' ' + grandTotal.toFixed(2);
             
             const actualCostStr = document.getElementById('summary-actual-cost')?.innerText || '0.00';
             const actualCost = parseFloat(actualCostStr.replace(/[^0-9.]/g, '')) || 0;
@@ -1071,7 +1119,7 @@
             const profit = grandTotal - projectedCost;
             const margin = grandTotal > 0 ? (profit / grandTotal) * 100 : 0;
             
-            $('#actual-profit').text(currency + profit.toFixed(2));
+            $('#actual-profit').text(baseCurrency + ' ' + profit.toFixed(2));
             $('#actual-margin').text(margin.toFixed(2) + '%');
             
             const profitEl = $('#actual-profit');
@@ -2238,7 +2286,7 @@
             const adultsCount = parseInt(adults || 0);
             const c1Count = parseInt(c1 || 0);
             const c2Count = parseInt(c2 || 0);
-            const currencyStr = "{{ data_get($itinerary, 'currency', 'INR') }}";
+            const currencyStr = document.getElementById('quote-currency')?.value || "{{ data_get($itinerary, 'currency', 'MYR') }}";
 
             let adultRate = 0;
             let childRateSmall = 0;
@@ -2406,6 +2454,10 @@
             document.getElementById('formPhoneSecondary').value = document.getElementById('client-phone-secondary').value;
             document.getElementById('formLeadSource').value = document.getElementById('lead-source').value;
             document.getElementById('formMarkup').value = document.getElementById('markup-percentage').value;
+            document.getElementById('formQuoteCurrency').value = document.getElementById('quote-currency').value;
+            document.getElementById('formExchangeRate').value = document.getElementById('exchange-rate').value || 1;
+            document.getElementById('formExchangeRateDate').value = document.getElementById('exchange-rate-date').value;
+            document.getElementById('formRoundQuote').value = document.getElementById('round-quote').checked ? 1 : 0;
             document.getElementById('formAdults').value = document.getElementById('pax-adults').value;
             document.getElementById('formChildSmall').value = document.getElementById('pax-child-small').value;
             document.getElementById('formChildLarge').value = document.getElementById('pax-child-large').value;

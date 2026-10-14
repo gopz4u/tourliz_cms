@@ -130,4 +130,53 @@ class B2CItineraryModuleTest extends TestCase
         $response->assertRedirect(route('admin.b2c-itineraries.index'));
         $this->assertSoftDeleted('b2c_itineraries', ['id' => $itinerary->id]);
     }
+
+    /** @test */
+    public function customer_quote_uses_the_locked_selected_currency()
+    {
+        $itinerary = B2CItinerary::create([
+            'user_id' => $this->user->id,
+            'destination_id' => $this->country->id,
+            'title' => 'USD Customer Quote',
+            'client_name' => 'Currency Customer',
+            'duration_days' => 2,
+            'itinerary' => [],
+            'adults' => 2,
+            'currency' => 'MYR',
+            'quote_currency' => 'USD',
+            'exchange_rate' => 0.235,
+            'base_cost' => 1000,
+            'markup_amount' => 200,
+            'total_price' => 1200,
+        ]);
+
+        $this->assertSame('USD', $itinerary->customer_currency);
+        $this->assertSame(282.0, $itinerary->customer_total_price);
+
+        $response = $this->actingAs($this->admin)
+            ->get(route('admin.b2c-itineraries.whatsapp', $itinerary->id));
+
+        $response->assertOk()->assertJsonFragment([
+            'text' => "*PROPOSAL: USD CUSTOMER QUOTE*\nRef ID: {$itinerary->quote_id}\nDestination: Thailand\nDuration: 2 Days\nClient: Currency Customer\nPax: 2 Adults\n\n*Total Final Quote:* USD 282.00\nPayment Status: PENDING\n\n*Contact Tourliz:*\n📞 WhatsApp:\n  - Malaysia: +60102339314 / +60189836532\n  - India: +91 96338 50694\n🌐 Website: www.tourliz.com\n📸 Socials: @tourliz\n\nThank you for choosing Tourliz!"
+        ]);
+
+        $pdfResponse = $this->actingAs($this->admin)
+            ->get(route('admin.b2c-itineraries.pdf', $itinerary->id) . '?public=1');
+        $pdfResponse->assertOk()
+            ->assertHeader('content-type', 'application/pdf');
+    }
+
+    /** @test */
+    public function customer_quote_can_round_the_converted_total()
+    {
+        $itinerary = new B2CItinerary([
+            'currency' => 'MYR',
+            'quote_currency' => 'SGD',
+            'exchange_rate' => 0.3149,
+            'total_price' => 1234.56,
+            'round_quote' => true,
+        ]);
+
+        $this->assertSame(389.0, $itinerary->customer_total_price);
+    }
 }

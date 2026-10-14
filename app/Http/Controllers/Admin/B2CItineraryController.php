@@ -307,6 +307,9 @@ class B2CItineraryController extends Controller
             'title' => 'required|string',
             'client_name' => 'required|string',
             'adults' => 'required|integer|min:1',
+            'quote_currency' => 'nullable|in:MYR,USD,SGD,INR,AED,EUR,GBP',
+            'exchange_rate' => 'nullable|numeric|min:0.00000001',
+            'exchange_rate_date' => 'nullable|date',
             'supplier_id' => 'nullable|exists:suppliers,id',
             'user_id' => 'nullable|exists:admins,id',
         ]);
@@ -323,6 +326,10 @@ class B2CItineraryController extends Controller
             'secondary_phone' => $request->secondary_phone,
             'lead_source' => $request->lead_source,
             'markup_percentage' => $request->markup_percentage ?: 0,
+            'quote_currency' => $request->quote_currency ?: $itinerary->currency,
+            'exchange_rate' => $request->exchange_rate ?: 1,
+            'exchange_rate_date' => $request->exchange_rate_date ?: now()->toDateString(),
+            'round_quote' => $request->boolean('round_quote'),
             'adults' => $request->adults,
             'children_2_6' => $request->children_2_6 ?: 0,
             'children_6_11' => $request->children_6_11 ?: 0,
@@ -402,6 +409,10 @@ class B2CItineraryController extends Controller
             ],
             'is_public' => request()->has('public') || request()->get('mode') === 'customer'
         ];
+        $data['customerCurrency'] = $itinerary->customer_currency;
+        $data['customerTotal'] = $itinerary->customer_total_price;
+        $data['customerBase'] = $itinerary->customer_base_cost;
+        $data['customerMarkup'] = $itinerary->customer_markup_amount;
 
         $pdf = Pdf::loadView('admin.b2b.pdf', $data);
 
@@ -472,7 +483,9 @@ class B2CItineraryController extends Controller
             $text .= "\n";
         }
 
-        $text .= "*Total Final Quote:* " . $itinerary->currency . " " . number_format($itinerary->total_price, 2) . "\n";
+        $customerCurrency = $itinerary->customer_currency;
+        $customerTotal = $itinerary->customer_total_price;
+        $text .= "*Total Final Quote:* " . $customerCurrency . " " . number_format($customerTotal, 2) . "\n";
 
         $adults = (int) $itinerary->adults;
         $c1 = (int) $itinerary->children_2_6;
@@ -481,17 +494,17 @@ class B2CItineraryController extends Controller
 
         if ($hasChildren) {
             $weightedPax = ($adults * 1.0) + ($c1 * 0.25) + ($c2 * 0.50);
-            $adultCost = $weightedPax > 0 ? ($itinerary->total_price / $weightedPax) : 0;
+            $adultCost = $weightedPax > 0 ? ($customerTotal / $weightedPax) : 0;
             $child26Cost = $adultCost * 0.25;
             $child611Cost = $adultCost * 0.50;
 
             $text .= "--- PRICING BREAKDOWN ---\n";
-            $text .= "• Adult: " . $itinerary->currency . " " . number_format($adultCost, 2) . " x " . $adults . " = " . $itinerary->currency . " " . number_format($adultCost * $adults, 2) . "\n";
+            $text .= "• Adult: " . $customerCurrency . " " . number_format($adultCost, 2) . " x " . $adults . " = " . $customerCurrency . " " . number_format($adultCost * $adults, 2) . "\n";
             if ($c1 > 0) {
-                $text .= "• Child (2-6y): " . $itinerary->currency . " " . number_format($child26Cost, 2) . " x " . $c1 . " = " . $itinerary->currency . " " . number_format($child26Cost * $c1, 2) . "\n";
+                $text .= "• Child (2-6y): " . $customerCurrency . " " . number_format($child26Cost, 2) . " x " . $c1 . " = " . $customerCurrency . " " . number_format($child26Cost * $c1, 2) . "\n";
             }
             if ($c2 > 0) {
-                $text .= "• Child (6-11y): " . $itinerary->currency . " " . number_format($child611Cost, 2) . " x " . $c2 . " = " . $itinerary->currency . " " . number_format($child611Cost * $c2, 2) . "\n";
+                $text .= "• Child (6-11y): " . $customerCurrency . " " . number_format($child611Cost, 2) . " x " . $c2 . " = " . $customerCurrency . " " . number_format($child611Cost * $c2, 2) . "\n";
             }
             $text .= "\n";
         }

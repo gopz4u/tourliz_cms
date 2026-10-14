@@ -658,9 +658,13 @@
             }
         }
 
-        $totalPrice = (float) data_get($itinerary, 'total_price', 0);
+        $baseCurrency = data_get($itinerary, 'currency', 'MYR');
+        $displayCurrency = $customerCurrency ?? $baseCurrency;
+        $totalPrice = isset($customerTotal) ? (float) $customerTotal : (float) data_get($itinerary, 'total_price', 0);
         if ($totalPrice == 0) {
-            $totalPrice = (float) data_get($itinerary, 'base_cost', 0) + (float) data_get($itinerary, 'markup_amount', 0);
+            $totalPrice = isset($customerBase)
+                ? (float) $customerBase + (float) ($customerMarkup ?? 0)
+                : (float) data_get($itinerary, 'base_cost', 0) + (float) data_get($itinerary, 'markup_amount', 0);
         }
 
         $adults = (int) data_get($itinerary, 'adults', 1);
@@ -801,7 +805,7 @@
             <tr>
                 <td class="grand-label">Total Package Cost</td>
                 <td class="grand-amount">
-                    {{ data_get($itinerary, 'currency', 'MYR') }} {{ number_format($totalPrice, 2) }}
+                    {{ $displayCurrency }} {{ number_format($totalPrice, 2) }}
                 </td>
             </tr>
             <tr>
@@ -813,7 +817,7 @@
                 <tr>
                     <td class="grand-label" style="font-size:8pt;">Per Adult Estimate</td>
                     <td class="grand-perpax">
-                        {{ data_get($itinerary, 'currency', 'MYR') }} {{ number_format($adultCost, 2) }}
+                        {{ $displayCurrency }} {{ number_format($adultCost, 2) }}
                         <small>(based on {{ $adults }} adults)</small>
                     </td>
                 </tr>
@@ -821,7 +825,7 @@
                     <tr>
                         <td class="grand-label" style="font-size:8pt;">Per Child (2-6y) Estimate</td>
                         <td class="grand-perpax">
-                            {{ data_get($itinerary, 'currency', 'MYR') }} {{ number_format($child26Cost, 2) }}
+                            {{ $displayCurrency }} {{ number_format($child26Cost, 2) }}
                             <small>(based on {{ $c1 }} child)</small>
                         </td>
                     </tr>
@@ -830,7 +834,7 @@
                     <tr>
                         <td class="grand-label" style="font-size:8pt;">Per Child (6-11y) Estimate</td>
                         <td class="grand-perpax">
-                            {{ data_get($itinerary, 'currency', 'MYR') }} {{ number_format($child611Cost, 2) }}
+                            {{ $displayCurrency }} {{ number_format($child611Cost, 2) }}
                             <small>(based on {{ $c2 }} child)</small>
                         </td>
                     </tr>
@@ -839,7 +843,7 @@
                 <tr>
                     <td class="grand-label" style="font-size:8pt;">Per Person Estimate</td>
                     <td class="grand-perpax">
-                        {{ data_get($itinerary, 'currency', 'MYR') }} {{ number_format($perPaxCost, 2) }}
+                        {{ $displayCurrency }} {{ number_format($perPaxCost, 2) }}
                         <small>(based on {{ $totalPax }} pax)</small>
                     </td>
                 </tr>
@@ -853,7 +857,7 @@
     <div class="terms-box">
         <div class="section-heading" style="font-size:11pt;">Terms &amp; Notes</div>
         <ul class="terms-list">
-            <li>All prices are quoted in {{ data_get($itinerary, 'currency', 'MYR') }} and are subject to availability
+            <li>All prices are quoted in {{ $displayCurrency }} and are subject to availability
                 at the time of booking.</li>
             <li>Rates may vary during peak season, public holidays, and special events.</li>
             <li>Full payment is required to confirm all reservations.</li>

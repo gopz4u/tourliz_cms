@@ -34,6 +34,10 @@ class B2CItinerary extends Model
         'markup_amount',
         'total_price',
         'currency',
+        'quote_currency',
+        'exchange_rate',
+        'exchange_rate_date',
+        'round_quote',
         'status',
         'payment_status',
         'total_amount_received',
@@ -62,6 +66,9 @@ class B2CItinerary extends Model
         'children_2_6' => 'integer',
         'children_6_11' => 'integer',
         'total_amount_received' => 'decimal:2',
+        'exchange_rate' => 'decimal:8',
+        'exchange_rate_date' => 'date',
+        'round_quote' => 'boolean',
     ];
 
     public function user()
@@ -132,6 +139,33 @@ class B2CItinerary extends Model
     public function getActiveCurrencyAttribute(): string
     {
         return $this->currency ?: 'MYR';
+    }
+
+    public function getCustomerCurrencyAttribute(): string
+    {
+        return $this->quote_currency ?: ($this->currency ?: 'MYR');
+    }
+
+    public function convertForCustomer($amount): float
+    {
+        $converted = (float) $amount * max((float) ($this->exchange_rate ?: 1), 0.00000001);
+
+        return $this->round_quote ? round($converted) : round($converted, 2);
+    }
+
+    public function getCustomerTotalPriceAttribute(): float
+    {
+        return $this->convertForCustomer($this->total_price);
+    }
+
+    public function getCustomerBaseCostAttribute(): float
+    {
+        return $this->convertForCustomer($this->base_cost);
+    }
+
+    public function getCustomerMarkupAmountAttribute(): float
+    {
+        return $this->convertForCustomer($this->markup_amount);
     }
 
     public function getCurrencySymbolAttribute(): string
