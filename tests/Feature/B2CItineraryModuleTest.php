@@ -86,6 +86,56 @@ class B2CItineraryModuleTest extends TestCase
     }
 
     /** @test */
+    public function walk_in_lead_can_import_an_existing_b2c_itinerary_without_customer_data()
+    {
+        $source = B2CItinerary::create([
+            'user_id' => $this->admin->id,
+            'destination_id' => $this->country->id,
+            'title' => 'Reusable Thailand Plan',
+            'client_name' => 'Previous Private Customer',
+            'phone' => '60111111111',
+            'email' => 'previous@example.com',
+            'duration_days' => 1,
+            'short_description' => 'A reusable curated journey.',
+            'highlights' => ['Private city discovery'],
+            'inclusions' => ['Airport transfer'],
+            'exclusions' => ['Flights'],
+            'terms_conditions' => 'Rates subject to availability.',
+            'itinerary' => [[
+                'day' => 1,
+                'title' => 'Bangkok Discovery',
+                'notes' => 'Visit the capital highlights.',
+                'hotels' => [], 'transport' => [], 'places' => [], 'spots' => [], 'activities' => [], 'meals' => [],
+            ]],
+            'status' => 'draft',
+        ]);
+
+        $response = $this->actingAs($this->admin)->post(route('admin.b2c-itineraries.store'), [
+            'import_source' => 'b2c',
+            'b2c_source_id' => $source->id,
+            'user_id' => $this->admin->id,
+            'destination_id' => $this->country->id,
+            'title' => 'New Customer Thailand Plan',
+            'client_name' => 'New Walk-in Customer',
+            'phone' => '60222222222',
+            'email' => 'new@example.com',
+            'duration_days' => 1,
+            'lead_source' => 'walk_in',
+        ]);
+
+        $response->assertSessionHasNoErrors()->assertRedirect();
+        $copy = B2CItinerary::where('title', 'New Customer Thailand Plan')->firstOrFail();
+        $this->assertSame('New Walk-in Customer', $copy->client_name);
+        $this->assertSame('60222222222', $copy->phone);
+        $this->assertSame('new@example.com', $copy->email);
+        $this->assertSame('Bangkok Discovery', $copy->itinerary[0]['title']);
+        $this->assertSame('A reusable curated journey.', $copy->short_description);
+        $this->assertSame(['Private city discovery'], $copy->highlights);
+        $this->assertNotSame($source->client_name, $copy->client_name);
+        $this->assertNotSame($source->phone, $copy->phone);
+    }
+
+    /** @test */
     public function admin_can_view_b2c_kanban_board()
     {
         $response = $this->actingAs($this->admin)->get(route('admin.b2c-itineraries.kanban'));

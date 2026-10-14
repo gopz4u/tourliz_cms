@@ -60,8 +60,16 @@
                                         </label>
                                         <span class="badge bg-secondary-subtle text-secondary border small">Not Mandatory</span>
                                     </div>
+                                    <div class="d-flex flex-wrap gap-3 mb-3 p-2 bg-white rounded border">
+                                        @foreach(['blank' => ['bi-file-earmark-plus', 'Start Blank'], 'fixed' => ['bi-pin-map', 'Fixed Itinerary'], 'b2c' => ['bi-person-check', 'Existing B2C'], 'group' => ['bi-people', 'Operations Template']] as $value => [$icon, $label])
+                                            <div class="form-check">
+                                                <input class="form-check-input import-source-radio" type="radio" name="import_source" value="{{ $value }}" id="import_source_{{ $value }}" {{ old('import_source', 'blank') === $value ? 'checked' : '' }}>
+                                                <label class="form-check-label small fw-semibold" for="import_source_{{ $value }}"><i class="bi {{ $icon }} me-1"></i>{{ $label }}</label>
+                                            </div>
+                                        @endforeach
+                                    </div>
                                     <div class="row g-2">
-                                        <div class="col-md-6">
+                                        <div class="col-md-4 import-source-panel" data-source="fixed">
                                             <label class="form-label small text-muted mb-1 fw-semibold">
                                                 <i class="bi bi-pin-map text-primary me-1"></i>Fixed Itinerary:
                                             </label>
@@ -81,7 +89,23 @@
                                                 @endif
                                             </select>
                                         </div>
-                                        <div class="col-md-6">
+                                        <div class="col-md-4 import-source-panel" data-source="b2c">
+                                            <label class="form-label small text-muted mb-1 fw-semibold">
+                                                <i class="bi bi-person-check text-success me-1"></i>Existing B2C Itinerary:
+                                            </label>
+                                            <select name="b2c_source_id" id="b2c_itinerary_select" class="form-select form-select-sm">
+                                                <option value="">-- Select a saved B2C itinerary --</option>
+                                                @foreach($b2cTemplates ?? [] as $template)
+                                                    <option value="{{ $template->id }}"
+                                                        data-days="{{ $template->duration_days ?: 1 }}"
+                                                        data-title="{{ $template->title }}"
+                                                        data-destination="{{ $template->destination_id }}">
+                                                        #{{ $template->id }} — {{ $template->title }} ({{ $template->duration_days }} Days)
+                                                    </option>
+                                                @endforeach
+                                            </select>
+                                        </div>
+                                        <div class="col-md-4 import-source-panel" data-source="group">
                                             <label class="form-label small text-muted mb-1 fw-semibold">
                                                 <i class="bi bi-box-seam text-info me-1"></i>Operations Group Tour Master:
                                             </label>
@@ -103,7 +127,7 @@
                                         </div>
                                     </div>
                                     <div class="form-text small text-muted mt-2">
-                                        <i class="bi bi-info-circle me-1 text-primary"></i><strong>Flexibility Note:</strong> Selecting a Fixed Itinerary or Group Tour is <u>optional</u>. If you need to build or add a day-wise itinerary manually from scratch, leave these blank and proceed directly.
+                                        <i class="bi bi-info-circle me-1 text-primary"></i>Existing B2C import copies only the itinerary, pricing items and proposal content. Previous customer contact, payment and follow-up details are never copied.
                                     </div>
                                 </div>
                             </div>
@@ -177,36 +201,43 @@
 document.addEventListener('DOMContentLoaded', function() {
     const fixedSelect = document.getElementById('fixed_itinerary_select');
     const groupSelect = document.getElementById('group_package_select');
+    const b2cSelect = document.getElementById('b2c_itinerary_select');
     const titleInput = document.querySelector('input[name="title"]');
     const daysInput = document.querySelector('input[name="duration_days"]');
 
+    const sourceRadios = document.querySelectorAll('.import-source-radio');
+    const destinationSelect = document.querySelector('select[name="destination_id"]');
+
+    function selectSource(source) {
+        const radio = document.getElementById(`import_source_${source}`);
+        if (radio) radio.checked = true;
+    }
+
+    function applyTemplate(select, source) {
+        if (!select?.value) return;
+        selectSource(source);
+        [fixedSelect, b2cSelect, groupSelect].forEach(other => { if (other && other !== select) other.value = ''; });
+        const opt = select.options[select.selectedIndex];
+        if (titleInput && opt.dataset.title) titleInput.value = opt.dataset.title;
+        if (daysInput && opt.dataset.days) daysInput.value = opt.dataset.days;
+        if (destinationSelect && opt.dataset.destination) destinationSelect.value = opt.dataset.destination;
+    }
+
+    sourceRadios.forEach(radio => radio.addEventListener('change', function() {
+        if (this.value === 'blank') [fixedSelect, b2cSelect, groupSelect].forEach(select => { if (select) select.value = ''; });
+    }));
+
     if (fixedSelect) {
         fixedSelect.addEventListener('change', function() {
-            if (this.value) {
-                if (groupSelect) groupSelect.value = '';
-                const opt = this.options[this.selectedIndex];
-                if (titleInput && opt.getAttribute('data-title')) {
-                    titleInput.value = opt.getAttribute('data-title');
-                }
-                if (daysInput && opt.getAttribute('data-days')) {
-                    daysInput.value = opt.getAttribute('data-days');
-                }
-            }
+            applyTemplate(this, 'fixed');
         });
     }
 
+    if (b2cSelect) b2cSelect.addEventListener('change', function() { applyTemplate(this, 'b2c'); });
+
     if (groupSelect) {
         groupSelect.addEventListener('change', function() {
-            if (this.value) {
-                if (fixedSelect) fixedSelect.value = '';
-                const opt = this.options[this.selectedIndex];
-                if (titleInput && opt.getAttribute('data-title')) {
-                    titleInput.value = opt.getAttribute('data-title');
-                }
-                if (daysInput && opt.getAttribute('data-days')) {
-                    daysInput.value = opt.getAttribute('data-days');
-                }
-            }
+            applyTemplate(this, 'group');
         });
     }
 });

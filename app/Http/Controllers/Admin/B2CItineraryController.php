@@ -47,15 +47,28 @@ class B2CItineraryController extends Controller
         $admins = \App\Models\Admin::orderBy('name')->get();
         $groupPackages = \App\Models\GroupPackage::where('status', true)->orderBy('name')->get();
         $fixedItineraries = \App\Models\FixedItinerary::where('status', 'active')->orderBy('title')->get();
-        return view('admin.b2c.create', compact('destinations', 'admins', 'groupPackages', 'fixedItineraries'));
+        $b2cTemplates = B2CItinerary::whereNotNull('itinerary')
+            ->where('duration_days', '>', 0)
+            ->latest('updated_at')
+            ->limit(100)
+            ->get(['id', 'title', 'destination_id', 'duration_days', 'updated_at']);
+        return view('admin.b2c.create', compact('destinations', 'admins', 'groupPackages', 'fixedItineraries', 'b2cTemplates'));
     }
 
     public function store(Request $request)
     {
+        if (!$request->filled('import_source')) {
+            $request->merge(['import_source' => $request->filled('fixed_itinerary_id')
+                ? 'fixed'
+                : ($request->filled('b2c_source_id') ? 'b2c' : ($request->filled('group_package_id') ? 'group' : 'blank'))]);
+        }
+
         $request->validate([
             'destination_id' => 'required|exists:countries,id',
-            'fixed_itinerary_id' => 'nullable|exists:fixed_itineraries,id',
-            'group_package_id' => 'nullable|exists:group_packages,id',
+            'import_source' => 'required|in:blank,fixed,b2c,group',
+            'fixed_itinerary_id' => 'nullable|required_if:import_source,fixed|exists:fixed_itineraries,id',
+            'b2c_source_id' => 'nullable|required_if:import_source,b2c|exists:b2c_itineraries,id',
+            'group_package_id' => 'nullable|required_if:import_source,group|exists:group_packages,id',
             'country_ids' => 'nullable|array',
             'country_ids.*' => 'exists:countries,id',
             'title' => 'required|string|max:255',
@@ -69,7 +82,7 @@ class B2CItineraryController extends Controller
         $masterContent = [];
 
         // 1. Check if a Fixed Itinerary (Master Package) was selected (Optional)
-        if ($request->filled('fixed_itinerary_id')) {
+        if ($request->import_source === 'fixed' && $request->filled('fixed_itinerary_id')) {
             $fi = \App\Models\FixedItinerary::find($request->fixed_itinerary_id);
             if ($fi && !empty($fi->days)) {
                 $masterContent = [
@@ -177,8 +190,24 @@ class B2CItineraryController extends Controller
             }
         }
 
-        // 2. Fallback: Check if an Operations Group Tour Master was selected (Optional)
-        if (empty($itineraryStructure) && $request->filled('group_package_id')) {
+        // 2. Copy an existing B2C itinerary as a reusable template. Customer,
+        // contact, payment and follow-up data are deliberately not copied.
+        if (empty($itineraryStructure) && $request->import_source === 'b2c' && $request->filled('b2c_source_id')) {
+            $source = B2CItinerary::find($request->b2c_source_id);
+            if ($source && !empty($source->itinerary)) {
+                $itineraryStructure = $source->itinerary;
+                $masterContent = [
+                    'short_description' => $source->short_description,
+                    'highlights' => $source->highlights ?: [],
+                    'inclusions' => $source->inclusions ?: [],
+                    'exclusions' => $source->exclusions ?: [],
+                    'terms_conditions' => $source->terms_conditions,
+                ];
+            }
+        }
+
+        // 3. Fallback: Check if an Operations Group Tour Master was selected (Optional)
+        if (empty($itineraryStructure) && $request->import_source === 'group' && $request->filled('group_package_id')) {
             $gp = \App\Models\GroupPackage::find($request->group_package_id);
             if ($gp && !empty($gp->itinerary)) {
                 $rawItin = is_array($gp->itinerary) ? $gp->itinerary : (json_decode($gp->itinerary, true) ?: []);
