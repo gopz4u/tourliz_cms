@@ -896,13 +896,11 @@
                 const checkboxContainer = $('#vendor-checkboxes');
                 checkboxContainer.empty();
 
-                // Get already selected vendor IDs (from itinerary.settings or similar)
+                const involvedVendorIds = @json($involvedVendorIds ?? []);
                 const currentVendorId = parseInt("{{ data_get($itinerary, 'supplier_id', 0) }}");
-                // We'll also check if there are multiple stored in the JSON metadata if you decide to implement that.
-                // For now, let's just use the primary one for backward compatibility.
 
                 data.forEach(s => {
-                    const isChecked = (s.id == currentVendorId) ? 'checked' : '';
+                    const isChecked = (s.id == currentVendorId || involvedVendorIds.includes(parseInt(s.id))) ? 'checked' : '';
 
                     const optionHtml = `<option value="${s.id}">${s.name} (${s.type})</option>`;
                     expenseSelect.append(optionHtml);
@@ -2584,10 +2582,11 @@
                 const checkboxContainer = $('#vendor-checkboxes');
                 checkboxContainer.empty();
 
+                const involvedVendorIds = @json($involvedVendorIds ?? []);
                 const currentVendorId = parseInt("{{ data_get($itinerary, 'supplier_id', 0) }}");
 
                 data.forEach(s => {
-                    const isChecked = ((s.id == currentVendorId) || (currentExpenses && currentExpenses.some(e => e.supplier_id == s.id))) ? 'checked' : '';
+                    const isChecked = ((s.id == currentVendorId) || involvedVendorIds.includes(parseInt(s.id)) || (currentExpenses && currentExpenses.some(e => e.supplier_id == s.id))) ? 'checked' : '';
 
                     // select.append(`<option value="${s.id}">${s.name} (${s.type})</option>`); // This line is now handled by filterSuppliersByCategory
 

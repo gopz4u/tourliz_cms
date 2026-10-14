@@ -109,7 +109,9 @@ class VendorShareController extends Controller
         $durationLine = $itinerary->duration_days . " Days / " . max(0, $itinerary->duration_days - 1) . " Nights";
         $text .= "*Duration:* " . $durationLine . "\n";
         $text .= "*Travel Date:* " . ($itinerary->start_date ? $itinerary->start_date->format('d M Y') : 'TBA') . "\n";
-        $text .= "*Room Type:* " . ($hotelDetails ?? '') . "\n";
+        if ($expense->category === 'Hotel' && $hotelDetails) {
+            $text .= "*Room Type:* " . $hotelDetails . "\n";
+        }
         $text .= "*Destination:* " . ($itinerary->destination->name ?? 'N/A') . "\n\n";
 
         if ($expense->category === 'Hotel') {
@@ -186,8 +188,8 @@ class VendorShareController extends Controller
         foreach ($days as $day) {
             $transports = $day['transport'] ?? [];
             foreach ($transports as $t) {
-                if (!empty($t['mode']))
-                    $types[] = $t['mode'];
+                $vehicle = $t['vehicle_type'] ?? $t['mode'] ?? $t['name'] ?? null;
+                if ($vehicle) $types[] = $vehicle;
             }
         }
         return implode(', ', array_unique($types));
@@ -217,73 +219,34 @@ class VendorShareController extends Controller
             $dayTitle = "Day " . $dayNum . ": " . $daySubject . $dateStr;
             $dayContent = [];
 
-            // 1. Transports
+            // Transport vendors receive only the operational route and visit plan.
             $transports = $day['transport'] ?? [];
             if (!empty($transports)) {
                 foreach ($transports as $t) {
-                    $mode = $t['mode'] ?? 'Vehicle';
-                    $from = $t['from'] ?? '?';
-                    $to = $t['to'] ?? '?';
-                    // $time = $t['time'] ?? '';
-                    $dayContent[] = "   - Trip: $mode ($from -> $to)";
+                    $mode = $t['vehicle_type'] ?? $t['mode'] ?? $t['name'] ?? 'Vehicle / Transfer';
+                    $route = (!empty($t['from']) || !empty($t['to']))
+                        ? ' (' . ($t['from'] ?? 'Pickup') . ' to ' . ($t['to'] ?? 'Drop-off') . ')'
+                        : '';
+                    $dayContent[] = "   - Transport: {$mode}{$route}";
                 }
             }
 
-            // 2. Activities & Spots
+            $description = trim((string) ($day['notes'] ?? $day['description'] ?? $day['program'] ?? ''));
+            if ($description !== '') {
+                $dayContent[] = "   - Plan: " . $description;
+            }
+
             $sightseeing = [];
-            if (!empty($day['activities']) && is_array($day['activities'])) {
-                foreach ($day['activities'] as $act) {
-                    if (!empty($act['name']))
-                        $sightseeing[] = $act['name'];
+            foreach (['places', 'spots', 'activities'] as $collection) {
+                if (!empty($day[$collection]) && is_array($day[$collection])) {
+                    foreach ($day[$collection] as $place) {
+                        $name = is_array($place) ? ($place['name'] ?? $place['attraction_name'] ?? null) : $place;
+                        if ($name) $sightseeing[] = $name;
+                    }
                 }
-            }
-            if (!empty($day['spots']) && is_array($day['spots'])) {
-                foreach ($day['spots'] as $spot) {
-                    if (!empty($spot['name']))
-                        $sightseeing[] = $spot['name'];
-                }
-            }
-
-            if (empty($sightseeing) && !empty($day['program'])) {
-                $dayContent[] = "   - Plan: " . Str::limit($day['program'], 60);
             }
             if (!empty($sightseeing)) {
-                $dayContent[] = "   - Visit: " . implode(', ', $sightseeing);
-            }
-
-            // 3. Hotel Details
-            $hotels = [];
-            if (!empty($day['hotels']) && is_array($day['hotels'])) {
-                foreach ($day['hotels'] as $h) {
-                    if (!empty($h['name'])) {
-                        $hotels[] = $h['name'] . (!empty($h['type']) ? " (" . $h['type'] . ")" : "");
-                    }
-                }
-            } elseif (!empty($day['hotel']['name'])) {
-                $hotels[] = $day['hotel']['name'] . (!empty($day['hotel']['type']) ? " (" . $day['hotel']['type'] . ")" : "");
-            }
-            if (!empty($hotels)) {
-                $dayContent[] = "   - Hotel: " . implode(', ', $hotels);
-            }
-
-            // 4. Meal Details
-            $meals = [];
-            if (!empty($day['meals'])) {
-                $m = $day['meals'];
-                // Handle both older format (array of names) and newer format (object with breakfast/lunch/dinner)
-                if (is_array($m)) {
-                    if (isset($m['breakfast']) && strtolower($m['breakfast']) !== 'not included') $meals[] = "Breakfast";
-                    if (isset($m['lunch']) && strtolower($m['lunch']) !== 'not included') $meals[] = "Lunch";
-                    if (isset($m['dinner']) && strtolower($m['dinner']) !== 'not included') $meals[] = "Dinner";
-                    
-                    // Fallback for simple indexed array of names
-                    if (empty($meals) && isset($m[0])) {
-                        foreach($m as $name) $meals[] = is_array($name) ? ($name['name'] ?? 'Meal') : $name;
-                    }
-                }
-            }
-            if (!empty($meals)) {
-                $dayContent[] = "   - Meals: " . implode(', ', $meals);
+                $dayContent[] = "   - Places: " . implode(', ', array_unique($sightseeing));
             }
 
             if (!empty($dayContent)) {

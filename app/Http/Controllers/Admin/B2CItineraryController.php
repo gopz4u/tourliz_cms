@@ -305,10 +305,14 @@ class B2CItineraryController extends Controller
     public function edit($id)
     {
         $itinerary = B2CItinerary::with(['destination'])->findOrFail($id);
+        $involvedVendorIds = \App\Models\ItineraryExpense::where('itinerary_id', $itinerary->id)
+            ->where('itinerary_type', 'b2c')
+            ->whereNotNull('supplier_id')
+            ->pluck('supplier_id')->map(fn ($vendorId) => (int) $vendorId)->unique()->values();
         $countries = \App\Models\Country::orderBy('name')->get();
         $destinations = \App\Models\Destination::orderBy('city')->get();
         $admins = \App\Models\Admin::orderBy('name')->get();
-        return view('admin.b2c.edit', compact('itinerary', 'countries', 'destinations', 'admins'));
+        return view('admin.b2c.edit', compact('itinerary', 'countries', 'destinations', 'admins', 'involvedVendorIds'));
     }
 
     public function update(Request $request, $id)
@@ -334,7 +338,7 @@ class B2CItineraryController extends Controller
 
         $prevStatus = $itinerary->followup_status;
 
-        $itinerary->fill([
+        $proposalUpdates = [
             'title' => $request->title,
             'short_description' => $request->short_description,
             'highlights' => $this->parseProposalList($request->highlights),
@@ -365,7 +369,11 @@ class B2CItineraryController extends Controller
             'duration_days' => $request->duration_days,
             'notes' => $request->notes,
             'user_id' => $request->user_id ?? $itinerary->user_id,
-        ]);
+        ];
+        if (!\Illuminate\Support\Facades\Schema::hasColumn('b2c_itineraries', 'supplier_id')) {
+            unset($proposalUpdates['supplier_id']);
+        }
+        $itinerary->fill($proposalUpdates);
 
         $itinerary->itinerary = json_decode($request->itinerary, true);
 
@@ -389,14 +397,16 @@ class B2CItineraryController extends Controller
             if (is_array($vendorIds)) {
                 // 1. Create/Ensure Exists
                 foreach ($vendorIds as $vid) {
-                    \App\Models\ItineraryExpense::firstOrCreate([
+                    $supplier = \App\Models\Supplier::find($vid);
+                    if (!$supplier) continue;
+                    \App\Models\ItineraryExpense::updateOrCreate([
                         'itinerary_id' => $itinerary->id,
                         'itinerary_type' => 'b2c',
-                        'supplier_id' => $vid
+                        'supplier_id' => $vid,
+                        'description' => 'Involved Vendor',
                     ], [
                         'amount' => 0,
-                        'category' => 'Involved Vendor',
-                        'description' => 'Involved Vendor',
+                        'category' => $supplier->category_label,
                         'expense_date' => now(),
                         'status' => 'pending'
                     ]);
@@ -404,7 +414,7 @@ class B2CItineraryController extends Controller
                 // 2. Cleanup Unchecked (Only 0-cost auto-added ones)
                 \App\Models\ItineraryExpense::where('itinerary_id', $itinerary->id)
                     ->where('itinerary_type', 'b2c')
-                    ->where('category', 'Involved Vendor')
+                    ->where('description', 'Involved Vendor')
                     ->where('amount', 0)
                     ->whereNotIn('supplier_id', $vendorIds)
                     ->delete();

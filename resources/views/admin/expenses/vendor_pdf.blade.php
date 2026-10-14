@@ -190,7 +190,7 @@
     </table>
 
     @if(!empty($trip_schedule))
-        <div class="section-title">TRIP ITINERARY / SCHEDULE</div>
+        <div class="section-title">DRIVER ITINERARY — DAYS &amp; PLACES</div>
         <div
             style="background: #f8f9fa; padding: 10px; border: 1px solid #ddd; font-family: monospace; white-space: pre-line; margin-bottom: 20px;">
             {{ $trip_schedule }}

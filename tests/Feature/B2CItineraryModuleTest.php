@@ -9,6 +9,8 @@ use App\Models\User;
 use App\Models\Country;
 use App\Models\Destination;
 use App\Models\B2CItinerary;
+use App\Models\Supplier;
+use App\Models\ItineraryExpense;
 
 class B2CItineraryModuleTest extends TestCase
 {
@@ -198,5 +200,59 @@ class B2CItineraryModuleTest extends TestCase
         ]);
 
         $this->assertSame(389.0, $itinerary->customer_total_price);
+    }
+
+    /** @test */
+    public function multiple_involved_vendors_are_retained_and_transport_copy_is_route_focused()
+    {
+        $this->withoutExceptionHandling();
+        $transportVendor = Supplier::create(['name' => 'City Wheels', 'type' => 'Transport', 'phone' => '60111111111']);
+        $hotelVendor = Supplier::create(['name' => 'Grand Stay', 'type' => 'Hotel', 'phone' => '60222222222']);
+        $itinerary = B2CItinerary::create([
+            'user_id' => $this->admin->id,
+            'destination_id' => $this->country->id,
+            'title' => 'Vendor Test Trip',
+            'client_name' => 'Vendor Guest',
+            'duration_days' => 1,
+            'adults' => 2,
+            'itinerary' => [],
+            'currency' => 'MYR',
+            'status' => 'draft',
+        ]);
+        $dayPlan = [[
+            'day' => 1,
+            'title' => 'City Discovery',
+            'notes' => 'Morning pickup followed by the city tour.',
+            'places' => [['name' => 'Royal Palace']],
+            'transport' => [['name' => 'Private Van', 'vehicle_type' => '12 Seater Van', 'supplier_id' => $transportVendor->id]],
+            'hotels' => [['name' => 'Grand Stay', 'type' => 'Deluxe', 'supplier_id' => $hotelVendor->id]],
+            'meals' => [['name' => 'Lunch']],
+        ]];
+
+        $response = $this->actingAs($this->admin)->put(route('admin.b2c-itineraries.update', $itinerary->id), [
+            'itinerary' => json_encode($dayPlan),
+            'title' => $itinerary->title,
+            'client_name' => $itinerary->client_name,
+            'adults' => 2,
+            'duration_days' => 1,
+            'supplier_id' => $transportVendor->id,
+            'lead_source' => 'walk_in',
+            'involved_vendors' => json_encode([$transportVendor->id, $hotelVendor->id]),
+        ]);
+        $response->assertSessionHasNoErrors();
+        $this->assertCount(2, ItineraryExpense::where('itinerary_id', $itinerary->id)->where('description', 'Involved Vendor')->get());
+
+        $transportExpense = ItineraryExpense::where('itinerary_id', $itinerary->id)
+            ->where('supplier_id', $transportVendor->id)->firstOrFail();
+        $message = $this->actingAs($this->admin)
+            ->get(route('admin.expenses.whatsapp-vendor', $transportExpense->id))
+            ->assertOk()->json('text');
+
+        $this->assertStringContainsString('Day 1: City Discovery', $message);
+        $this->assertStringContainsString('Morning pickup followed by the city tour.', $message);
+        $this->assertStringContainsString('Places: Royal Palace', $message);
+        $this->assertStringContainsString('12 Seater Van', $message);
+        $this->assertStringNotContainsString('Grand Stay', $message);
+        $this->assertStringNotContainsString('Meals:', $message);
     }
 }
