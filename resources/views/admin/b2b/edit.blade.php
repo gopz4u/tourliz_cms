@@ -1698,6 +1698,8 @@
                     if (number) {
                         window.openWhatsApp(text, number);
                     }
+                };
+
                     window.copyPdfLink = () => {
                         if (isDirty) {
                             if (!confirm("Warning: You have unsaved changes. The copied link will generate a PDF based on the saved database values, which doesn't include your current changes. Copy anyway?")) {
@@ -2046,7 +2048,6 @@
                     renderBuilder();
                     // loadExpenses(); // Moved to end of file
                     // loadSuppliers(); // Moved to end of file
-                }
             </script>
         @endpush
 

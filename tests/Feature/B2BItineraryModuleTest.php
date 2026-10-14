@@ -191,4 +191,38 @@ class B2BItineraryModuleTest extends TestCase
             ->get(route('admin.b2b-itineraries.pdf', $itinerary->id) . '?public=1')
             ->assertOk()->assertHeader('content-type', 'application/pdf');
     }
+
+    /** @test */
+    public function b2b_proposal_can_save_customer_content()
+    {
+        $itinerary = CustomItinerary::create([
+            'user_id' => $this->admin->id,
+            'agency_id' => $this->agency->id,
+            'destination_id' => $this->country->id,
+            'title' => 'Draft Agency Proposal',
+            'client_name' => 'Agency Guest',
+            'duration_days' => 1,
+            'adults' => 2,
+            'itinerary' => [],
+            'status' => 'draft',
+        ]);
+
+        $response = $this->actingAs($this->admin)->put(route('admin.b2b-itineraries.update', $itinerary->id), [
+            'itinerary' => json_encode([['day' => 1, 'title' => 'Imported Day', 'notes' => 'Imported day description', 'places' => [], 'activities' => [], 'spots' => [], 'transport' => [], 'meals' => [], 'hotels' => []]]),
+            'title' => 'Saved Agency Proposal',
+            'client_name' => 'Agency Guest',
+            'adults' => 2,
+            'short_description' => 'Saved journey overview',
+            'highlights' => "First highlight\nSecond highlight",
+            'inclusions' => "Hotel\nTransfers",
+            'exclusions' => "Flights\nInsurance",
+            'terms_conditions' => 'Saved agency terms.',
+        ]);
+
+        $response->assertSessionHasNoErrors()->assertRedirect();
+        $itinerary->refresh();
+        $this->assertSame('Saved Agency Proposal', $itinerary->title);
+        $this->assertSame(['First highlight', 'Second highlight'], $itinerary->highlights);
+        $this->assertSame('Imported day description', $itinerary->itinerary[0]['notes']);
+    }
 }
