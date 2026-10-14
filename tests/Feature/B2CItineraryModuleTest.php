@@ -140,7 +140,16 @@ class B2CItineraryModuleTest extends TestCase
             'title' => 'USD Customer Quote',
             'client_name' => 'Currency Customer',
             'duration_days' => 2,
-            'itinerary' => [],
+            'itinerary' => [[
+                'day' => 1,
+                'title' => 'Bangkok Discovery',
+                'notes' => 'Meet your guide and explore the historic old town.',
+            ]],
+            'short_description' => 'A private city escape designed for this customer.',
+            'highlights' => ['Private old town experience', 'Riverside evening'],
+            'inclusions' => ['Private airport transfer', 'English-speaking guide'],
+            'exclusions' => ['International airfare', 'Personal expenses'],
+            'terms_conditions' => 'Quotation valid for seven days.',
             'adults' => 2,
             'currency' => 'MYR',
             'quote_currency' => 'USD',
@@ -161,6 +170,12 @@ class B2CItineraryModuleTest extends TestCase
         $this->assertStringContainsString('TOURLIZ HOLIDAYS', $message);
         $this->assertStringContainsString('DAY-BY-DAY ITINERARY', $message);
         $this->assertStringContainsString('PACKAGE INCLUSIONS', $message);
+        $this->assertStringContainsString('A private city escape designed for this customer.', $message);
+        $this->assertStringContainsString('Private old town experience', $message);
+        $this->assertStringContainsString('Meet your guide and explore the historic old town.', $message);
+        $this->assertStringContainsString('Private airport transfer', $message);
+        $this->assertStringContainsString('International airfare', $message);
+        $this->assertStringContainsString('Quotation valid for seven days.', $message);
         $this->assertStringContainsString('TOTAL PACKAGE PRICE', $message);
         $this->assertStringContainsString('USD 282.00', $message);
         $this->assertStringNotContainsString('/admin/b2c-itineraries/', $message);

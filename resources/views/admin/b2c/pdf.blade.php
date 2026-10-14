@@ -32,6 +32,10 @@
         .section-note { text-align: right; color: #8290a1; font-size: 7px; letter-spacing: .7px; text-transform: uppercase; }
         .overview { padding: 11px 13px; background: #f2f7fc; border-left: 3px solid #19abc6; color: #42566e; }
         .overview strong { color: #163e73; }
+        .highlights { margin-top: 8px; border: 1px solid #d9e8f7; background: #f8fbff; }
+        .highlights td { width: 33.33%; padding: 8px 10px; border-right: 1px solid #d9e8f7; color: #294763; vertical-align: top; font-weight: bold; }
+        .highlights td:last-child { border-right: 0; }
+        .highlight-number { color: #19a6c2; font-size: 7px; letter-spacing: .5px; }
         .day { margin-bottom: 10px; page-break-inside: avoid; }
         .day-side { width: 47px; padding: 8px 5px; background: #1768d3; color: #fff; text-align: center; vertical-align: top; }
         .day-side small { display: block; font-size: 6px; letter-spacing: .8px; }
@@ -85,6 +89,20 @@
     <div class="section">
         <table class="section-head"><tr><td class="section-title">Journey Overview</td><td class="section-note">Your experience at a glance</td></tr></table>
         <div class="overview"><strong>{{ $itinerary->short_description ?: 'A memorable journey, thoughtfully planned for you.' }}</strong></div>
+        @if(!empty($itinerary->highlights))
+            <table class="highlights"><tr>
+                @foreach(array_slice($itinerary->highlights, 0, 3) as $index => $highlight)
+                    <td><div class="highlight-number">HIGHLIGHT {{ str_pad($index + 1, 2, '0', STR_PAD_LEFT) }}</div>{{ $highlight }}</td>
+                @endforeach
+            </tr></table>
+            @if(count($itinerary->highlights) > 3)
+                <table class="highlights"><tr>
+                    @foreach(array_slice($itinerary->highlights, 3, 3) as $index => $highlight)
+                        <td><div class="highlight-number">HIGHLIGHT {{ str_pad($index + 4, 2, '0', STR_PAD_LEFT) }}</div>{{ $highlight }}</td>
+                    @endforeach
+                </tr></table>
+            @endif
+        @endif
     </div>
 
     @if(is_array($itinerary->days) && count($itinerary->days))

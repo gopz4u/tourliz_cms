@@ -358,6 +358,30 @@
                                     <textarea id="proposal-notes" class="form-control form-control-sm"
                                         rows="2">{{ data_get($itinerary, 'notes') }}</textarea>
                                 </div>
+
+                                <div class="d-flex justify-content-between align-items-center mb-2 pb-1 border-bottom mt-4">
+                                    <h6 class="fw-bold mb-0 text-dark" style="font-size: 0.85rem;"><i class="bi bi-file-earmark-richtext me-1 text-primary"></i> Customer Proposal Content</h6>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label small text-muted mb-1">Journey Overview</label>
+                                    <textarea id="proposal-overview" class="form-control form-control-sm" rows="3" placeholder="Short introduction shown to the customer">{{ data_get($itinerary, 'short_description') }}</textarea>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label small text-muted mb-1">Package Highlights <span class="text-muted">(one per line)</span></label>
+                                    <textarea id="proposal-highlights" class="form-control form-control-sm" rows="4" placeholder="Iconic city tour&#10;Private airport transfer">{{ implode("\n", data_get($itinerary, 'highlights', []) ?: []) }}</textarea>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label small text-muted mb-1">Inclusions <span class="text-muted">(one per line)</span></label>
+                                    <textarea id="proposal-inclusions" class="form-control form-control-sm" rows="4">{{ implode("\n", data_get($itinerary, 'inclusions', []) ?: []) }}</textarea>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label small text-muted mb-1">Exclusions <span class="text-muted">(one per line)</span></label>
+                                    <textarea id="proposal-exclusions" class="form-control form-control-sm" rows="4">{{ implode("\n", data_get($itinerary, 'exclusions', []) ?: []) }}</textarea>
+                                </div>
+                                <div class="mb-0">
+                                    <label class="form-label small text-muted mb-1">Customer Terms</label>
+                                    <textarea id="proposal-terms" class="form-control form-control-sm" rows="3">{{ data_get($itinerary, 'terms_conditions') }}</textarea>
+                                </div>
                             </div>
                         </div>
 
@@ -617,6 +641,11 @@
             <input type="hidden" name="supplier_id" id="formSupplier">
 
             <input type="hidden" name="notes" id="formNotes">
+            <input type="hidden" name="short_description" id="formOverview">
+            <input type="hidden" name="highlights" id="formHighlights">
+            <input type="hidden" name="inclusions" id="formInclusions">
+            <input type="hidden" name="exclusions" id="formExclusions">
+            <input type="hidden" name="terms_conditions" id="formTerms">
             <input type="hidden" name="user_id" id="formAssignedUser">
             <input type="hidden" name="involved_vendors" id="formInvolvedVendors">
         </form>
@@ -1654,6 +1683,11 @@
                     });
 
                     window.itinerary = newItinerary;
+                    document.getElementById('proposal-overview').value = fi.description || '';
+                    document.getElementById('proposal-highlights').value = ensureArray(fi.highlights).join('\n');
+                    document.getElementById('proposal-inclusions').value = ensureArray(fi.inclusions).join('\n');
+                    document.getElementById('proposal-exclusions').value = ensureArray(fi.exclusions).join('\n');
+                    document.getElementById('proposal-terms').value = fi.terms_conditions || '';
                     const durationInput = document.getElementById('trip-duration');
                     if (durationInput) {
                         durationInput.value = newItinerary.length;
@@ -2311,11 +2345,21 @@
             if(c1 > 0) text += `, ${c1} Child(2-6y)`;
             if(c2 > 0) text += `, ${c2} Child(6-11y)`;
             text += `\n\n📝 *JOURNEY OVERVIEW*\n`;
-            text += `A thoughtfully planned journey prepared especially for ${clientName}.\n`;
+            const overview = document.getElementById('proposal-overview').value.trim();
+            const highlights = document.getElementById('proposal-highlights').value.split(/\r?\n/).map(v => v.trim()).filter(Boolean);
+            const inclusions = document.getElementById('proposal-inclusions').value.split(/\r?\n/).map(v => v.trim()).filter(Boolean);
+            const exclusions = document.getElementById('proposal-exclusions').value.split(/\r?\n/).map(v => v.trim()).filter(Boolean);
+            const terms = document.getElementById('proposal-terms').value.trim();
+            text += `${overview || `A thoughtfully planned journey prepared especially for ${clientName}.`}\n`;
+            if (highlights.length) {
+                text += `\n✨ *PACKAGE HIGHLIGHTS*\n`;
+                highlights.forEach(item => text += `  • ${item}\n`);
+            }
             
             text += `\n🗺️ *DAY-BY-DAY ITINERARY*\n`;
             itinerary.forEach(day => {
                 text += `\n*DAY ${day.day} — ${day.title || 'Explore & Experience'}*\n`;
+                if (day.notes || day.description) text += `${day.notes || day.description}\n`;
                 const spots = [...ensureArray(day.spots), ...ensureArray(day.activities), ...ensureArray(day.places)];
                 if(spots.length > 0) {
                     spots.forEach(s => {
@@ -2332,18 +2376,17 @@
             });
 
             text += `\n✅ *PACKAGE INCLUSIONS*\n`;
-            text += `  ✓ Accommodation listed in the itinerary\n`;
-            text += `  ✓ Listed transportation and transfers\n`;
-            text += `  ✓ Sightseeing and activities shown above\n`;
+            (inclusions.length ? inclusions : ['Accommodation listed in the itinerary', 'Listed transportation and transfers', 'Sightseeing and activities shown above'])
+                .forEach(item => text += `  ✓ ${item}\n`);
             text += `\n❌ *PACKAGE EXCLUSIONS*\n`;
-            text += `  × Flights, visas and travel insurance unless listed\n`;
-            text += `  × Personal expenses and optional activities\n`;
+            (exclusions.length ? exclusions : ['Flights, visas and travel insurance unless listed', 'Personal expenses and optional activities'])
+                .forEach(item => text += `  × ${item}\n`);
             text += `\n💰 *TOTAL PACKAGE PRICE*\n`;
             text += `*${currencyStr} ${totalVal.toFixed(2)}*\n`;
             text += `Adult: ${currencyStr} ${adultRate.toFixed(2)} per person\n`;
             if(c1 > 0) text += `Child (2–6 years): ${currencyStr} ${childRateSmall.toFixed(2)}\n`;
             if(c2 > 0) text += `Child (6–11 years): ${currencyStr} ${childRateLarge.toFixed(2)}\n`;
-            text += `\n_Rates and availability are subject to confirmation._\n`;
+            text += `\n_${terms || 'Rates and availability are subject to confirmation.'}_\n`;
             text += `\n📞 *Tourliz Holidays*\nMalaysia: +60 10-233 9314 / +60 18-983 6532\nIndia: +91 96338 50694\n`;
             text += `\nThank you for choosing *Tourliz* — your travel partner. 🌴`;
             
@@ -2488,6 +2531,11 @@
             document.getElementById('formArrivalDate').value = document.getElementById('arrival-date').value;
             document.getElementById('formDuration').value = document.getElementById('trip-duration').value;
             document.getElementById('formNotes').value = document.getElementById('proposal-notes').value;
+            document.getElementById('formOverview').value = document.getElementById('proposal-overview').value;
+            document.getElementById('formHighlights').value = document.getElementById('proposal-highlights').value;
+            document.getElementById('formInclusions').value = document.getElementById('proposal-inclusions').value;
+            document.getElementById('formExclusions').value = document.getElementById('proposal-exclusions').value;
+            document.getElementById('formTerms').value = document.getElementById('proposal-terms').value;
             
             isDirty = false; // Reset dirty flag before submission
             document.getElementById('saveForm').submit();

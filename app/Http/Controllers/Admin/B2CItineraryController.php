@@ -66,11 +66,19 @@ class B2CItineraryController extends Controller
         ]);
 
         $itineraryStructure = null;
+        $masterContent = [];
 
         // 1. Check if a Fixed Itinerary (Master Package) was selected (Optional)
         if ($request->filled('fixed_itinerary_id')) {
             $fi = \App\Models\FixedItinerary::find($request->fixed_itinerary_id);
             if ($fi && !empty($fi->days)) {
+                $masterContent = [
+                    'short_description' => $fi->short_description ?: $fi->itinerary_description,
+                    'highlights' => $fi->highlights ?: [],
+                    'inclusions' => $fi->inclusions ?: [],
+                    'exclusions' => $fi->exclusions ?: [],
+                    'terms_conditions' => $fi->terms_conditions,
+                ];
                 $rawDays = is_array($fi->days) ? $fi->days : (json_decode($fi->days, true) ?: []);
                 if (!empty($rawDays)) {
                     $itineraryStructure = array_map(function ($day, $idx) use ($fi) {
@@ -162,7 +170,7 @@ class B2CItineraryController extends Controller
                             'spots' => $spots,
                             'activities' => $activities,
                             'meals' => $meals,
-                            'notes' => $day['notes'] ?? '',
+                            'notes' => $day['description'] ?? ($day['notes'] ?? ''),
                         ];
                     }, $rawDays, array_keys($rawDays));
                 }
@@ -263,12 +271,17 @@ class B2CItineraryController extends Controller
             'destination_id' => $request->destination_id,
             'country_ids' => $request->country_ids ?? [],
             'title' => $request->title,
+            'short_description' => $masterContent['short_description'] ?? null,
             'client_name' => $request->client_name,
             'phone' => $request->phone,
             'email' => $request->email,
             'start_date' => $request->start_date,
             'duration_days' => $request->duration_days,
             'itinerary' => $itineraryStructure,
+            'highlights' => $masterContent['highlights'] ?? [],
+            'inclusions' => $masterContent['inclusions'] ?? [],
+            'exclusions' => $masterContent['exclusions'] ?? [],
+            'terms_conditions' => $masterContent['terms_conditions'] ?? null,
             'status' => 'draft',
             'lead_source' => $request->lead_source ?? 'walk_in',
         ]);
@@ -312,12 +325,22 @@ class B2CItineraryController extends Controller
             'exchange_rate_date' => 'nullable|date',
             'supplier_id' => 'nullable|exists:suppliers,id',
             'user_id' => 'nullable|exists:admins,id',
+            'short_description' => 'nullable|string',
+            'highlights' => 'nullable|string',
+            'inclusions' => 'nullable|string',
+            'exclusions' => 'nullable|string',
+            'terms_conditions' => 'nullable|string',
         ]);
 
         $prevStatus = $itinerary->followup_status;
 
         $itinerary->fill([
             'title' => $request->title,
+            'short_description' => $request->short_description,
+            'highlights' => $this->parseProposalList($request->highlights),
+            'inclusions' => $this->parseProposalList($request->inclusions),
+            'exclusions' => $this->parseProposalList($request->exclusions),
+            'terms_conditions' => $request->terms_conditions,
             'client_name' => $request->client_name,
             'supplier_id' => $request->supplier_id,
             'country_ids' => $request->country_ids ?? $itinerary->country_ids,
@@ -445,21 +468,22 @@ class B2CItineraryController extends Controller
             'travelers' => $itinerary->adults . ' Adults' .
                 ($itinerary->children_2_6 ? ' + ' . $itinerary->children_2_6 . ' Child (2–6)' : '') .
                 ($itinerary->children_6_11 ? ' + ' . $itinerary->children_6_11 . ' Child (6–11)' : ''),
-            'short_description' => 'A thoughtfully planned journey prepared especially for ' . $itinerary->client_name . '.',
+            'short_description' => $itinerary->short_description ?: 'A thoughtfully planned journey prepared especially for ' . $itinerary->client_name . '.',
             'itinerary_description' => null,
             'days' => $days,
-            'inclusions' => array_values(array_filter([
+            'highlights' => $itinerary->highlights ?: [],
+            'inclusions' => $itinerary->inclusions ?: array_values(array_filter([
                 'Accommodation as listed in the itinerary',
                 'Transportation and transfers shown in the itinerary',
                 'Sightseeing and activities specifically listed',
                 $mealIncluded ? 'Meals specifically listed in the day plan' : null,
             ])),
-            'exclusions' => [
+            'exclusions' => $itinerary->exclusions ?: [
                 'Flights, visas and travel insurance unless expressly listed',
                 'Personal expenses and optional activities',
                 'Anything not specifically mentioned under inclusions',
             ],
-            'terms_conditions' => 'This proposal is valid for 7 days from the issue date. Rates and availability are subject to confirmation. Reservations are confirmed only after the required payment is received.',
+            'terms_conditions' => $itinerary->terms_conditions ?: 'This proposal is valid for 7 days from the issue date. Rates and availability are subject to confirmation. Reservations are confirmed only after the required payment is received.',
             'currency' => $itinerary->customer_currency,
             'fixed_price' => $itinerary->customer_total_price,
             'converted_prices' => [],
@@ -496,11 +520,21 @@ class B2CItineraryController extends Controller
         if ($itinerary->children_6_11 > 0)
             $text .= ", " . $itinerary->children_6_11 . " Child (6-11y)";
         $text .= "\n\n📝 *JOURNEY OVERVIEW*\n";
-        $text .= "A thoughtfully planned journey prepared especially for " . ($itinerary->client_name ?? 'you') . ".\n\n";
+        $text .= ($itinerary->short_description ?: "A thoughtfully planned journey prepared especially for " . ($itinerary->client_name ?? 'you') . ".") . "\n";
+        if (!empty($itinerary->highlights)) {
+            $text .= "\n✨ *PACKAGE HIGHLIGHTS*\n";
+            foreach ($itinerary->highlights as $highlight) {
+                $text .= "  • " . $highlight . "\n";
+            }
+        }
+        $text .= "\n";
         $text .= "🗺️ *DAY-BY-DAY ITINERARY*\n";
 
         foreach ($data as $day) {
             $text .= "\n*DAY " . ($day['day'] ?? '?') . " — " . ($day['title'] ?? 'Explore & Experience') . "*\n";
+            if (!empty($day['notes'] ?? $day['description'] ?? null)) {
+                $text .= trim($day['notes'] ?? $day['description']) . "\n";
+            }
 
             if (!empty($day['hotel']['name'])) {
                 $text .= "🏨 Hotel: *" . $day['hotel']['name'] . "* (" . ($day['hotel']['type'] ?? 'Standard') . ")\n";
@@ -544,13 +578,13 @@ class B2CItineraryController extends Controller
 
         $customerCurrency = $itinerary->customer_currency;
         $customerTotal = $itinerary->customer_total_price;
+        $inclusions = $itinerary->inclusions ?: ['Accommodation listed in the itinerary', 'Listed transportation and transfers', 'Sightseeing and activities shown above'];
+        $exclusions = $itinerary->exclusions ?: ['Flights, visas and travel insurance unless listed', 'Personal expenses and optional activities'];
         $text .= "✅ *PACKAGE INCLUSIONS*\n";
-        $text .= "  ✓ Accommodation listed in the itinerary\n";
-        $text .= "  ✓ Listed transportation and transfers\n";
-        $text .= "  ✓ Sightseeing and activities shown above\n\n";
-        $text .= "❌ *PACKAGE EXCLUSIONS*\n";
-        $text .= "  × Flights, visas and travel insurance unless listed\n";
-        $text .= "  × Personal expenses and optional activities\n\n";
+        foreach ($inclusions as $item) $text .= "  ✓ " . $item . "\n";
+        $text .= "\n❌ *PACKAGE EXCLUSIONS*\n";
+        foreach ($exclusions as $item) $text .= "  × " . $item . "\n";
+        $text .= "\n";
         $text .= "💰 *TOTAL PACKAGE PRICE*\n";
         $text .= "*" . $customerCurrency . " " . number_format($customerTotal, 2) . "*\n";
 
@@ -576,7 +610,7 @@ class B2CItineraryController extends Controller
             $text .= "\n";
         }
 
-        $text .= "_Rates and availability are subject to confirmation._\n\n";
+        $text .= "_" . ($itinerary->terms_conditions ?: 'Rates and availability are subject to confirmation.') . "_\n\n";
         $text .= "*Contact Tourliz:*\n";
         $text .= "📞 WhatsApp:\n";
         $text .= "  - Malaysia: +60102339314 / +60189836532\n";
@@ -628,5 +662,14 @@ class B2CItineraryController extends Controller
         } catch (\Exception $e) {
             return redirect()->back()->with('error', 'Cannot delete: ' . $e->getMessage());
         }
+    }
+
+    private function parseProposalList($value): array
+    {
+        if (is_array($value)) {
+            return array_values(array_filter(array_map('trim', $value)));
+        }
+
+        return array_values(array_filter(array_map('trim', preg_split('/\r\n|\r|\n/', (string) $value))));
     }
 }
