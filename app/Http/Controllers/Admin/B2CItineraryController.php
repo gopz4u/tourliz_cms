@@ -467,10 +467,9 @@ class B2CItineraryController extends Controller
             'quote_id' => $itinerary->quote_id,
         ];
 
-        $pdf = Pdf::loadView('admin.fixed-itineraries.pdf', [
+        $pdf = Pdf::loadView('admin.b2c.pdf', [
             'itinerary' => $customerProposal,
-            'pdfMode' => true,
-        ]);
+        ])->setPaper('a4', 'portrait');
 
         $filename = 'Proposal_' .
             \Illuminate\Support\Str::slug(ucwords(strtolower($itinerary->client_name ?? 'Guest'))) . '_' .
