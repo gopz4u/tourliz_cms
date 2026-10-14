@@ -56,7 +56,7 @@
                                 <div class="p-3 bg-light rounded-3 border">
                                     <div class="d-flex justify-content-between align-items-center mb-2">
                                         <label class="form-label fw-bold small text-primary mb-0">
-                                            <i class="bi bi-pin-map-fill me-1"></i>Select Master Package / Fixed Itinerary (Optional)
+                                            <i class="bi bi-signpost-split-fill me-1"></i>Choose How to Start the Itinerary
                                         </label>
                                         <span class="badge bg-secondary-subtle text-secondary border small">Not Mandatory</span>
                                     </div>
@@ -69,7 +69,7 @@
                                         @endforeach
                                     </div>
                                     <div class="row g-2">
-                                        <div class="col-md-4 import-source-panel" data-source="fixed">
+                                        <div class="col-12 import-source-panel d-none" data-source="fixed">
                                             <label class="form-label small text-muted mb-1 fw-semibold">
                                                 <i class="bi bi-pin-map text-primary me-1"></i>Fixed Itinerary:
                                             </label>
@@ -89,7 +89,7 @@
                                                 @endif
                                             </select>
                                         </div>
-                                        <div class="col-md-4 import-source-panel" data-source="b2c">
+                                        <div class="col-12 import-source-panel d-none" data-source="b2c">
                                             <label class="form-label small text-muted mb-1 fw-semibold">
                                                 <i class="bi bi-person-check text-success me-1"></i>Existing B2C Itinerary:
                                             </label>
@@ -104,8 +104,9 @@
                                                     </option>
                                                 @endforeach
                                             </select>
+                                            <div class="form-text">Showing {{ ($b2cTemplates ?? collect())->count() }} recently saved B2C itineraries. Create and save a B2C proposal first if this list is empty.</div>
                                         </div>
-                                        <div class="col-md-4 import-source-panel" data-source="group">
+                                        <div class="col-12 import-source-panel d-none" data-source="group">
                                             <label class="form-label small text-muted mb-1 fw-semibold">
                                                 <i class="bi bi-box-seam text-info me-1"></i>Operations Group Tour Master:
                                             </label>
@@ -211,6 +212,13 @@ document.addEventListener('DOMContentLoaded', function() {
     function selectSource(source) {
         const radio = document.getElementById(`import_source_${source}`);
         if (radio) radio.checked = true;
+        showSourcePanel(source);
+    }
+
+    function showSourcePanel(source) {
+        document.querySelectorAll('.import-source-panel').forEach(panel => {
+            panel.classList.toggle('d-none', panel.dataset.source !== source);
+        });
     }
 
     function applyTemplate(select, source) {
@@ -224,8 +232,11 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     sourceRadios.forEach(radio => radio.addEventListener('change', function() {
+        showSourcePanel(this.value);
         if (this.value === 'blank') [fixedSelect, b2cSelect, groupSelect].forEach(select => { if (select) select.value = ''; });
     }));
+
+    showSourcePanel(document.querySelector('.import-source-radio:checked')?.value || 'blank');
 
     if (fixedSelect) {
         fixedSelect.addEventListener('change', function() {
