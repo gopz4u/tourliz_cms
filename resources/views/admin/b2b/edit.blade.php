@@ -13,6 +13,9 @@
                     </p>
                 </div>
                 <div class="d-flex gap-2">
+                    <button type="button" class="btn btn-outline-primary" onclick="openB2BFixedItineraryImport()">
+                        <i class="bi bi-cloud-arrow-down me-1"></i> Import Fixed Itinerary
+                    </button>
                     <button class="btn btn-outline-dark" onclick="openVendorShareModal()">
                         <i class="bi bi-people me-1"></i> Vendor
                     </button>
@@ -27,6 +30,13 @@
                     </button>
                 </div>
             </div>
+        </div>
+
+        <div class="modal fade" id="b2bFixedItineraryModal" tabindex="-1">
+            <div class="modal-dialog modal-lg"><div class="modal-content">
+                <div class="modal-header bg-light"><h5 class="modal-title"><i class="bi bi-pin-map text-primary me-2"></i>Import Fixed Itinerary</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+                <div class="modal-body p-4"><p class="text-muted small">Import the complete day plan, descriptions, highlights, inclusions and exclusions. Existing B2B pricing can then be adjusted for the agency.</p><div id="b2bFixedItineraryList" class="list-group"></div></div>
+            </div></div>
         </div>
 
         <!-- Share Modal -->
@@ -243,6 +253,13 @@
                                     <textarea id="proposal-notes" class="form-control form-control-sm"
                                         rows="3">{{ $itinerary['notes'] }}</textarea>
                                 </div>
+                                <hr class="my-3">
+                                <h6 class="fw-bold small"><i class="bi bi-file-earmark-richtext text-primary me-1"></i>Customer Proposal Content</h6>
+                                <div class="mb-2"><label class="form-label small text-muted mb-1">Journey Overview</label><textarea id="proposal-overview" class="form-control form-control-sm" rows="3">{{ $itinerary->short_description }}</textarea></div>
+                                <div class="mb-2"><label class="form-label small text-muted mb-1">Package Highlights <span>(one per line)</span></label><textarea id="proposal-highlights" class="form-control form-control-sm" rows="3">{{ implode("\n", $itinerary->highlights ?: []) }}</textarea></div>
+                                <div class="mb-2"><label class="form-label small text-muted mb-1">Inclusions <span>(one per line)</span></label><textarea id="proposal-inclusions" class="form-control form-control-sm" rows="3">{{ implode("\n", $itinerary->inclusions ?: []) }}</textarea></div>
+                                <div class="mb-2"><label class="form-label small text-muted mb-1">Exclusions <span>(one per line)</span></label><textarea id="proposal-exclusions" class="form-control form-control-sm" rows="3">{{ implode("\n", $itinerary->exclusions ?: []) }}</textarea></div>
+                                <div class="mb-3"><label class="form-label small text-muted mb-1">Customer Terms</label><textarea id="proposal-terms" class="form-control form-control-sm" rows="3">{{ $itinerary->terms_conditions }}</textarea></div>
                                 <hr class="my-3">
                                 <div class="d-grid">
                                     <button class="btn btn-outline-primary btn-sm" onclick="addDay()">Add Day</button>
@@ -523,6 +540,11 @@
             <input type="hidden" name="title" id="formTitle">
             <input type="hidden" name="client_name" id="formClient">
             <input type="hidden" name="notes" id="formNotes">
+            <input type="hidden" name="short_description" id="formOverview">
+            <input type="hidden" name="highlights" id="formHighlights">
+            <input type="hidden" name="inclusions" id="formInclusions">
+            <input type="hidden" name="exclusions" id="formExclusions">
+            <input type="hidden" name="terms_conditions" id="formTerms">
 
             <!-- Pax & Payment -->
             <input type="hidden" name="adults" id="formAdults">
@@ -592,6 +614,51 @@
                 window.ensureArray = function (arr) {
                     return Array.isArray(arr) ? arr : [];
                 }
+
+                let b2bFixedModal = null;
+                window.openB2BFixedItineraryImport = function () {
+                    const list = document.getElementById('b2bFixedItineraryList');
+                    list.innerHTML = '<div class="text-center p-4"><div class="spinner-border text-primary"></div></div>';
+                    b2bFixedModal = b2bFixedModal || new bootstrap.Modal(document.getElementById('b2bFixedItineraryModal'));
+                    b2bFixedModal.show();
+                    fetch('/api/inventory/fixed-itineraries').then(r => r.json()).then(items => {
+                        list.innerHTML = items.length ? '' : '<div class="text-center text-muted p-4">No active fixed itineraries found.</div>';
+                        items.forEach(item => {
+                            const row = document.createElement('div');
+                            row.className = 'list-group-item d-flex justify-content-between align-items-center gap-3';
+                            row.innerHTML = `<div><div class="fw-bold">${item.title}</div><div class="small text-muted">${item.duration_days} Days · ${item.destination_name || 'Multiple destinations'} · ${item.currency} ${Number(item.fixed_price || 0).toFixed(2)}</div></div><button type="button" class="btn btn-primary btn-sm">Import</button>`;
+                            row.querySelector('button').addEventListener('click', () => importB2BFixedItinerary(item.id));
+                            list.appendChild(row);
+                        });
+                    }).catch(() => list.innerHTML = '<div class="alert alert-danger mb-0">Unable to load fixed itineraries.</div>');
+                };
+
+                window.importB2BFixedItinerary = function (id) {
+                    if (!confirm('Replace the current day plan with this Fixed Itinerary?')) return;
+                    fetch(`/api/inventory/fixed-itineraries/${id}`).then(r => r.json()).then(fi => {
+                        if (!Array.isArray(fi.days) || !fi.days.length) throw new Error('This master has no day plan.');
+                        itinerary = fi.days.map((day, index) => {
+                            const result = { day: day.day_number || index + 1, title: day.title || `Day ${index + 1}`, notes: day.description || '', hotels: [], transport: [], places: [], spots: [], activities: [], meals: [] };
+                            ensureArray(day.items).forEach(item => {
+                                const type = String(item.item_type || '').toLowerCase();
+                                const common = { name: item.title || 'Service', supplier_id: item.supplier_id || null, service_id: null };
+                                if (type === 'hotel') result.hotels.push({...common, type: item.room_type || 'Standard', hotel_id: item.item_id || null, price_per_night: Number(item.price || 0), currency: fi.currency || currency, quantity: 1, add_on_price: 0});
+                                else if (type === 'transport') result.transport.push({...common, transport_id: item.item_id || null, vehicle_type: item.room_type || 'Transfer', price: Number(item.price || 0), currency: fi.currency || currency});
+                                else if (type === 'spot' || type === 'tourist_spot') result.spots.push({...common, spot_id: item.item_id || null, description: item.description || '', hours: 2, price_per_hour: 0});
+                                else if (type === 'activity' || type === 'ticket') result.activities.push({...common, activity_id: item.item_id || null, description: item.description || '', entry_ticket: {adult_price: Number(item.price || 0), adult_qty: 1, child_2_6_price: 0, child_2_6_qty: 0, child_6_11_price: 0, child_6_11_qty: 0, currency: fi.currency || currency}});
+                                else if (type === 'meal') result.meals.push({...common, price: Number(item.price || 0), quantity: 1, currency: fi.currency || currency});
+                            });
+                            return result;
+                        });
+                        document.getElementById('proposal-overview').value = fi.description || '';
+                        document.getElementById('proposal-highlights').value = ensureArray(fi.highlights).join('\n');
+                        document.getElementById('proposal-inclusions').value = ensureArray(fi.inclusions).join('\n');
+                        document.getElementById('proposal-exclusions').value = ensureArray(fi.exclusions).join('\n');
+                        document.getElementById('proposal-terms').value = fi.terms_conditions || '';
+                        document.getElementById('trip-duration').value = itinerary.length;
+                        renderBuilder(); calculateDynamicTotal(); isDirty = true; b2bFixedModal.hide();
+                    }).catch(error => alert(error.message || 'Import failed.'));
+                };
 
                 // --- Core Rendering ---
                 window.renderBuilder = function () {
@@ -1672,17 +1739,25 @@
                             adultRate = adultsCount > 0 ? (totalVal / adultsCount) : 0;
                         }
 
-                        let text = `*📋 BOOKING PROPOSAL: ${title.toUpperCase()}*\n`;
-                        text += `🏢 *Company:* Tourliz\n`;
-                        text += `👤 *Guest:* ${clientName}\n`;
+                        const overview = document.getElementById('proposal-overview').value.trim();
+                        const highlights = document.getElementById('proposal-highlights').value.split(/\r?\n/).map(v => v.trim()).filter(Boolean);
+                        const inclusions = document.getElementById('proposal-inclusions').value.split(/\r?\n/).map(v => v.trim()).filter(Boolean);
+                        const exclusions = document.getElementById('proposal-exclusions').value.split(/\r?\n/).map(v => v.trim()).filter(Boolean);
+                        const terms = document.getElementById('proposal-terms').value.trim();
+                        let text = `✈️ *TOURLIZ HOLIDAYS*\n_Agency Travel Proposal_\n\n`;
+                        text += `🌟 *${title}*\n`;
+                        text += `👤 *Prepared for:* ${clientName || 'Agency Partner'}\n`;
                         text += `👥 *Pax:* ${adults} Adults`;
                         if (c1 > 0) text += `, ${c1} Child(2-6y)`;
                         if (c2 > 0) text += `, ${c2} Child(6-11y)`;
-                        text += `\n\n`;
+                        text += `\n🗓️ *Duration:* ${itinerary.length} Days\n`;
+                        text += `\n📝 *JOURNEY OVERVIEW*\n${overview || 'A professionally planned travel program for your valued guests.'}\n`;
+                        if (highlights.length) { text += `\n✨ *PACKAGE HIGHLIGHTS*\n`; highlights.forEach(item => text += `  • ${item}\n`); }
 
-                        text += `*Full Itinerary Summary:*\n`;
+                        text += `\n🗺️ *DAY-BY-DAY ITINERARY*\n`;
                         itinerary.forEach(day => {
-                            text += `*Day ${day.day}: ${day.title || ''}*\n`;
+                            text += `\n*DAY ${day.day}: ${day.title || 'Explore & Experience'}*\n`;
+                            if (day.notes || day.description) text += `${day.notes || day.description}\n`;
                             const spots = [...ensureArray(day.spots), ...ensureArray(day.activities), ...ensureArray(day.places)];
                             if (spots.length > 0) {
                                 spots.forEach(s => {
@@ -1690,17 +1765,19 @@
                                     if (name) text += `📍 ${name}\n`;
                                 });
                             }
-                            text += `\n`;
+                            ensureArray(day.hotels).forEach(h => { if (h.name) text += `🏨 ${h.name}${h.type ? ` — ${h.type}` : ''}\n`; });
+                            ensureArray(day.transport).forEach(t => { if (t.name) text += `🚗 ${t.name}\n`; });
                         });
 
-                        text += `*Pricing Details:*\n`;
-                        text += `Total Final Quote: ${total}\n`;
-                        text += `Rate Per Adult: ${currencyStr} ${adultRate.toFixed(2)}\n`;
-                        if (c1 > 0) text += `Rate Child (2-6y): ${currencyStr} ${childRateSmall.toFixed(2)}\n`;
-                        if (c2 > 0) text += `Rate Child (6-11y): ${currencyStr} ${childRateLarge.toFixed(2)}\n`;
-
-                        text += `\n🔗 *Full Itinerary Link:* {{ route('admin.b2b-itineraries.pdf', $itinerary['id']) }}?public=1\n`;
-                        text += `\n_Thank you for choosing Tourliz Team!_ 🙏✨\n`;
+                        text += `\n✅ *PACKAGE INCLUSIONS*\n`; (inclusions.length ? inclusions : ['Accommodation and services listed above']).forEach(item => text += `  ✓ ${item}\n`);
+                        text += `\n❌ *PACKAGE EXCLUSIONS*\n`; (exclusions.length ? exclusions : ['Items not specifically mentioned']).forEach(item => text += `  × ${item}\n`);
+                        text += `\n💰 *PACKAGE PRICE*\n`;
+                        text += `• Adult: *${currencyStr} ${adultRate.toFixed(2)} per person*\n`;
+                        if (c1 > 0) text += `• Child (2–6 years): *${currencyStr} ${childRateSmall.toFixed(2)} per child*\n`;
+                        if (c2 > 0) text += `• Child (6–11 years): *${currencyStr} ${childRateLarge.toFixed(2)} per child*\n`;
+                        text += `\n*TOTAL PACKAGE PRICE*\n*${currencyStr} ${totalVal.toFixed(2)}*\n`;
+                        text += `\n_${terms || 'Rates and availability are subject to confirmation.'}_\n`;
+                        text += `\nThank you for choosing *Tourliz Holidays*.\n`;
 
                         window.openWhatsApp(text);
                     };
@@ -1940,6 +2017,11 @@
                             document.getElementById('formTitle').value = getFieldValue('proposal-title');
                             document.getElementById('formClient').value = getFieldValue('client-name');
                             document.getElementById('formNotes').value = getFieldValue('proposal-notes');
+                            document.getElementById('formOverview').value = getFieldValue('proposal-overview');
+                            document.getElementById('formHighlights').value = getFieldValue('proposal-highlights');
+                            document.getElementById('formInclusions').value = getFieldValue('proposal-inclusions');
+                            document.getElementById('formExclusions').value = getFieldValue('proposal-exclusions');
+                            document.getElementById('formTerms').value = getFieldValue('proposal-terms');
                             document.getElementById('formAdults').value = getFieldValue('pax-adults');
                             document.getElementById('formChildSmall').value = getFieldValue('pax-child-small');
                             document.getElementById('formChildLarge').value = getFieldValue('pax-child-large');

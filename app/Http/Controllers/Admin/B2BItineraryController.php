@@ -153,6 +153,11 @@ class B2BItineraryController extends Controller
             'next_followup_date' => 'nullable|date',
             'status' => 'nullable|string',
             'user_id' => 'nullable|exists:admins,id',
+            'short_description' => 'nullable|string',
+            'highlights' => 'nullable|string',
+            'inclusions' => 'nullable|string',
+            'exclusions' => 'nullable|string',
+            'terms_conditions' => 'nullable|string',
         ]);
 
         $itineraryData = json_decode($request->itinerary, true);
@@ -174,6 +179,11 @@ class B2BItineraryController extends Controller
             'notes' => $request->notes,
             'client_name' => $request->client_name,
             'title' => $request->title,
+            'short_description' => $request->short_description,
+            'highlights' => $this->parseProposalList($request->highlights),
+            'inclusions' => $this->parseProposalList($request->inclusions),
+            'exclusions' => $this->parseProposalList($request->exclusions),
+            'terms_conditions' => $request->terms_conditions,
             'country_ids' => is_string($request->country_ids) ? json_decode($request->country_ids, true) : ($request->country_ids ?? $itinerary->country_ids),
             'adults' => $request->adults,
             'children_2_6' => $request->children_2_6 ?? 0,
@@ -346,18 +356,59 @@ class B2BItineraryController extends Controller
         $customItinerary = CustomItinerary::with(['agency', 'destination'])->findOrFail($id);
         $enrichedItinerary = ItineraryHelper::enrichItinerary($customItinerary->itinerary);
 
-        $data = [
-            'itinerary' => $customItinerary,
-            'enrichedItinerary' => $enrichedItinerary,
-            'agency' => $customItinerary->agency, // This is the Agency model now
-            'client' => $customItinerary->client_name,
-            'generated_at' => now()->format('d M Y'),
-            'is_public' => request()->has('public') || request()->get('mode') === 'customer'
+        $days = collect($enrichedItinerary)->values()->map(function ($day, $index) {
+            $items = collect();
+            foreach ($day['places'] ?? [] as $item) $items->push(['item_type' => 'spot', 'title' => $item['attraction_name'] ?? $item['name'] ?? 'Place to visit']);
+            foreach ($day['spots'] ?? [] as $item) $items->push(['item_type' => 'spot', 'title' => $item['name'] ?? 'Point of interest']);
+            foreach ($day['activities'] ?? [] as $item) $items->push(['item_type' => 'activity', 'title' => $item['name'] ?? 'Activity']);
+            foreach ($day['transport'] ?? [] as $item) $items->push(['item_type' => 'transport', 'title' => $item['name'] ?? $item['vehicle_type'] ?? 'Transport']);
+            foreach ($day['meals'] ?? [] as $item) $items->push(['item_type' => 'meal', 'title' => $item['name'] ?? 'Meal']);
+            $hotels = collect($day['hotels'] ?? []);
+            if (!empty($day['hotel']['name']) && $hotels->isEmpty()) $hotels->push($day['hotel']);
+            foreach ($hotels as $hotel) $items->push(['item_type' => 'hotel', 'title' => $hotel['name'] ?? 'Hotel', 'room_type' => $hotel['type'] ?? null]);
+
+            return [
+                'day_number' => $day['day'] ?? ($index + 1),
+                'title' => $day['title'] ?? ('Day ' . ($index + 1)),
+                'description' => $day['notes'] ?? $day['description'] ?? null,
+                'items' => $items->filter(fn ($item) => !empty($item['title']))->values()->all(),
+                'overnight_location' => $hotels->pluck('name')->filter()->join(', '),
+            ];
+        })->all();
+
+        $total = (float) $customItinerary->total_price;
+        $adults = max(1, (int) $customItinerary->adults);
+        $childSmall = (int) $customItinerary->children_2_6;
+        $childLarge = (int) $customItinerary->children_6_11;
+        $weightedPax = $adults + ($childSmall * .25) + ($childLarge * .5);
+        $adultPrice = $weightedPax > 0 ? $total / $weightedPax : 0;
+        $customerProposal = (object) [
+            'title' => $customItinerary->title,
+            'client_name' => $customItinerary->client_name ?: ($customItinerary->agency->company_name ?? 'Agency Partner'),
+            'duration' => $customItinerary->duration_days . ' Days / ' . max(0, $customItinerary->duration_days - 1) . ' Nights',
+            'destination' => $customItinerary->destination,
+            'travelers' => $customItinerary->adults . ' Adults' . ($childSmall ? ' + ' . $childSmall . ' Child (2–6)' : '') . ($childLarge ? ' + ' . $childLarge . ' Child (6–11)' : ''),
+            'short_description' => $customItinerary->short_description ?: 'A professionally planned travel program prepared for your valued guests.',
+            'highlights' => $customItinerary->highlights ?: [],
+            'days' => $days,
+            'inclusions' => $customItinerary->inclusions ?: ['Accommodation listed in the itinerary', 'Listed transportation and transfers', 'Sightseeing and activities shown above'],
+            'exclusions' => $customItinerary->exclusions ?: ['Flights, visas and insurance unless listed', 'Personal expenses and optional activities'],
+            'terms_conditions' => $customItinerary->terms_conditions ?: 'Rates and availability are subject to confirmation. Reservations are confirmed after the required payment is received.',
+            'currency' => $customItinerary->currency ?: 'MYR',
+            'fixed_price' => $total,
+            'adult_price' => $adultPrice,
+            'adult_count' => $adults,
+            'child_2_6_count' => $childSmall,
+            'child_2_6_price' => $adultPrice * .25,
+            'child_6_11_count' => $childLarge,
+            'child_6_11_price' => $adultPrice * .5,
+            'start_date' => $customItinerary->start_date,
+            'quote_id' => $customItinerary->quote_id,
         ];
 
-        $pdf = Pdf::loadView('admin.b2b.pdf', $data);
+        $pdf = Pdf::loadView('admin.b2c.pdf', ['itinerary' => $customerProposal])->setPaper('a4', 'portrait');
 
-        $filename = ($data['is_public'] ? 'Proposal' : 'Internal') . '_' .
+        $filename = (request()->has('public') ? 'Proposal' : 'Agency_Proposal') . '_' .
             \Illuminate\Support\Str::slug($customItinerary->client_name ?? 'Guest') . '_' .
             now()->format('d_M_Y') . '.pdf';
 
@@ -434,22 +485,28 @@ class B2BItineraryController extends Controller
             return response()->json(['text' => $text]);
         }
 
-        // --- CUSTOMER PROPOSAL ---
-        $data = $itinerary->itinerary;
-        $text = "*PROPOSAL: " . strtoupper($itinerary->title) . "*\n";
-        $text .= "Ref ID: " . $itinerary->quote_id . "\n";
-        $text .= "Destination: " . ($itinerary->destination->name ?? 'N/A') . "\n";
-        $text .= "Duration: " . $itinerary->duration_days . " Days\n";
-        $text .= "Client: " . ($itinerary->client_name ?? 'Valued Client') . "\n";
-        $text .= "Pax: " . $itinerary->adults . " Adults";
+        // --- CUSTOMER / AGENCY PROPOSAL ---
+        $data = $itinerary->itinerary ?? [];
+        $text = "✈️ *TOURLIZ HOLIDAYS*\n_Agency Travel Proposal_\n\n";
+        $text .= "🌟 *" . $itinerary->title . "*\n";
+        $text .= "👤 *Prepared for:* " . ($itinerary->client_name ?: ($itinerary->agency->company_name ?? 'Agency Partner')) . "\n";
+        $text .= "📍 *Destination:* " . ($itinerary->destination->name ?? 'N/A') . "\n";
+        $text .= "🗓️ *Duration:* " . $itinerary->duration_days . " Days\n";
+        $text .= "👥 *Travelers:* " . $itinerary->adults . " Adults";
         if ($itinerary->children_2_6 > 0)
             $text .= ", " . $itinerary->children_2_6 . " Child (2-6y)";
         if ($itinerary->children_6_11 > 0)
             $text .= ", " . $itinerary->children_6_11 . " Child (6-11y)";
-        $text .= "\n\n";
+        $text .= "\n\n📝 *JOURNEY OVERVIEW*\n" . ($itinerary->short_description ?: 'A professionally planned travel program for your valued guests.') . "\n";
+        if (!empty($itinerary->highlights)) {
+            $text .= "\n✨ *PACKAGE HIGHLIGHTS*\n";
+            foreach ($itinerary->highlights as $item) $text .= "  • {$item}\n";
+        }
+        $text .= "\n🗺️ *DAY-BY-DAY ITINERARY*\n";
 
         foreach ($data as $day) {
-            $text .= "*Day " . ($day['day'] ?? '?') . ": " . ($day['title'] ?? 'Untitled') . "*\n";
+            $text .= "\n*DAY " . ($day['day'] ?? '?') . ": " . ($day['title'] ?? 'Explore & Experience') . "*\n";
+            if (!empty($day['notes'] ?? $day['description'] ?? null)) $text .= trim($day['notes'] ?? $day['description']) . "\n";
 
             if (!empty($day['hotel']['name'])) {
                 $text .= "🏨 Hotel: *" . $day['hotel']['name'] . "* (" . ($day['hotel']['type'] ?? 'Standard') . ")\n";
@@ -472,43 +529,29 @@ class B2BItineraryController extends Controller
                     $text .= "📍 " . ($spot['name'] ?? 'Spot') . "\n";
                 }
             }
-
-            $text .= "\n";
+            if (!empty($day['places'])) foreach ($day['places'] as $place) if (!empty($place['name'] ?? $place['attraction_name'] ?? null)) $text .= "📍 " . ($place['name'] ?? $place['attraction_name']) . "\n";
+            if (!empty($day['transport'])) foreach ($day['transport'] as $service) if (!empty($service['name'])) $text .= "🚗 " . $service['name'] . "\n";
         }
 
-        $text .= "*Total Final Quote:* " . $itinerary->currency . " " . number_format($itinerary->total_price, 2) . "\n";
+        $inclusions = $itinerary->inclusions ?: ['Accommodation and services listed above'];
+        $exclusions = $itinerary->exclusions ?: ['Items not specifically mentioned'];
+        $text .= "\n✅ *PACKAGE INCLUSIONS*\n";
+        foreach ($inclusions as $item) $text .= "  ✓ {$item}\n";
+        $text .= "\n❌ *PACKAGE EXCLUSIONS*\n";
+        foreach ($exclusions as $item) $text .= "  × {$item}\n";
 
         $adults = (int) $itinerary->adults;
         $c1 = (int) $itinerary->children_2_6;
         $c2 = (int) $itinerary->children_6_11;
-        $hasChildren = ($c1 > 0 || $c2 > 0);
-
-        if ($hasChildren) {
-            $weightedPax = ($adults * 1.0) + ($c1 * 0.25) + ($c2 * 0.50);
-            $adultCost = $weightedPax > 0 ? ($itinerary->total_price / $weightedPax) : 0;
-            $child26Cost = $adultCost * 0.25;
-            $child611Cost = $adultCost * 0.50;
-
-            $text .= "--- PRICING BREAKDOWN ---\n";
-            $text .= "• Adult: " . $itinerary->currency . " " . number_format($adultCost, 2) . " x " . $adults . " = " . $itinerary->currency . " " . number_format($adultCost * $adults, 2) . "\n";
-            if ($c1 > 0) {
-                $text .= "• Child (2-6y): " . $itinerary->currency . " " . number_format($child26Cost, 2) . " x " . $c1 . " = " . $itinerary->currency . " " . number_format($child26Cost * $c1, 2) . "\n";
-            }
-            if ($c2 > 0) {
-                $text .= "• Child (6-11y): " . $itinerary->currency . " " . number_format($child611Cost, 2) . " x " . $c2 . " = " . $itinerary->currency . " " . number_format($child611Cost * $c2, 2) . "\n";
-            }
-            $text .= "\n";
-        }
-
-        $text .= "Status: " . ucfirst($itinerary->status) . "\n\n";
-        $text .= "Link: " . route('admin.b2b-itineraries.pdf', $itinerary->id) . "?public=1\n\n";
-        $text .= "*Contact Tourliz:*\n";
-        $text .= "📞 WhatsApp:\n";
-        $text .= "  - Malaysia: +60102339314 / +60189836532\n";
-        $text .= "  - India: +91 96338 50694\n";
-        $text .= "🌐 Website: www.tourliz.com\n";
-        $text .= "📸 Socials: @tourliz\n\n";
-        $text .= "Thank you for choosing Tourliz!";
+        $weightedPax = max(1, $adults) + ($c1 * .25) + ($c2 * .5);
+        $adultCost = $weightedPax > 0 ? ((float) $itinerary->total_price / $weightedPax) : 0;
+        $text .= "\n💰 *PACKAGE PRICE*\n";
+        $text .= "• Adult: *{$itinerary->currency} " . number_format($adultCost, 2) . " per person*\n";
+        if ($c1 > 0) $text .= "• Child (2-6 years): *{$itinerary->currency} " . number_format($adultCost * .25, 2) . " per child*\n";
+        if ($c2 > 0) $text .= "• Child (6-11 years): *{$itinerary->currency} " . number_format($adultCost * .5, 2) . " per child*\n";
+        $text .= "\n*TOTAL PACKAGE PRICE*\n*{$itinerary->currency} " . number_format($itinerary->total_price, 2) . "*\n";
+        $text .= "\n_" . ($itinerary->terms_conditions ?: 'Rates and availability are subject to confirmation.') . "_\n\n";
+        $text .= "Thank you for choosing *Tourliz Holidays*.";
 
         return response()->json(['text' => $text]);
     }
@@ -554,5 +597,11 @@ class B2BItineraryController extends Controller
         $itinerary->save();
 
         return response()->json(['success' => true, 'status' => $itinerary->followup_status]);
+    }
+
+    private function parseProposalList($value): array
+    {
+        if (is_array($value)) return array_values(array_filter(array_map('trim', $value)));
+        return array_values(array_filter(array_map('trim', preg_split('/\r\n|\r|\n/', (string) $value))));
     }
 }

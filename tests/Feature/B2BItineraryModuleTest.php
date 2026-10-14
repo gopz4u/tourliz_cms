@@ -144,4 +144,51 @@ class B2BItineraryModuleTest extends TestCase
         $response->assertRedirect(route('admin.b2b-itineraries.index'));
         $this->assertSoftDeleted('custom_itineraries', ['id' => $itinerary->id]);
     }
+
+    /** @test */
+    public function b2b_customer_proposal_contains_full_imported_style_content()
+    {
+        $itinerary = CustomItinerary::create([
+            'user_id' => $this->admin->id,
+            'agency_id' => $this->agency->id,
+            'destination_id' => $this->country->id,
+            'title' => 'Malaysia Agency Escape',
+            'client_name' => 'Agency Guest',
+            'duration_days' => 1,
+            'adults' => 2,
+            'children_2_6' => 1,
+            'currency' => 'MYR',
+            'total_price' => 2250,
+            'short_description' => 'A curated Malaysian experience for agency guests.',
+            'highlights' => ['Private city discovery'],
+            'inclusions' => ['Private airport transfers'],
+            'exclusions' => ['International flights'],
+            'terms_conditions' => 'Agency quotation valid for seven days.',
+            'itinerary' => [[
+                'day' => 1,
+                'title' => 'Kuala Lumpur Icons',
+                'notes' => 'Meet the guide and discover the capital.',
+                'spots' => [['name' => 'Petronas Twin Towers']],
+            ]],
+            'status' => 'draft',
+        ]);
+
+        $edit = $this->actingAs($this->admin)->get(route('admin.b2b-itineraries.edit', $itinerary->id));
+        $edit->assertOk()->assertSee('Import Fixed Itinerary');
+
+        $message = $this->actingAs($this->admin)
+            ->get(route('admin.b2b-itineraries.whatsapp', $itinerary->id))
+            ->assertOk()->json('text');
+        $this->assertStringContainsString('Agency Travel Proposal', $message);
+        $this->assertStringContainsString('Private city discovery', $message);
+        $this->assertStringContainsString('Meet the guide and discover the capital.', $message);
+        $this->assertStringContainsString('Private airport transfers', $message);
+        $this->assertStringContainsString('International flights', $message);
+        $this->assertStringContainsString('TOTAL PACKAGE PRICE', $message);
+        $this->assertStringNotContainsString('/admin/b2b-itineraries/', $message);
+
+        $this->actingAs($this->admin)
+            ->get(route('admin.b2b-itineraries.pdf', $itinerary->id) . '?public=1')
+            ->assertOk()->assertHeader('content-type', 'application/pdf');
+    }
 }
