@@ -1,28 +1,56 @@
 {
+  "id": "/admin/",
   "name": "Tourliz CMS",
   "short_name": "Tourliz",
-  "description": "Tourliz Content Management System & Itinerary Builder",
-  "start_url": "/login",
+  "description": "Tourliz travel operations, CRM and itinerary management",
+  "start_url": "/admin/",
+  "scope": "/",
   "display": "standalone",
-  "background_color": "#0f172a",
-  "theme_color": "#334155",
+  "display_override": ["standalone", "minimal-ui"],
+  "background_color": "#f4f6fa",
+  "theme_color": "#5a52e5",
   "orientation": "any",
-  "categories": [
-    "travel",
-    "productivity"
-  ],
+  "lang": "en",
+  "dir": "ltr",
+  "categories": ["business", "productivity", "travel"],
   "icons": [
     {
       "src": "/img/pwa-icon-192.png",
       "sizes": "192x192",
       "type": "image/png",
-      "purpose": "any maskable"
+      "purpose": "any"
     },
     {
       "src": "/img/pwa-icon-512.png",
       "sizes": "512x512",
       "type": "image/png",
-      "purpose": "any maskable"
+      "purpose": "any"
+    },
+    {
+      "src": "/img/pwa-icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Dashboard",
+      "short_name": "Dashboard",
+      "url": "/admin/dashboard",
+      "icons": [{ "src": "/img/pwa-icon-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "B2C Itineraries",
+      "short_name": "B2C",
+      "url": "/admin/b2c-itineraries",
+      "icons": [{ "src": "/img/pwa-icon-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "New Walk-in Lead",
+      "short_name": "New Lead",
+      "url": "/admin/b2c-itineraries/create",
+      "icons": [{ "src": "/img/pwa-icon-192.png", "sizes": "192x192" }]
     }
   ]
 }
