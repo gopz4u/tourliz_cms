@@ -5,15 +5,41 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\TouristSpot;
 use App\Models\Destination;
+use App\Models\Country;
 use App\Models\Supplier;
 use Illuminate\Http\Request;
 
 class TouristSpotController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $spots = TouristSpot::with(['country', 'destination'])->paginate(15);
-        return view('admin.tourist-spots.index', compact('spots'));
+        $perPage = in_array((int) $request->input('per_page'), [15, 25, 50, 100], true)
+            ? (int) $request->input('per_page')
+            : 15;
+
+        $spots = TouristSpot::query()
+            ->with(['country', 'destination'])
+            ->when($request->filled('search'), function ($query) use ($request) {
+                $search = trim($request->input('search'));
+                $query->where(function ($builder) use ($search) {
+                    $builder->where('name', 'like', "%{$search}%")
+                        ->orWhere('description', 'like', "%{$search}%");
+                });
+            })
+            ->when($request->filled('country_id'), fn ($query) =>
+                $query->where('country_id', $request->input('country_id')))
+            ->when($request->filled('destination_id'), fn ($query) =>
+                $query->where('destination_id', $request->input('destination_id')))
+            ->when(in_array($request->input('status'), ['active', 'inactive'], true), fn ($query) =>
+                $query->where('is_active', $request->input('status') === 'active'))
+            ->orderBy('name')
+            ->paginate($perPage)
+            ->withQueryString();
+
+        $countries = Country::orderBy('name')->get(['id', 'name']);
+        $destinations = Destination::orderBy('name')->get(['id', 'name']);
+
+        return view('admin.tourist-spots.index', compact('spots', 'countries', 'destinations'));
     }
 
     public function create()
