@@ -41,13 +41,15 @@ class CurrencyExchangeRateController extends Controller
      */
     public function store(Request $request)
     {
+        $request->merge(['code' => strtoupper((string) $request->input('code'))]);
         $validated = $request->validate([
-            'code' => 'required|string|max:3|unique:currency_exchange_rates,code',
+            'code' => 'required|string|size:3|unique:currency_exchange_rates,code',
             'name' => 'nullable|string|max:255',
-            'exchange_rate' => 'required|numeric|min:0',
+            'exchange_rate' => 'required|numeric|gt:0',
             'is_active' => 'nullable',
         ]);
 
+        $validated['code'] = strtoupper($validated['code']);
         $validated['is_active'] = isset($validated['is_active']) && ($validated['is_active'] == 1 || $validated['is_active'] === true || $validated['is_active'] === '1');
 
         $rate = CurrencyExchangeRate::create($validated);
@@ -88,14 +90,22 @@ class CurrencyExchangeRateController extends Controller
             return response()->json($rate);
         }
 
+        $request->merge(['code' => strtoupper((string) $request->input('code'))]);
         $validated = $request->validate([
-            'code' => ['required', 'string', 'max:3', Rule::unique('currency_exchange_rates')->ignore($rate->id)],
+            'code' => ['required', 'string', 'size:3', Rule::unique('currency_exchange_rates')->ignore($rate->id)],
             'name' => 'nullable|string|max:255',
-            'exchange_rate' => 'required|numeric|min:0',
+            'exchange_rate' => 'required|numeric|gt:0',
             'is_active' => 'nullable',
         ]);
 
+        $validated['code'] = strtoupper($validated['code']);
         $validated['is_active'] = isset($validated['is_active']) && ($validated['is_active'] == 1 || $validated['is_active'] === true || $validated['is_active'] === '1');
+
+        if ($rate->code === 'MYR') {
+            $validated['code'] = 'MYR';
+            $validated['exchange_rate'] = 1;
+            $validated['is_active'] = true;
+        }
 
         $rate->update($validated);
 
@@ -132,12 +142,12 @@ class CurrencyExchangeRateController extends Controller
         $validated = $request->validate([
             'rates' => 'required|array',
             'rates.*.id' => 'required|exists:currency_exchange_rates,id',
-            'rates.*.exchange_rate' => 'required|numeric|min:0',
+            'rates.*.exchange_rate' => 'required|numeric|gt:0',
         ]);
 
         foreach ($validated['rates'] as $rateData) {
             $rate = CurrencyExchangeRate::findOrFail($rateData['id']);
-            $rate->update(['exchange_rate' => $rateData['exchange_rate']]);
+            $rate->update(['exchange_rate' => $rate->code === 'MYR' ? 1 : $rateData['exchange_rate']]);
         }
 
         return response()->json(['message' => 'Exchange rates updated successfully']);

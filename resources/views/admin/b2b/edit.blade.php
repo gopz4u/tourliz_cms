@@ -2425,10 +2425,27 @@
             document.getElementById('pax-child-large').addEventListener('change', syncPax);
             document.getElementById('markup-percentage').addEventListener('change', calculateDynamicTotal);
             document.getElementById('trip-duration').addEventListener('change', calculateDynamicTotal);
-            document.getElementById('quote-currency')?.addEventListener('change', calculateDynamicTotal);
+            document.getElementById('quote-currency')?.addEventListener('change', applyManualCurrencyRate);
             document.getElementById('exchange-rate')?.addEventListener('input', calculateDynamicTotal);
             document.getElementById('round-quote')?.addEventListener('change', calculateDynamicTotal);
         });
+
+        function applyManualCurrencyRate() {
+            const currencyCode = document.getElementById('quote-currency')?.value || 'MYR';
+            $.ajax({
+                url: @json(route('admin.currency-rates.index')),
+                headers: { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' }
+            }).done(function(response) {
+                const rates = response.data || response || [];
+                const selected = rates.find(rate => String(rate.code || rate.currency_code).toUpperCase() === currencyCode && rate.is_active);
+                const myrPerUnit = currencyCode === 'MYR' ? 1 : Number(selected?.exchange_rate || selected?.rate_to_inr || 0);
+                if (myrPerUnit > 0) {
+                    document.getElementById('exchange-rate').value = (1 / myrPerUnit).toFixed(8);
+                    document.getElementById('exchange-rate-date').value = new Date().toISOString().slice(0, 10);
+                }
+                calculateDynamicTotal();
+            }).fail(calculateDynamicTotal);
+        }
 
         function loadSuppliers() {
             $.get("{{ route('admin.suppliers.index') }}", { destination_id: "{{ $itinerary['destination_id'] ?? '' }}" }, function (data) {

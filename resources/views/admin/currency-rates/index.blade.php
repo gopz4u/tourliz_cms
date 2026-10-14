@@ -1,206 +1,135 @@
 @extends('layouts.admin')
 
-@section('title', 'Currency Exchange Rates')
+@section('title', 'Manual Currency Rates')
 
 @section('content')
-<div class="page-header d-flex justify-content-between align-items-center">
+<div class="page-header d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
     <div>
-        <h1 class="mb-0"><i class="bi bi-currency-exchange"></i> Currency Exchange Rates</h1>
-        <p class="text-muted mb-0">Manage currency exchange rates (Base Currency: MYR)</p>
+        <h1 class="mb-1"><i class="bi bi-currency-exchange text-primary"></i> Manual Currency Rates</h1>
+        <p class="text-muted mb-0">Control the rates used by B2C and B2B customer proposals.</p>
+    </div>
+    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addCurrencyModal">
+        <i class="bi bi-plus-circle me-1"></i> Add Currency
+    </button>
+</div>
+
+<div class="alert alert-primary border-0 shadow-sm">
+    <div class="d-flex gap-3">
+        <i class="bi bi-info-circle-fill fs-4"></i>
+        <div>
+            <strong>Enter the MYR value of one unit of currency.</strong>
+            <div class="small mt-1">Example: USD 4.740000 means <b>1 USD = MYR 4.74</b>. A proposal converts MYR to USD using the reciprocal rate. Existing saved proposals keep their locked rate; changing this table affects a proposal when its currency is selected again.</div>
+        </div>
     </div>
 </div>
 
-<div class="card">
-    <div class="card-body">
-        <div class="alert alert-info">
-            <i class="bi bi-info-circle"></i> <strong>Base Currency:</strong> MYR (Malaysian Ringgit). All exchange rates are relative to 1 Unit of the currency.
-            <br>Example: If INR rate is 0.0571, it means 1 INR = 0.0571 MYR. If USD rate is 4.74, it means 1 USD = 4.74 MYR.
-        </div>
-        
+<div id="rate-alert"></div>
+<div class="card border-0 shadow-sm">
+    <div class="card-body p-0">
         <form id="currency-rates-form">
             <div class="table-responsive">
-                <table class="table table-hover" id="rates-table">
-                    <thead>
+                <table class="table table-hover align-middle mb-0" id="rates-table">
+                    <thead class="table-light">
                         <tr>
-                            <th>Currency Code</th>
-                            <th>Currency Name</th>
-                            <th>Value in MYR (for 1 unit)</th>
+                            <th class="ps-4">Currency</th>
+                            <th>Name</th>
+                            <th style="min-width:220px">1 Currency Unit = MYR</th>
+                            <th>Proposal conversion</th>
                             <th>Status</th>
-                            <th>Actions</th>
+                            <th class="text-end pe-4">Action</th>
                         </tr>
                     </thead>
-                    <tbody>
-                        <tr>
-                            <td colspan="5" class="text-center">
-                                <div class="spinner-border text-primary" role="status">
-                                    <span class="visually-hidden">Loading...</span>
-                                </div>
-                            </td>
-                        </tr>
-                    </tbody>
+                    <tbody><tr><td colspan="6" class="text-center py-5"><div class="spinner-border text-primary"></div></td></tr></tbody>
                 </table>
             </div>
-            
-            <div class="mt-3">
-                <button type="submit" class="btn btn-primary">
-                    <i class="bi bi-save"></i> Save All Changes
-                </button>
+            <div class="p-3 border-top d-flex justify-content-end">
+                <button type="submit" class="btn btn-success" id="save-rates"><i class="bi bi-check2-circle me-1"></i> Save Manual Rates</button>
             </div>
         </form>
     </div>
 </div>
 
-@push('scripts')
-<script>
-    $(document).ready(function() {
-        loadRates();
-    });
-    
-    function loadRates() {
-        $.ajax({
-            url: '{{ route("admin.currency-rates.index") }}',
-            type: 'GET',
-            headers: {
-                'X-Requested-With': 'XMLHttpRequest',
-                'Accept': 'application/json'
-            },
-            success: function(response) {
-                const rates = response.data || response;
-                const tbody = $('#rates-table tbody');
-                tbody.empty();
-                
-                if (!Array.isArray(rates) || rates.length === 0) {
-                    tbody.append('<tr><td colspan="5" class="text-center">No currency rates found</td></tr>');
-                    return;
-                }
-                
-                rates.forEach(function(rate) {
-                    const code = rate.code || rate.currency_code;
-                    const name = rate.name || rate.currency_name;
-                    const exchange_rate = rate.exchange_rate || rate.rate_to_inr || rate.rate || 1.0;
-                    
-                    const isBaseCurrency = code === 'MYR';
-                    const row = `
-                        <tr>
-                            <td><strong>${code || 'N/A'}</strong>${isBaseCurrency ? ' <span class="badge bg-success">Base</span>' : ''}</td>
-                            <td>${name || '-'}</td>
-                            <td>
-                                ${isBaseCurrency ? 
-                                    '<input type="number" step="0.0001" class="form-control" value="1.0000" readonly style="background-color: #e9ecef;">' :
-                                    `<input type="number" step="0.0001" class="form-control rate-input" data-id="${rate.id}" value="${exchange_rate}" name="rates[${rate.id}][exchange_rate]">`
-                                }
-                            </td>
-                            <td>
-                                ${isBaseCurrency ? 
-                                    '<span class="badge bg-success">Always Active</span>' :
-                                    `<div class="form-check form-switch">
-                                        <input class="form-check-input status-switch" type="checkbox" data-id="${rate.id}" ${rate.is_active ? 'checked' : ''}>
-                                    </div>`
-                                }
-                            </td>
-                            <td>
-                                ${isBaseCurrency ? 
-                                    '<span class="text-muted">Cannot delete base currency</span>' :
-                                    `<button type="button" onclick="deleteRate(${rate.id})" class="btn btn-sm btn-danger">
-                                        <i class="bi bi-trash"></i>
-                                    </button>`
-                                }
-                            </td>
-                        </tr>
-                    `;
-                    tbody.append(row);
-                });
-            },
-            error: function(xhr) {
-                console.error('Error loading rates:', xhr);
-                $('#rates-table tbody').html('<tr><td colspan="5" class="text-center text-danger">Error loading currency rates</td></tr>');
-            }
-        });
-    }
-    
-    // Handle status toggle
-    $(document).on('change', '.status-switch', function() {
-        const rateId = $(this).data('id');
-        const isActive = $(this).is(':checked') ? 1 : 0;
-        
-        $.ajax({
-            url: `/admin/currency-rates/${rateId}`,
-            type: 'PUT',
-            data: {
-                is_active: isActive,
-                _method: 'PUT'
-            },
-            success: function() {
-                // Optionally show success message
-            },
-            error: function() {
-                alert('Error updating currency status');
-                // Reload to revert
-                loadRates();
-            }
-        });
-    });
-    
-    $('#currency-rates-form').on('submit', function(e) {
-        e.preventDefault();
-        
-        const rates = [];
-        $('.rate-input').each(function() {
-            const id = $(this).data('id');
-            const rate = $(this).val();
-            if (id && rate) {
-                rates.push({
-                    id: id,
-                    exchange_rate: parseFloat(rate)
-                });
-            }
-        });
-        
-        if (rates.length === 0) {
-            alert('No rates to update');
-            return;
-        }
-        
-        $.ajax({
-            url: '{{ route("admin.currency-rates.bulk-update") }}',
-            type: 'POST',
-            data: {
-                rates: rates
-            },
-            success: function() {
-                alert('Exchange rates updated successfully!');
-                loadRates();
-            },
-            error: function(xhr) {
-                let errorMsg = 'Error updating rates';
-                if (xhr.responseJSON && xhr.responseJSON.message) {
-                    errorMsg = xhr.responseJSON.message;
-                }
-                alert(errorMsg);
-            }
-        });
-    });
-    
-    function deleteRate(id) {
-        if (!confirm('Are you sure you want to delete this currency rate?')) return;
-        
-        $.ajax({
-            url: `/admin/currency-rates/${id}`,
-            type: 'DELETE',
-            success: function() {
-                loadRates();
-                alert('Currency rate deleted successfully');
-            },
-            error: function(xhr) {
-                let errorMsg = 'Error deleting rate';
-                if (xhr.responseJSON && xhr.responseJSON.error) {
-                    errorMsg = xhr.responseJSON.error;
-                }
-                alert(errorMsg);
-            }
-        });
-    }
-</script>
-@endpush
+<div class="modal fade" id="addCurrencyModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered"><div class="modal-content">
+        <form id="add-currency-form">
+            <div class="modal-header"><h5 class="modal-title">Add Currency</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+            <div class="modal-body">
+                <div class="row g-3">
+                    <div class="col-4"><label class="form-label">Code</label><input name="code" class="form-control text-uppercase" maxlength="3" placeholder="USD" required></div>
+                    <div class="col-8"><label class="form-label">Currency name</label><input name="name" class="form-control" placeholder="US Dollar"></div>
+                    <div class="col-12"><label class="form-label">Value in MYR</label><div class="input-group"><span class="input-group-text">1 unit = MYR</span><input name="exchange_rate" type="number" min="0.00000001" step="0.00000001" class="form-control" required></div></div>
+                    <div class="col-12"><div class="form-check form-switch"><input name="is_active" value="1" class="form-check-input" type="checkbox" checked id="new-active"><label class="form-check-label" for="new-active">Available in currency selectors</label></div></div>
+                </div>
+            </div>
+            <div class="modal-footer"><button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button><button class="btn btn-primary" type="submit">Add Currency</button></div>
+        </form>
+    </div></div>
+</div>
 @endsection
 
+@push('scripts')
+<script>
+const ratesIndexUrl = @json(route('admin.currency-rates.index'));
+const ratesBulkUrl = @json(route('admin.currency-rates.bulk-update'));
+const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content || '';
+
+function escapeHtml(value) { return $('<div>').text(value ?? '').html(); }
+function showRateAlert(message, type = 'success') {
+    $('#rate-alert').html(`<div class="alert alert-${type} alert-dismissible fade show"><i class="bi bi-${type === 'success' ? 'check-circle' : 'exclamation-triangle'} me-1"></i>${escapeHtml(message)}<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>`);
+}
+function errorMessage(xhr) {
+    const errors = xhr.responseJSON?.errors;
+    return errors ? Object.values(errors).flat().join(' ') : (xhr.responseJSON?.message || xhr.responseJSON?.error || 'Unable to complete this action.');
+}
+function loadRates() {
+    $.ajax({url: ratesIndexUrl, headers: {'Accept':'application/json','X-Requested-With':'XMLHttpRequest'}}).done(response => {
+        const rates = response.data || response;
+        const tbody = $('#rates-table tbody').empty();
+        if (!Array.isArray(rates) || !rates.length) return tbody.html('<tr><td colspan="6" class="text-center py-5 text-muted">No currencies found.</td></tr>');
+        rates.forEach(rate => {
+            const code = String(rate.code || rate.currency_code || '').toUpperCase();
+            const value = Number(rate.exchange_rate || rate.rate_to_inr || 1);
+            const base = code === 'MYR';
+            const proposalRate = base ? 1 : (1 / value);
+            tbody.append(`<tr>
+                <td class="ps-4"><strong>${escapeHtml(code)}</strong> ${base ? '<span class="badge bg-primary ms-1">Base</span>' : ''}</td>
+                <td>${escapeHtml(rate.name || rate.currency_name || '—')}</td>
+                <td><div class="input-group input-group-sm"><span class="input-group-text">MYR</span><input type="number" min="0.00000001" step="0.00000001" class="form-control rate-input" data-id="${rate.id}" value="${base ? '1.00000000' : value.toFixed(8)}" ${base ? 'readonly' : ''}></div></td>
+                <td><small class="text-muted">1 MYR = <b>${proposalRate.toFixed(6)} ${escapeHtml(code)}</b></small></td>
+                <td>${base ? '<span class="badge bg-success">Always active</span>' : `<div class="form-check form-switch"><input class="form-check-input status-switch" type="checkbox" data-id="${rate.id}" ${rate.is_active ? 'checked' : ''}></div>`}</td>
+                <td class="text-end pe-4">${base ? '' : `<button type="button" class="btn btn-sm btn-outline-danger delete-rate" data-id="${rate.id}" data-code="${escapeHtml(code)}"><i class="bi bi-trash"></i></button>`}</td>
+            </tr>`);
+        });
+    }).fail(xhr => showRateAlert(errorMessage(xhr), 'danger'));
+}
+
+$(function() { loadRates(); });
+
+$('#currency-rates-form').on('submit', function(e) {
+    e.preventDefault();
+    const rates = $('.rate-input').map(function(){ return {id: $(this).data('id'), exchange_rate: Number($(this).val())}; }).get();
+    const button = $('#save-rates').prop('disabled', true);
+    $.post(ratesBulkUrl, {_token: csrfToken, rates}).done(response => { showRateAlert(response.message); loadRates(); }).fail(xhr => showRateAlert(errorMessage(xhr), 'danger')).always(() => button.prop('disabled', false));
+});
+
+$(document).on('change', '.status-switch', function() {
+    const input = $(this);
+    $.ajax({url: `${ratesIndexUrl}/${input.data('id')}`, type:'PUT', data:{_token:csrfToken, is_active:input.is(':checked') ? 1 : 0}})
+        .done(() => showRateAlert('Currency status updated.')).fail(xhr => { input.prop('checked', !input.is(':checked')); showRateAlert(errorMessage(xhr), 'danger'); });
+});
+
+$('#add-currency-form').on('submit', function(e) {
+    e.preventDefault();
+    const form = $(this);
+    $.post(ratesIndexUrl, form.serialize() + '&_token=' + encodeURIComponent(csrfToken)).done(() => {
+        bootstrap.Modal.getInstance(document.getElementById('addCurrencyModal')).hide(); form[0].reset(); $('#new-active').prop('checked', true); showRateAlert('Currency added successfully.'); loadRates();
+    }).fail(xhr => showRateAlert(errorMessage(xhr), 'danger'));
+});
+
+$(document).on('click', '.delete-rate', function() {
+    const id = $(this).data('id'), code = $(this).data('code');
+    if (!confirm(`Delete ${code} from the currency list?`)) return;
+    $.ajax({url:`${ratesIndexUrl}/${id}`, type:'DELETE', data:{_token:csrfToken}}).done(() => { showRateAlert(`${code} deleted.`); loadRates(); }).fail(xhr => showRateAlert(errorMessage(xhr), 'danger'));
+});
+</script>
+@endpush
