@@ -7,7 +7,7 @@
         <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
             <div>
                 <h2><i class="bi bi-file-earmark-text me-2"></i>B2B Itineraries</h2>
-                <p class="text-muted mb-0">Manage custom proposals for agencies</p>
+                <p class="text-muted mb-0">View every agent itinerary and monitor conversion performance</p>
             </div>
             <div class="d-flex gap-2 align-items-center">
                 <div class="btn-group" role="group">
@@ -38,15 +38,80 @@
         </div>
     @endif
 
+    <div class="row g-3 mb-3">
+        <div class="col-6 col-xl-3">
+            <div class="card h-100 border-0 shadow-sm"><div class="card-body">
+                <div class="small text-muted">Total Itineraries</div>
+                <div class="fs-3 fw-bold">{{ number_format($totalItineraries) }}</div>
+            </div></div>
+        </div>
+        <div class="col-6 col-xl-3">
+            <div class="card h-100 border-0 shadow-sm"><div class="card-body">
+                <div class="small text-muted">Converted</div>
+                <div class="fs-3 fw-bold text-success">{{ number_format($convertedItineraries) }}</div>
+            </div></div>
+        </div>
+        <div class="col-6 col-xl-3">
+            <div class="card h-100 border-0 shadow-sm"><div class="card-body">
+                <div class="small text-muted">Conversion Rate</div>
+                <div class="fs-3 fw-bold text-primary">{{ number_format($conversionRate, 1) }}%</div>
+                <div class="progress mt-2" style="height: 5px;"><div class="progress-bar bg-primary" style="width: {{ min($conversionRate, 100) }}%"></div></div>
+            </div></div>
+        </div>
+        <div class="col-6 col-xl-3">
+            <div class="card h-100 border-0 shadow-sm"><div class="card-body">
+                <div class="small text-muted">Active Agents</div>
+                <div class="fs-3 fw-bold">{{ number_format($activeAgencies) }}</div>
+            </div></div>
+        </div>
+    </div>
+
+    <div class="card mb-3">
+        <div class="card-header bg-white fw-bold"><i class="bi bi-graph-up-arrow me-2 text-primary"></i>Agent Conversion Performance</div>
+        <div class="table-responsive">
+            <table class="table table-sm align-middle mb-0">
+                <thead class="table-light"><tr><th class="ps-3">Agent / Agency</th><th>Total</th><th>Converted</th><th style="min-width: 180px;">Conversion Rate</th></tr></thead>
+                <tbody>
+                    @forelse($agencyStats as $stat)
+                        <tr>
+                            <td class="ps-3 fw-semibold">{{ $stat->agency->company_name ?? $stat->agency->agency_name ?? 'Unassigned' }}</td>
+                            <td>{{ number_format($stat->total_itineraries) }}</td>
+                            <td class="text-success fw-semibold">{{ number_format($stat->converted_itineraries) }}</td>
+                            <td>
+                                <div class="d-flex align-items-center gap-2">
+                                    <div class="progress flex-grow-1" style="height: 7px;"><div class="progress-bar bg-success" style="width: {{ min($stat->conversion_rate, 100) }}%"></div></div>
+                                    <span class="small fw-bold">{{ number_format($stat->conversion_rate, 1) }}%</span>
+                                </div>
+                            </td>
+                        </tr>
+                    @empty
+                        <tr><td colspan="4" class="text-center text-muted py-3">No agent itineraries found.</td></tr>
+                    @endforelse
+                </tbody>
+            </table>
+        </div>
+    </div>
+
     <div class="card mb-3">
         <div class="card-body bg-light border-bottom">
             <form action="{{ route('admin.b2b-itineraries.index') }}" method="GET" class="row g-2 align-items-end">
-                <div class="col-md-3">
+                <div class="col-md-2">
                     <label class="form-label small fw-bold">Search (Title, Client, Quote ID)</label>
                     <input type="text" name="search" class="form-control form-control-sm" placeholder="e.g. QT-2024..."
                         value="{{ request('search') }}">
                 </div>
                 <div class="col-md-2">
+                    <label class="form-label small fw-bold">Agent / Agency</label>
+                    <select name="agency_id" class="form-select form-select-sm">
+                        <option value="">All Agents</option>
+                        @foreach($agencies as $agency)
+                            <option value="{{ $agency->id }}" {{ request('agency_id') == $agency->id ? 'selected' : '' }}>
+                                {{ $agency->company_name ?: $agency->agency_name }}
+                            </option>
+                        @endforeach
+                    </select>
+                </div>
+                <div class="col-md-1">
                     <label class="form-label small fw-bold">Destination (Country)</label>
                     <select name="destination_id" class="form-select form-select-sm">
                         <option value="">All Countries</option>

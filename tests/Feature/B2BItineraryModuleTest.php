@@ -68,6 +68,81 @@ class B2BItineraryModuleTest extends TestCase
     }
 
     /** @test */
+    public function b2b_list_shows_all_agents_and_conversion_rates()
+    {
+        $secondAgency = Agency::create([
+            'agency_name' => 'Second Travel Agency',
+            'company_name' => 'Second Agency Co',
+            'contact_person' => 'Agent Jones',
+            'email' => 'second@agency.com',
+            'phone' => '9876543210',
+            'status' => 'active',
+        ]);
+
+        foreach ([
+            [$this->agency->id, 'First Converted', 'converted'],
+            [$this->agency->id, 'First Lead', 'leads'],
+            [$secondAgency->id, 'Second Converted', 'converted'],
+        ] as [$agencyId, $title, $followupStatus]) {
+            CustomItinerary::create([
+                'user_id' => $this->admin->id,
+                'agency_id' => $agencyId,
+                'destination_id' => $this->country->id,
+                'title' => $title,
+                'duration_days' => 2,
+                'followup_status' => $followupStatus,
+                'status' => 'draft',
+                'type' => 'b2b',
+            ]);
+        }
+
+        $response = $this->actingAs($this->admin)->get(route('admin.b2b-itineraries.index'));
+
+        $response->assertOk()
+            ->assertSee('Test Agency Co')
+            ->assertSee('Second Agency Co')
+            ->assertSee('66.7%')
+            ->assertViewHas('totalItineraries', 3)
+            ->assertViewHas('convertedItineraries', 2);
+    }
+
+    /** @test */
+    public function b2b_list_can_be_filtered_by_agent_without_hiding_agent_comparison()
+    {
+        $secondAgency = Agency::create([
+            'agency_name' => 'Filtered Travel Agency',
+            'company_name' => 'Filtered Agency Co',
+            'contact_person' => 'Agent Filter',
+            'email' => 'filtered@agency.com',
+            'phone' => '5555555555',
+            'status' => 'active',
+        ]);
+
+        foreach ([[$this->agency->id, 'Visible Proposal'], [$secondAgency->id, 'Hidden Proposal']] as [$agencyId, $title]) {
+            CustomItinerary::create([
+                'user_id' => $this->admin->id,
+                'agency_id' => $agencyId,
+                'destination_id' => $this->country->id,
+                'title' => $title,
+                'duration_days' => 1,
+                'followup_status' => 'leads',
+                'status' => 'draft',
+                'type' => 'b2b',
+            ]);
+        }
+
+        $response = $this->actingAs($this->admin)->get(route('admin.b2b-itineraries.index', [
+            'agency_id' => $this->agency->id,
+        ]));
+
+        $response->assertOk()
+            ->assertSee('Visible Proposal')
+            ->assertDontSee('Hidden Proposal')
+            ->assertSee('Filtered Agency Co')
+            ->assertViewHas('totalItineraries', 1);
+    }
+
+    /** @test */
     public function admin_can_access_b2b_create_page()
     {
         $response = $this->actingAs($this->admin)->get(route('admin.b2b-itineraries.create'));

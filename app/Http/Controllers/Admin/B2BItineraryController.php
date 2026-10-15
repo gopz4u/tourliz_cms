@@ -18,43 +18,82 @@ class B2BItineraryController extends Controller
      */
     public function index(Request $request)
     {
-        $query = CustomItinerary::with(['agency', 'destination', 'expenses']);
+        $applyFilters = function ($query, bool $includeAgency = true, bool $includeFollowup = true) use ($request) {
+            if ($request->filled('search')) {
+                $search = $request->search;
+                $query->where(function ($q) use ($search) {
+                    $q->where('title', 'like', "%{$search}%")
+                        ->orWhere('client_name', 'like', "%{$search}%")
+                        ->orWhere('id', 'like', '%' . str_replace('QT-', '', $search) . '%');
+                });
+            }
 
-        // Search Filters
-        if ($request->has('search') && $request->search != '') {
-            $search = $request->search;
-            $query->where(function ($q) use ($search) {
-                $q->where('title', 'like', "%{$search}%")
-                    ->orWhere('client_name', 'like', "%{$search}%")
-                    ->orWhere('id', 'like', "%" . str_replace('QT-', '', $search) . "%");
+            if ($request->filled('destination_id')) {
+                $query->where('destination_id', $request->destination_id);
+            }
+            if ($request->filled('year')) {
+                $query->whereYear('created_at', $request->year);
+            }
+            if ($request->filled('month')) {
+                $query->whereMonth('created_at', $request->month);
+            }
+            if ($request->filled('status')) {
+                $query->where('payment_status', $request->status);
+            }
+            if ($includeAgency && $request->filled('agency_id')) {
+                $query->where('agency_id', $request->agency_id);
+            }
+            if ($includeFollowup && $request->filled('followup')) {
+                $query->where('followup_status', $request->followup);
+            }
+
+            return $query;
+        };
+
+        $listQuery = $applyFilters(CustomItinerary::query());
+        $itineraries = $listQuery
+            ->with(['agency', 'destination', 'expenses', 'user', 'supplier'])
+            ->orderBy('updated_at', 'desc')
+            ->paginate(15)
+            ->withQueryString();
+
+        // Conversion metrics deliberately ignore the follow-up filter so selecting
+        // "Converted" does not make every displayed conversion rate become 100%.
+        $metricQuery = $applyFilters(CustomItinerary::query(), true, false);
+        $totalItineraries = (clone $metricQuery)->count();
+        $convertedItineraries = (clone $metricQuery)->where('followup_status', 'converted')->count();
+        $conversionRate = $totalItineraries > 0
+            ? round(($convertedItineraries / $totalItineraries) * 100, 1)
+            : 0;
+        $activeAgencies = (clone $metricQuery)->distinct()->count('agency_id');
+
+        // The comparison always shows every agency, even when one agency is selected
+        // in the itinerary list filter.
+        $agencyStats = $applyFilters(CustomItinerary::query(), false, false)
+            ->selectRaw("agency_id, COUNT(*) as total_itineraries, SUM(CASE WHEN followup_status = 'converted' THEN 1 ELSE 0 END) as converted_itineraries")
+            ->with('agency:id,company_name,agency_name')
+            ->groupBy('agency_id')
+            ->orderByDesc('total_itineraries')
+            ->get()
+            ->each(function ($stat) {
+                $stat->conversion_rate = $stat->total_itineraries > 0
+                    ? round(($stat->converted_itineraries / $stat->total_itineraries) * 100, 1)
+                    : 0;
             });
-        }
 
-        // Dropdown Filters
-        if ($request->filled('destination_id')) {
-            $query->where('destination_id', $request->destination_id);
-        }
-
-        if ($request->filled('year')) {
-            $query->whereYear('created_at', $request->year);
-        }
-
-        if ($request->filled('month')) {
-            $query->whereMonth('created_at', $request->month);
-        }
-
-        if ($request->filled('status')) {
-            $query->where('payment_status', $request->status);
-        }
-
-        if ($request->filled('followup')) {
-            $query->where('followup_status', $request->followup);
-        }
-
-        $itineraries = $query->orderBy('updated_at', 'desc')->paginate(15);
         $destinations = \App\Models\Country::orderBy('name')->get();
+        $agencies = Agency::orderBy('company_name')->get(['id', 'company_name', 'agency_name']);
 
-        return view('admin.b2b.index', compact('itineraries', 'destinations'));
+        return view('admin.b2b.index', compact(
+            'itineraries',
+            'destinations',
+            'agencies',
+            'agencyStats',
+            'totalItineraries',
+            'convertedItineraries',
+            'conversionRate',
+            'activeAgencies'
+        ));
     }
 
     /**
