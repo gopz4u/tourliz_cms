@@ -374,6 +374,7 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:admin'])->grou
     // Fixed Itineraries (Multi-country, fixed-price, single-vendor)
     Route::get('fixed-itineraries/{id}/pdf', [\App\Http\Controllers\Admin\FixedItineraryController::class, 'pdf'])->name('fixed-itineraries.pdf');
     Route::get('fixed-itineraries/{id}/whatsapp', [\App\Http\Controllers\Admin\FixedItineraryController::class, 'whatsapp'])->name('fixed-itineraries.whatsapp');
+    Route::post('fixed-itineraries/{id}/duplicate', [\App\Http\Controllers\Admin\FixedItineraryController::class, 'duplicate'])->name('fixed-itineraries.duplicate');
     Route::resource('fixed-itineraries', \App\Http\Controllers\Admin\FixedItineraryController::class);
 
     // Group Departures (announced dates, rates, capacity and customer roster)

@@ -30,6 +30,12 @@
         <a href="{{ route('admin.fixed-itineraries.edit', $itinerary->id) }}" class="btn btn-primary">
             <i class="bi bi-pencil me-1"></i> Edit
         </a>
+        <form action="{{ route('admin.fixed-itineraries.duplicate', $itinerary->id) }}" method="POST" class="d-inline">
+            @csrf
+            <button type="submit" class="btn btn-outline-primary">
+                <i class="bi bi-copy me-1"></i> Duplicate &amp; Customize
+            </button>
+        </form>
         <a href="{{ route('admin.fixed-itineraries.pdf', $itinerary->id) }}" target="_blank" class="btn btn-outline-danger">
             <i class="bi bi-file-earmark-pdf me-1"></i> Printable PDF
         </a>

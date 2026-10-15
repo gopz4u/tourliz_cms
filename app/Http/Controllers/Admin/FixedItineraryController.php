@@ -247,6 +247,19 @@ class FixedItineraryController extends Controller
             ->with('success', "Fixed itinerary '{$title}' deleted successfully.");
     }
 
+    /** Create an independent copy and open it for customization. */
+    public function duplicate($id)
+    {
+        $itinerary = FixedItinerary::findOrFail($id);
+        $copy = $itinerary->replicate();
+        $copy->title = $this->duplicateTitle($itinerary->title);
+        $copy->user_id = auth()->id() ?: $itinerary->user_id;
+        $copy->save();
+
+        return redirect()->route('admin.fixed-itineraries.edit', $copy->id)
+            ->with('success', "Fixed itinerary duplicated as '{$copy->title}'. You can now customize it.");
+    }
+
     public function pdf($id)
     {
         FixedItinerary::ensureTableSchema();
@@ -486,5 +499,20 @@ class FixedItineraryController extends Controller
         }
 
         return $data;
+    }
+
+    protected function duplicateTitle(string $title): string
+    {
+        $base = Str::limit($title, 248, '');
+        $candidate = $base . ' (Copy)';
+        $number = 2;
+
+        while (FixedItinerary::where('title', $candidate)->exists()) {
+            $suffix = " (Copy {$number})";
+            $candidate = Str::limit($title, 255 - strlen($suffix), '') . $suffix;
+            $number++;
+        }
+
+        return $candidate;
     }
 }

@@ -159,6 +159,12 @@
                             <a href="{{ route('admin.fixed-itineraries.edit', $item->id) }}" class="btn btn-outline-primary" title="Edit">
                                 <i class="bi bi-pencil"></i>
                             </a>
+                            <form action="{{ route('admin.fixed-itineraries.duplicate', $item->id) }}" method="POST" class="d-inline">
+                                @csrf
+                                <button type="submit" class="btn btn-outline-secondary" title="Duplicate and customize">
+                                    <i class="bi bi-copy"></i>
+                                </button>
+                            </form>
                             <form action="{{ route('admin.fixed-itineraries.destroy', $item->id) }}" method="POST" class="d-inline"
                                 onsubmit="return confirm('Delete this itinerary?')">
                                 @csrf @method('DELETE')
