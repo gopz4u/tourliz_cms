@@ -205,6 +205,10 @@ class B2CItinerary extends Model
 
     public function getCustomerCurrencyAttribute(): string
     {
+        if ($this->pricing_mode === 'fixed' && (float) $this->fixed_price > 0) {
+            return $this->currency ?: 'MYR';
+        }
+
         return $this->quote_currency ?: ($this->currency ?: 'MYR');
     }
 
@@ -217,6 +221,10 @@ class B2CItinerary extends Model
 
     public function getCustomerTotalPriceAttribute(): float
     {
+        if ($this->pricing_mode === 'fixed' && (float) $this->fixed_price > 0) {
+            return round((float) $this->fixed_price, 2);
+        }
+
         return $this->convertForCustomer($this->total_price);
     }
 

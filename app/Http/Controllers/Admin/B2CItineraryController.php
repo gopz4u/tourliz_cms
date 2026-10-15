@@ -387,6 +387,7 @@ class B2CItineraryController extends Controller
         ]);
 
         $prevStatus = $itinerary->followup_status;
+        $useFixedPricing = $request->pricing_mode === 'fixed' && (float) $request->fixed_price > 0;
 
         $proposalUpdates = [
             'title' => $request->title,
@@ -404,8 +405,10 @@ class B2CItineraryController extends Controller
             'lead_source' => $request->lead_source,
             'markup_percentage' => $request->markup_percentage ?: 0,
             'currency' => $request->currency ?: $itinerary->currency,
-            'quote_currency' => $request->quote_currency ?: $itinerary->currency,
-            'exchange_rate' => $request->exchange_rate ?: 1,
+            'quote_currency' => $useFixedPricing
+                ? ($request->currency ?: $itinerary->currency)
+                : ($request->quote_currency ?: $itinerary->currency),
+            'exchange_rate' => $useFixedPricing ? 1 : ($request->exchange_rate ?: 1),
             'exchange_rate_date' => $request->exchange_rate_date ?: now()->toDateString(),
             'round_quote' => $request->boolean('round_quote'),
             'adults' => $request->adults,
@@ -426,9 +429,7 @@ class B2CItineraryController extends Controller
             'fixed_price' => $request->filled('fixed_price') && (float) $request->fixed_price > 0
                 ? $request->fixed_price
                 : null,
-            'pricing_mode' => $request->pricing_mode === 'fixed' && (float) $request->fixed_price > 0
-                ? 'fixed'
-                : 'live',
+            'pricing_mode' => $useFixedPricing ? 'fixed' : 'live',
         ];
         if (!\Illuminate\Support\Facades\Schema::hasColumn('b2c_itineraries', 'supplier_id')) {
             unset($proposalUpdates['supplier_id']);

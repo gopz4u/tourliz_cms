@@ -217,6 +217,27 @@ class B2CItineraryModuleTest extends TestCase
     }
 
     /** @test */
+    public function fixed_mode_never_multiplies_the_package_total_by_exchange_rate_or_passengers()
+    {
+        $itinerary = new B2CItinerary([
+            'currency' => 'INR', 'quote_currency' => 'INR', 'exchange_rate' => 12,
+            'adults' => 12, 'children_2_6' => 3, 'markup_percentage' => 50,
+            'fixed_price' => 21200, 'pricing_mode' => 'fixed',
+            'itinerary' => [[
+                'day' => 1,
+                'hotels' => [['name' => 'Hotel', 'price_per_night' => 5000, 'quantity' => 12]],
+                'transport' => [['name' => 'Coach', 'price' => 10000]],
+            ]],
+        ]);
+
+        $itinerary->calculatePricing();
+
+        $this->assertSame('21200.00', $itinerary->total_price);
+        $this->assertSame(21200.0, $itinerary->customer_total_price);
+        $this->assertSame('INR', $itinerary->customer_currency);
+    }
+
+    /** @test */
     public function admin_can_view_b2c_kanban_board()
     {
         $response = $this->actingAs($this->admin)->get(route('admin.b2c-itineraries.kanban'));

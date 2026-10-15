@@ -933,10 +933,17 @@
         });
 
         function syncPricingModeUI() {
+            const useFixedPrice = pricingMode === 'fixed';
             const controls = document.getElementById('fixed-price-controls');
-            if (controls) controls.classList.toggle('opacity-50', pricingMode !== 'fixed');
+            if (controls) controls.classList.toggle('opacity-50', !useFixedPrice);
             const input = document.getElementById('fixed-price-input');
-            if (input) input.disabled = pricingMode !== 'fixed';
+            if (input) input.disabled = !useFixedPrice;
+            if (useFixedPrice) {
+                const quoteCurrency = document.getElementById('quote-currency');
+                const exchangeRate = document.getElementById('exchange-rate');
+                if (quoteCurrency) quoteCurrency.value = currency;
+                if (exchangeRate) exchangeRate.value = 1;
+            }
         }
 
         function applyManualCurrencyRate() {
@@ -1105,9 +1112,10 @@
 
         function calculateDynamicTotal() {
             let totals = { hotels: 0, transport: 0, activities: 0, tickets: 0, meals: 0 };
-            const baseCurrency = "{{ data_get($itinerary, 'currency', 'MYR') }}";
-            const quoteCurrency = document.getElementById('quote-currency')?.value || baseCurrency;
-            const exchangeRate = Math.max(parseFloat(document.getElementById('exchange-rate')?.value || 1), 0.00000001);
+            const baseCurrency = currency;
+            const useFixedPrice = pricingMode === 'fixed' && fixedPrice > 0;
+            const quoteCurrency = useFixedPrice ? currency : (document.getElementById('quote-currency')?.value || baseCurrency);
+            const exchangeRate = useFixedPrice ? 1 : Math.max(parseFloat(document.getElementById('exchange-rate')?.value || 1), 0.00000001);
             const roundQuote = document.getElementById('round-quote')?.checked || false;
             const convert = value => {
                 const converted = value * exchangeRate;
@@ -1180,9 +1188,8 @@
             const adultPerPerson = adultPackageSubtotal / adults;
             const childAddOn = (adultPerPerson * 0.25 * c1) + (adultPerPerson * 0.50 * c2);
             const calculatedGrandTotal = adultPackageSubtotal + childAddOn;
-            const useFixedPrice = pricingMode === 'fixed' && fixedPrice > 0;
             const grandTotal = useFixedPrice ? fixedPrice : calculatedGrandTotal;
-            const customerGrandTotal = convert(grandTotal);
+            const customerGrandTotal = useFixedPrice ? fixedPrice : convert(grandTotal);
 
             const safeSet = (id, val) => { const el = document.getElementById(id); if (el) el.innerText = currency + val.toFixed(2); };
             safeSet('preview-hotels', convert(totals.hotels));
@@ -1202,7 +1209,7 @@
             let perPax = 0;
             if (c1 > 0 || c2 > 0) {
                 const weightedPax = adults + (c1 * 0.25) + (c2 * 0.50);
-                perPax = useFixedPrice ? convert(fixedPrice / weightedPax) : convert(adultPerPerson);
+                perPax = useFixedPrice ? fixedPrice / weightedPax : convert(adultPerPerson);
                 if (paxLabel) paxLabel.innerText = "Per Adult Estimate:";
             } else {
                 perPax = totalPax > 0 ? (customerGrandTotal / totalPax) : 0;
