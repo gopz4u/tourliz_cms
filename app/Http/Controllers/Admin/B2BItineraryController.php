@@ -71,7 +71,7 @@ class B2BItineraryController extends Controller
         // in the itinerary list filter.
         $agencyStats = $applyFilters(CustomItinerary::query(), false, false)
             ->selectRaw("agency_id, COUNT(*) as total_itineraries, SUM(CASE WHEN followup_status = 'converted' THEN 1 ELSE 0 END) as converted_itineraries")
-            ->with('agency:id,company_name,agency_name')
+            ->with('agency:id,company_name')
             ->groupBy('agency_id')
             ->orderByDesc('total_itineraries')
             ->get()
@@ -82,7 +82,7 @@ class B2BItineraryController extends Controller
             });
 
         $destinations = \App\Models\Country::orderBy('name')->get();
-        $agencies = Agency::orderBy('company_name')->get(['id', 'company_name', 'agency_name']);
+        $agencies = Agency::orderBy('company_name')->get(['id', 'company_name']);
 
         return view('admin.b2b.index', compact(
             'itineraries',

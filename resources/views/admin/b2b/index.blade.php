@@ -74,7 +74,7 @@
                 <tbody>
                     @forelse($agencyStats as $stat)
                         <tr>
-                            <td class="ps-3 fw-semibold">{{ $stat->agency->company_name ?? $stat->agency->agency_name ?? 'Unassigned' }}</td>
+                            <td class="ps-3 fw-semibold">{{ $stat->agency->company_name ?? 'Unassigned' }}</td>
                             <td>{{ number_format($stat->total_itineraries) }}</td>
                             <td class="text-success fw-semibold">{{ number_format($stat->converted_itineraries) }}</td>
                             <td>
@@ -106,7 +106,7 @@
                         <option value="">All Agents</option>
                         @foreach($agencies as $agency)
                             <option value="{{ $agency->id }}" {{ request('agency_id') == $agency->id ? 'selected' : '' }}>
-                                {{ $agency->company_name ?: $agency->agency_name }}
+                                {{ $agency->company_name }}
                             </option>
                         @endforeach
                     </select>
