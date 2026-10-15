@@ -90,12 +90,14 @@ class B2CItineraryController extends Controller
             if ($fi && (float) $fi->fixed_price > 0
                 && \Illuminate\Support\Facades\Schema::hasColumn('b2c_itineraries', 'fixed_itinerary_id')
                 && \Illuminate\Support\Facades\Schema::hasColumn('b2c_itineraries', 'fixed_price')
-                && \Illuminate\Support\Facades\Schema::hasColumn('b2c_itineraries', 'pricing_mode')) {
+                && \Illuminate\Support\Facades\Schema::hasColumn('b2c_itineraries', 'pricing_mode')
+                && \Illuminate\Support\Facades\Schema::hasColumn('b2c_itineraries', 'fixed_price_currency')) {
                 $fixedPricing = [
                     'fixed_itinerary_id' => $fi->id,
                     'fixed_price' => $fi->fixed_price,
+                    'fixed_price_currency' => $fi->currency ?: 'MYR',
                     'pricing_mode' => 'fixed',
-                    'currency' => $fi->currency ?: 'MYR',
+                    'currency' => 'MYR',
                     'quote_currency' => $fi->currency ?: 'MYR',
                     'exchange_rate' => 1,
                 ];
@@ -132,7 +134,7 @@ class B2CItineraryController extends Controller
                                         'hotel_id' => $item['item_id'] ?? null,
                                         'hotel_room_id' => null,
                                         'price_per_night' => $itemPrice,
-                                        'currency' => $fi->currency ?: 'MYR',
+                                        'currency' => 'MYR',
                                         'quantity' => 1,
                                         'add_on_price' => 0,
                                         'service_id' => null,
@@ -144,7 +146,7 @@ class B2CItineraryController extends Controller
                                         'transport_id' => $item['item_id'] ?? null,
                                         'vehicle_type' => $item['room_type'] ?: 'Transfer',
                                         'price' => $itemPrice,
-                                        'currency' => $fi->currency ?: 'MYR',
+                                        'currency' => 'MYR',
                                         'service_id' => null,
                                         'supplier_id' => $suppId,
                                     ];
@@ -171,7 +173,7 @@ class B2CItineraryController extends Controller
                                             'child_2_6_qty' => 0,
                                             'child_6_11_price' => 0,
                                             'child_6_11_qty' => 0,
-                                            'currency' => $fi->currency ?: 'MYR',
+                                            'currency' => 'MYR',
                                         ],
                                         'service_id' => null,
                                         'supplier_id' => $suppId,
@@ -181,7 +183,7 @@ class B2CItineraryController extends Controller
                                         'name' => $itemTitle ?: 'Meal Service',
                                         'price' => $itemPrice,
                                         'quantity' => 1,
-                                        'currency' => $fi->currency ?: 'MYR',
+                                        'currency' => 'MYR',
                                         'service_id' => null,
                                         'supplier_id' => $suppId,
                                     ];
@@ -383,6 +385,7 @@ class B2CItineraryController extends Controller
             'terms_conditions' => 'nullable|string',
             'fixed_itinerary_id' => 'nullable|exists:fixed_itineraries,id',
             'fixed_price' => 'nullable|numeric|min:0',
+            'fixed_price_currency' => 'nullable|in:MYR,USD,SGD,INR,AED,EUR,GBP',
             'pricing_mode' => 'nullable|in:fixed,live',
         ]);
 
@@ -429,6 +432,9 @@ class B2CItineraryController extends Controller
             'fixed_price' => $request->filled('fixed_price') && (float) $request->fixed_price > 0
                 ? $request->fixed_price
                 : null,
+            'fixed_price_currency' => $request->filled('fixed_price') && (float) $request->fixed_price > 0
+                ? ($request->fixed_price_currency ?: $quoteCurrency)
+                : null,
             'pricing_mode' => $useFixedPricing ? 'fixed' : 'live',
         ];
         if (!\Illuminate\Support\Facades\Schema::hasColumn('b2c_itineraries', 'supplier_id')) {
@@ -442,6 +448,9 @@ class B2CItineraryController extends Controller
         }
         if (!\Illuminate\Support\Facades\Schema::hasColumn('b2c_itineraries', 'pricing_mode')) {
             unset($proposalUpdates['pricing_mode']);
+        }
+        if (!\Illuminate\Support\Facades\Schema::hasColumn('b2c_itineraries', 'fixed_price_currency')) {
+            unset($proposalUpdates['fixed_price_currency']);
         }
         $itinerary->fill($proposalUpdates);
 

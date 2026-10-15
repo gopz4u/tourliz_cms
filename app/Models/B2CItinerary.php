@@ -37,6 +37,21 @@ class B2CItinerary extends Model
                     ->whereNotNull('fixed_price')->where('fixed_price', '>', 0)
                     ->update(['pricing_mode' => 'fixed']);
             }
+            if (!\Illuminate\Support\Facades\Schema::hasColumn('b2c_itineraries', 'fixed_price_currency')) {
+                \Illuminate\Support\Facades\Schema::table('b2c_itineraries', function ($table) {
+                    $table->string('fixed_price_currency', 10)->nullable()->after('fixed_price');
+                });
+                $rows = \Illuminate\Support\Facades\DB::table('b2c_itineraries')
+                    ->whereNotNull('fixed_price')->where('fixed_price', '>', 0)->get();
+                foreach ($rows as $row) {
+                    $fixedCurrency = $row->currency ?: 'MYR';
+                    \Illuminate\Support\Facades\DB::table('b2c_itineraries')->where('id', $row->id)->update([
+                        'fixed_price_currency' => $fixedCurrency,
+                        'currency' => 'MYR',
+                        'quote_currency' => $fixedCurrency,
+                    ]);
+                }
+            }
             $checked = true;
         } catch (\Throwable $e) {
             \Illuminate\Support\Facades\Log::warning('B2C fixed-pricing schema repair failed: ' . $e->getMessage());
@@ -78,6 +93,7 @@ class B2CItinerary extends Model
         'markup_amount',
         'total_price',
         'fixed_price',
+        'fixed_price_currency',
         'pricing_mode',
         'currency',
         'quote_currency',
@@ -206,7 +222,7 @@ class B2CItinerary extends Model
     public function getCustomerCurrencyAttribute(): string
     {
         if ($this->pricing_mode === 'fixed' && (float) $this->fixed_price > 0) {
-            return $this->currency ?: 'MYR';
+            return $this->fixed_price_currency ?: ($this->quote_currency ?: 'MYR');
         }
 
         return $this->quote_currency ?: ($this->currency ?: 'MYR');

@@ -403,7 +403,7 @@
                                 <div id="fixed-price-controls">
                                     <label class="form-label small text-muted mb-1">Editable fixed price parameter</label>
                                     <div class="input-group input-group-sm">
-                                        <span class="input-group-text" id="fixed-price-currency">{{ data_get($itinerary, 'currency', 'MYR') }}</span>
+                                        <span class="input-group-text" id="fixed-price-currency">{{ data_get($itinerary, 'fixed_price_currency') ?: data_get($itinerary, 'quote_currency') ?: 'MYR' }}</span>
                                         <input id="fixed-price-input" type="number" min="0" step="0.01" class="form-control fw-bold"
                                             value="{{ data_get($itinerary, 'fixed_price') }}" placeholder="Leave empty to use live rate">
                                     </div>
@@ -678,6 +678,7 @@
             <input type="hidden" name="involved_vendors" id="formInvolvedVendors">
             <input type="hidden" name="fixed_itinerary_id" id="formFixedItineraryId" value="{{ data_get($itinerary, 'fixed_itinerary_id') }}">
             <input type="hidden" name="fixed_price" id="formFixedPrice" value="{{ data_get($itinerary, 'fixed_price') }}">
+            <input type="hidden" name="fixed_price_currency" id="formFixedPriceCurrency" value="{{ data_get($itinerary, 'fixed_price_currency') }}">
             <input type="hidden" name="pricing_mode" id="formPricingMode" value="{{ data_get($itinerary, 'pricing_mode', 'live') }}">
         </form>
 
@@ -801,6 +802,7 @@
         let currency = "{{ data_get($itinerary, 'currency', 'MYR') }}";
         let fixedItineraryId = @json(data_get($itinerary, 'fixed_itinerary_id'));
         let fixedPrice = safeFloat(@json(data_get($itinerary, 'fixed_price')));
+        let fixedPriceCurrency = @json(data_get($itinerary, 'fixed_price_currency') ?: data_get($itinerary, 'quote_currency') ?: 'MYR');
         let pricingMode = @json(data_get($itinerary, 'pricing_mode', 'live'));
         const destinationId = "{{ data_get($itinerary, 'destination_id') }}";
 
@@ -921,7 +923,8 @@
             document.querySelectorAll('.pricing-mode-radio').forEach(radio => radio.addEventListener('change', function () {
                 pricingMode = this.value;
                 syncPricingModeUI();
-                calculateDynamicTotal();
+                if (pricingMode === 'live') applyManualCurrencyRate();
+                else calculateDynamicTotal();
                 isDirty = true;
             }));
             document.getElementById('fixed-price-input')?.addEventListener('input', function () {
@@ -930,6 +933,9 @@
                 isDirty = true;
             });
             syncPricingModeUI();
+            if (pricingMode === 'live' && document.getElementById('quote-currency')?.value !== currency) {
+                applyManualCurrencyRate();
+            }
         });
 
         function syncPricingModeUI() {
@@ -941,7 +947,7 @@
             if (useFixedPrice) {
                 const quoteCurrency = document.getElementById('quote-currency');
                 const exchangeRate = document.getElementById('exchange-rate');
-                if (quoteCurrency) quoteCurrency.value = currency;
+                if (quoteCurrency) quoteCurrency.value = fixedPriceCurrency;
                 if (exchangeRate) exchangeRate.value = 1;
             }
         }
@@ -965,7 +971,12 @@
                 const quoteMyrPerUnit = currencyCode === 'MYR' ? 1 : Number(quoteRate?.exchange_rate || quoteRate?.rate_to_inr || 0);
                 const baseMyrPerUnit = currency === 'MYR' ? 1 : Number(baseRate?.exchange_rate || baseRate?.rate_to_inr || 0);
                 if (quoteMyrPerUnit > 0 && baseMyrPerUnit > 0) {
-                    document.getElementById('exchange-rate').value = (baseMyrPerUnit / quoteMyrPerUnit).toFixed(8);
+                    const rateInput = document.getElementById('exchange-rate');
+                    const newRate = (baseMyrPerUnit / quoteMyrPerUnit).toFixed(8);
+                    if (rateInput && Math.abs(safeFloat(rateInput.value) - safeFloat(newRate)) > 0.00000001) {
+                        rateInput.value = newRate;
+                        isDirty = true;
+                    }
                     document.getElementById('exchange-rate-date').value = new Date().toISOString().slice(0, 10);
                 }
                 calculateDynamicTotal();
@@ -1123,7 +1134,7 @@
             let totals = { hotels: 0, transport: 0, activities: 0, tickets: 0, meals: 0 };
             const baseCurrency = currency;
             const useFixedPrice = pricingMode === 'fixed' && fixedPrice > 0;
-            const quoteCurrency = useFixedPrice ? currency : (document.getElementById('quote-currency')?.value || baseCurrency);
+            const quoteCurrency = useFixedPrice ? fixedPriceCurrency : (document.getElementById('quote-currency')?.value || baseCurrency);
             const sameCurrency = quoteCurrency === baseCurrency;
             const exchangeRate = useFixedPrice || sameCurrency ? 1 : Math.max(parseFloat(document.getElementById('exchange-rate')?.value || 1), 0.00000001);
             if (sameCurrency && document.getElementById('exchange-rate')) {
@@ -1779,6 +1790,7 @@
                     itinerary = newItinerary;
                     fixedItineraryId = null;
                     fixedPrice = 0;
+                    fixedPriceCurrency = currency;
                     pricingMode = 'live';
                     document.getElementById('formFixedItineraryId').value = '';
                     document.getElementById('formFixedPrice').value = '';
@@ -1901,7 +1913,7 @@
                                         hotel_id: item.item_id || null,
                                         hotel_room_id: null,
                                         price_per_night: itemPrice,
-                                        currency: fi.currency || currency,
+                                        currency: 'MYR',
                                         quantity: 1,
                                         add_on_price: 0,
                                         service_id: null,
@@ -1913,7 +1925,7 @@
                                         transport_id: item.item_id || null,
                                         vehicle_type: item.room_type || 'Transfer',
                                         price: itemPrice,
-                                        currency: fi.currency || currency,
+                                        currency: 'MYR',
                                         service_id: null,
                                         supplier_id: suppId
                                     });
@@ -1940,7 +1952,7 @@
                                             child_2_6_qty: 0,
                                             child_6_11_price: 0,
                                             child_6_11_qty: 0,
-                                            currency: fi.currency || currency
+                                            currency: 'MYR'
                                         },
                                         service_id: null,
                                         supplier_id: suppId
@@ -1950,7 +1962,7 @@
                                         name: itemTitle || 'Meal Service',
                                         price: itemPrice,
                                         quantity: 1,
-                                        currency: fi.currency || currency,
+                                        currency: 'MYR',
                                         service_id: null,
                                         supplier_id: suppId
                                     });
@@ -1974,15 +1986,17 @@
                     itinerary = newItinerary;
                     fixedItineraryId = safeFloat(fi.fixed_price) > 0 ? fi.id : null;
                     fixedPrice = safeFloat(fi.fixed_price) > 0 ? safeFloat(fi.fixed_price) : 0;
+                    fixedPriceCurrency = fi.currency || 'MYR';
                     pricingMode = fixedPrice > 0 ? 'fixed' : 'live';
-                    currency = fi.currency || currency;
+                    currency = 'MYR';
                     document.getElementById('formFixedItineraryId').value = fixedItineraryId || '';
                     document.getElementById('formFixedPrice').value = fixedPrice > 0 ? fixedPrice : '';
+                    document.getElementById('formFixedPriceCurrency').value = fixedPriceCurrency;
                     document.getElementById('formCurrency').value = currency;
                     document.getElementById('quote-currency').value = currency;
                     document.getElementById('exchange-rate').value = 1;
                     document.getElementById('fixed-price-input').value = fixedPrice > 0 ? fixedPrice : '';
-                    document.getElementById('fixed-price-currency').textContent = currency;
+                    document.getElementById('fixed-price-currency').textContent = fixedPriceCurrency;
                     document.getElementById(pricingMode === 'fixed' ? 'pricing-mode-fixed' : 'pricing-mode-live').checked = true;
                     syncPricingModeUI();
                     const durationInput = document.getElementById('trip-duration');
@@ -2436,7 +2450,7 @@
             const c1Count = parseInt(c1 || 0);
             const c2Count = parseInt(c2 || 0);
             const currencyStr = useFixedPrice
-                ? currency
+                ? fixedPriceCurrency
                 : (document.getElementById('quote-currency')?.value || "{{ data_get($itinerary, 'currency', 'MYR') }}");
 
             let adultRate = 0;
@@ -2641,6 +2655,7 @@
             document.getElementById('formQuoteCurrency').value = document.getElementById('quote-currency').value;
             document.getElementById('formFixedItineraryId').value = fixedItineraryId || '';
             document.getElementById('formFixedPrice').value = fixedPrice > 0 ? fixedPrice : '';
+            document.getElementById('formFixedPriceCurrency').value = fixedPriceCurrency;
             document.getElementById('formPricingMode').value = pricingMode;
             document.getElementById('formExchangeRate').value = document.getElementById('exchange-rate').value || 1;
             document.getElementById('formExchangeRateDate').value = document.getElementById('exchange-rate-date').value;

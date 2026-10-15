@@ -149,7 +149,7 @@ class B2CItineraryModuleTest extends TestCase
                 'items' => [['item_type' => 'transport', 'title' => 'Transfer', 'room_type' => 'Private', 'price' => 100]],
             ]],
             'fixed_price' => 2500,
-            'currency' => 'MYR',
+            'currency' => 'INR',
             'status' => 'active',
         ]);
 
@@ -167,6 +167,9 @@ class B2CItineraryModuleTest extends TestCase
         $lead = B2CItinerary::where('title', 'Customer Fixed Quote')->firstOrFail();
         $this->assertSame($fixed->id, $lead->fixed_itinerary_id);
         $this->assertSame('2500.00', $lead->fixed_price);
+        $this->assertSame('INR', $lead->fixed_price_currency);
+        $this->assertSame('MYR', $lead->currency);
+        $this->assertSame('INR', $lead->customer_currency);
         $this->assertSame('fixed', $lead->pricing_mode);
         $this->assertSame('2500.00', $lead->total_price);
         $this->assertSame(2500.0, $lead->customer_total_price);
@@ -174,7 +177,7 @@ class B2CItineraryModuleTest extends TestCase
         $message = $this->actingAs($this->admin)
             ->get(route('admin.b2c-itineraries.whatsapp', $lead->id))
             ->json('text');
-        $this->assertStringContainsString('MYR 2,500.00', $message);
+        $this->assertStringContainsString('INR 2,500.00', $message);
 
         $this->actingAs($this->admin)
             ->get(route('admin.b2c-itineraries.pdf', $lead->id) . '?public=1')
