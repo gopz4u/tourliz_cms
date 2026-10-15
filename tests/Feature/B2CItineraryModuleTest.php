@@ -167,6 +167,7 @@ class B2CItineraryModuleTest extends TestCase
         $lead = B2CItinerary::where('title', 'Customer Fixed Quote')->firstOrFail();
         $this->assertSame($fixed->id, $lead->fixed_itinerary_id);
         $this->assertSame('2500.00', $lead->fixed_price);
+        $this->assertSame('fixed', $lead->pricing_mode);
         $this->assertSame('2500.00', $lead->total_price);
         $this->assertSame(2500.0, $lead->customer_total_price);
 
@@ -194,6 +195,24 @@ class B2CItineraryModuleTest extends TestCase
 
         $itinerary->calculatePricing();
 
+        $this->assertSame('350.00', $itinerary->total_price);
+    }
+
+    /** @test */
+    public function live_mode_keeps_the_fixed_parameter_but_uses_calculated_pricing()
+    {
+        $itinerary = new B2CItinerary([
+            'currency' => 'MYR', 'adults' => 1, 'markup_percentage' => 0,
+            'fixed_price' => 2500, 'pricing_mode' => 'live',
+            'itinerary' => [[
+                'day' => 1,
+                'hotels' => [['name' => 'Hotel', 'price_per_night' => 350, 'quantity' => 1]],
+            ]],
+        ]);
+
+        $itinerary->calculatePricing();
+
+        $this->assertSame('2500.00', $itinerary->fixed_price);
         $this->assertSame('350.00', $itinerary->total_price);
     }
 

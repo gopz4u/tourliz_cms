@@ -388,10 +388,27 @@
 
                         <!-- TAB 2: PRICING -->
                         <div class="tab-pane fade" id="pricing-pane" role="tabpanel" aria-labelledby="pricing-tab">
-                            <div id="fixed-price-notice" class="alert alert-success py-2 px-3 small {{ (float) data_get($itinerary, 'fixed_price', 0) > 0 ? '' : 'd-none' }}">
-                                <i class="bi bi-lock-fill me-1"></i>
-                                Fixed-itinerary price applied: <strong id="fixed-price-label">{{ data_get($itinerary, 'currency', 'MYR') }} {{ number_format((float) data_get($itinerary, 'fixed_price', 0), 2) }}</strong>.
-                                PDF and WhatsApp quotes will retain this total.
+                            <div class="p-3 mb-3 rounded border bg-white">
+                                <h6 class="fw-bold mb-2" style="font-size:.8rem;"><i class="bi bi-sliders me-1 text-success"></i> Pricing Method</h6>
+                                <div class="d-flex gap-3 mb-2">
+                                    <div class="form-check">
+                                        <input class="form-check-input pricing-mode-radio" type="radio" name="pricing_mode_ui" id="pricing-mode-fixed" value="fixed" {{ data_get($itinerary, 'pricing_mode') === 'fixed' ? 'checked' : '' }}>
+                                        <label class="form-check-label small fw-semibold" for="pricing-mode-fixed">Fixed itinerary price</label>
+                                    </div>
+                                    <div class="form-check">
+                                        <input class="form-check-input pricing-mode-radio" type="radio" name="pricing_mode_ui" id="pricing-mode-live" value="live" {{ data_get($itinerary, 'pricing_mode', 'live') !== 'fixed' ? 'checked' : '' }}>
+                                        <label class="form-check-label small fw-semibold" for="pricing-mode-live">Live calculated rate</label>
+                                    </div>
+                                </div>
+                                <div id="fixed-price-controls">
+                                    <label class="form-label small text-muted mb-1">Editable fixed price parameter</label>
+                                    <div class="input-group input-group-sm">
+                                        <span class="input-group-text" id="fixed-price-currency">{{ data_get($itinerary, 'currency', 'MYR') }}</span>
+                                        <input id="fixed-price-input" type="number" min="0" step="0.01" class="form-control fw-bold"
+                                            value="{{ data_get($itinerary, 'fixed_price') }}" placeholder="Leave empty to use live rate">
+                                    </div>
+                                </div>
+                                <small class="text-muted d-block mt-2">You can edit the imported amount or switch to live pricing at any time. PDF and WhatsApp use the selected method.</small>
                             </div>
                             <div class="p-3 mb-3 rounded border bg-light">
                                 <div class="d-flex justify-content-between align-items-center mb-2">
@@ -661,6 +678,7 @@
             <input type="hidden" name="involved_vendors" id="formInvolvedVendors">
             <input type="hidden" name="fixed_itinerary_id" id="formFixedItineraryId" value="{{ data_get($itinerary, 'fixed_itinerary_id') }}">
             <input type="hidden" name="fixed_price" id="formFixedPrice" value="{{ data_get($itinerary, 'fixed_price') }}">
+            <input type="hidden" name="pricing_mode" id="formPricingMode" value="{{ data_get($itinerary, 'pricing_mode', 'live') }}">
         </form>
 
         @include('admin.b2b.modals') <!-- Expense Modal -->
@@ -783,6 +801,7 @@
         let currency = "{{ data_get($itinerary, 'currency', 'MYR') }}";
         let fixedItineraryId = @json(data_get($itinerary, 'fixed_itinerary_id'));
         let fixedPrice = safeFloat(@json(data_get($itinerary, 'fixed_price')));
+        let pricingMode = @json(data_get($itinerary, 'pricing_mode', 'live'));
         const destinationId = "{{ data_get($itinerary, 'destination_id') }}";
 
         function ensureArray(arr) { return Array.isArray(arr) ? arr : []; }
@@ -899,7 +918,26 @@
             document.getElementById('quote-currency')?.addEventListener('change', applyManualCurrencyRate);
             document.getElementById('exchange-rate')?.addEventListener('input', calculateDynamicTotal);
             document.getElementById('round-quote')?.addEventListener('change', calculateDynamicTotal);
+            document.querySelectorAll('.pricing-mode-radio').forEach(radio => radio.addEventListener('change', function () {
+                pricingMode = this.value;
+                syncPricingModeUI();
+                calculateDynamicTotal();
+                isDirty = true;
+            }));
+            document.getElementById('fixed-price-input')?.addEventListener('input', function () {
+                fixedPrice = safeFloat(this.value);
+                calculateDynamicTotal();
+                isDirty = true;
+            });
+            syncPricingModeUI();
         });
+
+        function syncPricingModeUI() {
+            const controls = document.getElementById('fixed-price-controls');
+            if (controls) controls.classList.toggle('opacity-50', pricingMode !== 'fixed');
+            const input = document.getElementById('fixed-price-input');
+            if (input) input.disabled = pricingMode !== 'fixed';
+        }
 
         function applyManualCurrencyRate() {
             const currencyCode = document.getElementById('quote-currency')?.value || 'MYR';
@@ -1142,7 +1180,8 @@
             const adultPerPerson = adultPackageSubtotal / adults;
             const childAddOn = (adultPerPerson * 0.25 * c1) + (adultPerPerson * 0.50 * c2);
             const calculatedGrandTotal = adultPackageSubtotal + childAddOn;
-            const grandTotal = fixedPrice > 0 ? fixedPrice : calculatedGrandTotal;
+            const useFixedPrice = pricingMode === 'fixed' && fixedPrice > 0;
+            const grandTotal = useFixedPrice ? fixedPrice : calculatedGrandTotal;
             const customerGrandTotal = convert(grandTotal);
 
             const safeSet = (id, val) => { const el = document.getElementById(id); if (el) el.innerText = currency + val.toFixed(2); };
@@ -1153,7 +1192,7 @@
             safeSet('preview-base-total', convert(baseCost));
             safeSet('preview-markup-perc', markupPerc);
             safeSet('preview-markup', convert(markupAmount));
-            safeSet('preview-child-addon', convert(fixedPrice > 0 ? 0 : childAddOn));
+            safeSet('preview-child-addon', convert(useFixedPrice ? 0 : childAddOn));
             safeSet('preview-grand-total', customerGrandTotal);
 
             // Per Pax Calculation
@@ -1163,7 +1202,7 @@
             let perPax = 0;
             if (c1 > 0 || c2 > 0) {
                 const weightedPax = adults + (c1 * 0.25) + (c2 * 0.50);
-                perPax = fixedPrice > 0 ? convert(fixedPrice / weightedPax) : convert(adultPerPerson);
+                perPax = useFixedPrice ? convert(fixedPrice / weightedPax) : convert(adultPerPerson);
                 if (paxLabel) paxLabel.innerText = "Per Adult Estimate:";
             } else {
                 perPax = totalPax > 0 ? (customerGrandTotal / totalPax) : 0;
@@ -1720,9 +1759,12 @@
                     itinerary = newItinerary;
                     fixedItineraryId = null;
                     fixedPrice = 0;
+                    pricingMode = 'live';
                     document.getElementById('formFixedItineraryId').value = '';
                     document.getElementById('formFixedPrice').value = '';
-                    document.getElementById('fixed-price-notice')?.classList.add('d-none');
+                    document.getElementById('fixed-price-input').value = '';
+                    document.getElementById('pricing-mode-live').checked = true;
+                    syncPricingModeUI();
                     document.getElementById('proposal-overview').value = fi.description || '';
                     document.getElementById('proposal-highlights').value = ensureArray(fi.highlights).join('\n');
                     document.getElementById('proposal-inclusions').value = ensureArray(fi.inclusions).join('\n');
@@ -1912,16 +1954,17 @@
                     itinerary = newItinerary;
                     fixedItineraryId = safeFloat(fi.fixed_price) > 0 ? fi.id : null;
                     fixedPrice = safeFloat(fi.fixed_price) > 0 ? safeFloat(fi.fixed_price) : 0;
+                    pricingMode = fixedPrice > 0 ? 'fixed' : 'live';
                     currency = fi.currency || currency;
                     document.getElementById('formFixedItineraryId').value = fixedItineraryId || '';
                     document.getElementById('formFixedPrice').value = fixedPrice > 0 ? fixedPrice : '';
                     document.getElementById('formCurrency').value = currency;
                     document.getElementById('quote-currency').value = currency;
                     document.getElementById('exchange-rate').value = 1;
-                    const notice = document.getElementById('fixed-price-notice');
-                    if (notice) notice.classList.toggle('d-none', fixedPrice <= 0);
-                    const label = document.getElementById('fixed-price-label');
-                    if (label) label.textContent = `${currency} ${fixedPrice.toFixed(2)}`;
+                    document.getElementById('fixed-price-input').value = fixedPrice > 0 ? fixedPrice : '';
+                    document.getElementById('fixed-price-currency').textContent = currency;
+                    document.getElementById(pricingMode === 'fixed' ? 'pricing-mode-fixed' : 'pricing-mode-live').checked = true;
+                    syncPricingModeUI();
                     const durationInput = document.getElementById('trip-duration');
                     if (durationInput) {
                         durationInput.value = newItinerary.length;
@@ -2575,6 +2618,7 @@
             document.getElementById('formQuoteCurrency').value = document.getElementById('quote-currency').value;
             document.getElementById('formFixedItineraryId').value = fixedItineraryId || '';
             document.getElementById('formFixedPrice').value = fixedPrice > 0 ? fixedPrice : '';
+            document.getElementById('formPricingMode').value = pricingMode;
             document.getElementById('formExchangeRate').value = document.getElementById('exchange-rate').value || 1;
             document.getElementById('formExchangeRateDate').value = document.getElementById('exchange-rate-date').value;
             document.getElementById('formRoundQuote').value = document.getElementById('round-quote').checked ? 1 : 0;

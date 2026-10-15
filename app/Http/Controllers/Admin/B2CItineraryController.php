@@ -89,10 +89,12 @@ class B2CItineraryController extends Controller
             $fi = \App\Models\FixedItinerary::find($request->fixed_itinerary_id);
             if ($fi && (float) $fi->fixed_price > 0
                 && \Illuminate\Support\Facades\Schema::hasColumn('b2c_itineraries', 'fixed_itinerary_id')
-                && \Illuminate\Support\Facades\Schema::hasColumn('b2c_itineraries', 'fixed_price')) {
+                && \Illuminate\Support\Facades\Schema::hasColumn('b2c_itineraries', 'fixed_price')
+                && \Illuminate\Support\Facades\Schema::hasColumn('b2c_itineraries', 'pricing_mode')) {
                 $fixedPricing = [
                     'fixed_itinerary_id' => $fi->id,
                     'fixed_price' => $fi->fixed_price,
+                    'pricing_mode' => 'fixed',
                     'currency' => $fi->currency ?: 'MYR',
                     'quote_currency' => $fi->currency ?: 'MYR',
                     'exchange_rate' => 1,
@@ -381,6 +383,7 @@ class B2CItineraryController extends Controller
             'terms_conditions' => 'nullable|string',
             'fixed_itinerary_id' => 'nullable|exists:fixed_itineraries,id',
             'fixed_price' => 'nullable|numeric|min:0',
+            'pricing_mode' => 'nullable|in:fixed,live',
         ]);
 
         $prevStatus = $itinerary->followup_status;
@@ -423,6 +426,9 @@ class B2CItineraryController extends Controller
             'fixed_price' => $request->filled('fixed_price') && (float) $request->fixed_price > 0
                 ? $request->fixed_price
                 : null,
+            'pricing_mode' => $request->pricing_mode === 'fixed' && (float) $request->fixed_price > 0
+                ? 'fixed'
+                : 'live',
         ];
         if (!\Illuminate\Support\Facades\Schema::hasColumn('b2c_itineraries', 'supplier_id')) {
             unset($proposalUpdates['supplier_id']);
@@ -432,6 +438,9 @@ class B2CItineraryController extends Controller
         }
         if (!\Illuminate\Support\Facades\Schema::hasColumn('b2c_itineraries', 'fixed_price')) {
             unset($proposalUpdates['fixed_price']);
+        }
+        if (!\Illuminate\Support\Facades\Schema::hasColumn('b2c_itineraries', 'pricing_mode')) {
+            unset($proposalUpdates['pricing_mode']);
         }
         $itinerary->fill($proposalUpdates);
 

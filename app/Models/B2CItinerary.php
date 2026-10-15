@@ -29,6 +29,14 @@ class B2CItinerary extends Model
                     $table->decimal('fixed_price', 15, 2)->nullable()->after('total_price');
                 });
             }
+            if (!\Illuminate\Support\Facades\Schema::hasColumn('b2c_itineraries', 'pricing_mode')) {
+                \Illuminate\Support\Facades\Schema::table('b2c_itineraries', function ($table) {
+                    $table->string('pricing_mode', 20)->default('live')->after('fixed_price');
+                });
+                \Illuminate\Support\Facades\DB::table('b2c_itineraries')
+                    ->whereNotNull('fixed_price')->where('fixed_price', '>', 0)
+                    ->update(['pricing_mode' => 'fixed']);
+            }
             $checked = true;
         } catch (\Throwable $e) {
             \Illuminate\Support\Facades\Log::warning('B2C fixed-pricing schema repair failed: ' . $e->getMessage());
@@ -70,6 +78,7 @@ class B2CItinerary extends Model
         'markup_amount',
         'total_price',
         'fixed_price',
+        'pricing_mode',
         'currency',
         'quote_currency',
         'exchange_rate',
@@ -182,7 +191,7 @@ class B2CItinerary extends Model
             + ($adultPerPerson * 0.50 * max(0, (int) $this->children_6_11));
 
         $calculatedTotal = round($adultPackageSubtotal + $childAddOn, 2);
-        $this->total_price = (float) $this->fixed_price > 0
+        $this->total_price = $this->pricing_mode === 'fixed' && (float) $this->fixed_price > 0
             ? round((float) $this->fixed_price, 2)
             : $calculatedTotal;
 
