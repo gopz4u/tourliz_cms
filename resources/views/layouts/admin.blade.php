@@ -749,13 +749,6 @@
                     </a>
                 </li>
                 <li>
-                    <a href="{{ route('admin.itineraries.b2b.index') }}" class="{{ request()->routeIs('admin.itineraries.b2b.*') ? 'active' : '' }}">
-                        <i class="bi bi-building-fill main-icon"></i>
-                        <span>B2B Itineraries</span>
-                        <i class="bi bi-arrow-right nav-arrow"></i>
-                    </a>
-                </li>
-                <li>
                     <a href="{{ route('admin.group-package-itineraries.index') }}" class="{{ request()->routeIs('admin.group-package-itineraries.*') ? 'active' : '' }}">
                         <i class="bi bi-people-fill main-icon"></i>
                         <span>Itinerary Templates</span>
@@ -785,6 +778,13 @@
                     <a href="{{ route('admin.b2c-itineraries.index') }}" class="{{ request()->routeIs('admin.b2c-itineraries.*') ? 'active' : '' }}">
                         <i class="bi bi-funnel-fill main-icon"></i>
                         <span>Leads & Quotes</span>
+                        <i class="bi bi-arrow-right nav-arrow"></i>
+                    </a>
+                </li>
+                <li>
+                    <a href="{{ route('admin.b2b-itineraries.index') }}" class="{{ request()->routeIs('admin.b2b-itineraries.*') ? 'active' : '' }}">
+                        <i class="bi bi-building-fill main-icon"></i>
+                        <span>B2B Itineraries</span>
                         <i class="bi bi-arrow-right nav-arrow"></i>
                     </a>
                 </li>
