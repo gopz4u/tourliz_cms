@@ -57,6 +57,8 @@ class B2CItineraryController extends Controller
 
     public function store(Request $request)
     {
+        B2CItinerary::ensureFixedPricingSchema();
+
         if (!$request->filled('import_source')) {
             $request->merge(['import_source' => $request->filled('fixed_itinerary_id')
                 ? 'fixed'
@@ -85,7 +87,9 @@ class B2CItineraryController extends Controller
         // 1. Check if a Fixed Itinerary (Master Package) was selected (Optional)
         if ($request->import_source === 'fixed' && $request->filled('fixed_itinerary_id')) {
             $fi = \App\Models\FixedItinerary::find($request->fixed_itinerary_id);
-            if ($fi && (float) $fi->fixed_price > 0) {
+            if ($fi && (float) $fi->fixed_price > 0
+                && \Illuminate\Support\Facades\Schema::hasColumn('b2c_itineraries', 'fixed_itinerary_id')
+                && \Illuminate\Support\Facades\Schema::hasColumn('b2c_itineraries', 'fixed_price')) {
                 $fixedPricing = [
                     'fixed_itinerary_id' => $fi->id,
                     'fixed_price' => $fi->fixed_price,
@@ -356,6 +360,7 @@ class B2CItineraryController extends Controller
 
     public function update(Request $request, $id)
     {
+        B2CItinerary::ensureFixedPricingSchema();
         $itinerary = B2CItinerary::findOrFail($id);
 
         $request->validate([
@@ -421,6 +426,12 @@ class B2CItineraryController extends Controller
         ];
         if (!\Illuminate\Support\Facades\Schema::hasColumn('b2c_itineraries', 'supplier_id')) {
             unset($proposalUpdates['supplier_id']);
+        }
+        if (!\Illuminate\Support\Facades\Schema::hasColumn('b2c_itineraries', 'fixed_itinerary_id')) {
+            unset($proposalUpdates['fixed_itinerary_id']);
+        }
+        if (!\Illuminate\Support\Facades\Schema::hasColumn('b2c_itineraries', 'fixed_price')) {
+            unset($proposalUpdates['fixed_price']);
         }
         $itinerary->fill($proposalUpdates);
 

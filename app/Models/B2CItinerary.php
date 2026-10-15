@@ -11,6 +11,36 @@ class B2CItinerary extends Model
 {
     use HasFactory, SoftDeletes;
 
+    public static function ensureFixedPricingSchema(): void
+    {
+        static $checked = false;
+        if ($checked || !\Illuminate\Support\Facades\Schema::hasTable('b2c_itineraries')) {
+            return;
+        }
+
+        try {
+            if (!\Illuminate\Support\Facades\Schema::hasColumn('b2c_itineraries', 'fixed_itinerary_id')) {
+                \Illuminate\Support\Facades\Schema::table('b2c_itineraries', function ($table) {
+                    $table->unsignedBigInteger('fixed_itinerary_id')->nullable()->index()->after('destination_id');
+                });
+            }
+            if (!\Illuminate\Support\Facades\Schema::hasColumn('b2c_itineraries', 'fixed_price')) {
+                \Illuminate\Support\Facades\Schema::table('b2c_itineraries', function ($table) {
+                    $table->decimal('fixed_price', 15, 2)->nullable()->after('total_price');
+                });
+            }
+            $checked = true;
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::warning('B2C fixed-pricing schema repair failed: ' . $e->getMessage());
+        }
+    }
+
+    protected static function boot()
+    {
+        parent::boot();
+        static::ensureFixedPricingSchema();
+    }
+
     protected $table = 'b2c_itineraries';
 
     protected $fillable = [
