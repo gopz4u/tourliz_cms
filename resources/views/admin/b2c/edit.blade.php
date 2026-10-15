@@ -171,8 +171,9 @@
                         <i class="bi bi-whatsapp fs-1 text-success"></i>
                         <p class="mt-2 fw-bold">WhatsApp Summary</p>
                         <button class="btn btn-success" onclick="shareCustomerQuote()">
-                            <i class="bi bi-send me-1"></i> Share as Text
+                            <i class="bi bi-whatsapp me-1"></i> Send to Primary Number
                         </button>
+                        <div class="small text-muted mt-2">Opens the customer chat directly; the number does not need to be saved in contacts.</div>
                     </div>
                 </div>
             </div>
@@ -387,6 +388,11 @@
 
                         <!-- TAB 2: PRICING -->
                         <div class="tab-pane fade" id="pricing-pane" role="tabpanel" aria-labelledby="pricing-tab">
+                            <div id="fixed-price-notice" class="alert alert-success py-2 px-3 small {{ (float) data_get($itinerary, 'fixed_price', 0) > 0 ? '' : 'd-none' }}">
+                                <i class="bi bi-lock-fill me-1"></i>
+                                Fixed-itinerary price applied: <strong id="fixed-price-label">{{ data_get($itinerary, 'currency', 'MYR') }} {{ number_format((float) data_get($itinerary, 'fixed_price', 0), 2) }}</strong>.
+                                PDF and WhatsApp quotes will retain this total.
+                            </div>
                             <div class="p-3 mb-3 rounded border bg-light">
                                 <div class="d-flex justify-content-between align-items-center mb-2">
                                     <h6 class="fw-bold mb-0" style="font-size:.8rem;"><i class="bi bi-currency-exchange me-1 text-primary"></i> Customer Currency</h6>
@@ -627,6 +633,7 @@
             <input type="hidden" name="secondary_phone" id="formPhoneSecondary">
             <input type="hidden" name="lead_source" id="formLeadSource">
             <input type="hidden" name="markup_percentage" id="formMarkup">
+            <input type="hidden" name="currency" id="formCurrency" value="{{ data_get($itinerary, 'currency', 'MYR') }}">
             <input type="hidden" name="quote_currency" id="formQuoteCurrency">
             <input type="hidden" name="exchange_rate" id="formExchangeRate">
             <input type="hidden" name="exchange_rate_date" id="formExchangeRateDate">
@@ -652,6 +659,8 @@
             <input type="hidden" name="terms_conditions" id="formTerms">
             <input type="hidden" name="user_id" id="formAssignedUser">
             <input type="hidden" name="involved_vendors" id="formInvolvedVendors">
+            <input type="hidden" name="fixed_itinerary_id" id="formFixedItineraryId" value="{{ data_get($itinerary, 'fixed_itinerary_id') }}">
+            <input type="hidden" name="fixed_price" id="formFixedPrice" value="{{ data_get($itinerary, 'fixed_price') }}">
         </form>
 
         @include('admin.b2b.modals') <!-- Expense Modal -->
@@ -771,7 +780,9 @@
         let itinerary = @json(data_get($itinerary, 'itinerary', []));
         let currentDayIndex = 0;
         let currentType = '';
-        const currency = "{{ data_get($itinerary, 'currency', 'INR') }}";
+        let currency = "{{ data_get($itinerary, 'currency', 'MYR') }}";
+        let fixedItineraryId = @json(data_get($itinerary, 'fixed_itinerary_id'));
+        let fixedPrice = safeFloat(@json(data_get($itinerary, 'fixed_price')));
         const destinationId = "{{ data_get($itinerary, 'destination_id') }}";
 
         function ensureArray(arr) { return Array.isArray(arr) ? arr : []; }
@@ -1130,7 +1141,8 @@
             const c2 = Math.max(0, parseInt(document.getElementById('pax-child-large')?.value || 0));
             const adultPerPerson = adultPackageSubtotal / adults;
             const childAddOn = (adultPerPerson * 0.25 * c1) + (adultPerPerson * 0.50 * c2);
-            const grandTotal = adultPackageSubtotal + childAddOn;
+            const calculatedGrandTotal = adultPackageSubtotal + childAddOn;
+            const grandTotal = fixedPrice > 0 ? fixedPrice : calculatedGrandTotal;
             const customerGrandTotal = convert(grandTotal);
 
             const safeSet = (id, val) => { const el = document.getElementById(id); if (el) el.innerText = currency + val.toFixed(2); };
@@ -1141,7 +1153,7 @@
             safeSet('preview-base-total', convert(baseCost));
             safeSet('preview-markup-perc', markupPerc);
             safeSet('preview-markup', convert(markupAmount));
-            safeSet('preview-child-addon', convert(childAddOn));
+            safeSet('preview-child-addon', convert(fixedPrice > 0 ? 0 : childAddOn));
             safeSet('preview-grand-total', customerGrandTotal);
 
             // Per Pax Calculation
@@ -1150,7 +1162,8 @@
             const paxLabel = document.getElementById('preview-perpax-label');
             let perPax = 0;
             if (c1 > 0 || c2 > 0) {
-                perPax = convert(adultPerPerson);
+                const weightedPax = adults + (c1 * 0.25) + (c2 * 0.50);
+                perPax = fixedPrice > 0 ? convert(fixedPrice / weightedPax) : convert(adultPerPerson);
                 if (paxLabel) paxLabel.innerText = "Per Adult Estimate:";
             } else {
                 perPax = totalPax > 0 ? (customerGrandTotal / totalPax) : 0;
@@ -1704,7 +1717,12 @@
                         };
                     });
 
-                    window.itinerary = newItinerary;
+                    itinerary = newItinerary;
+                    fixedItineraryId = null;
+                    fixedPrice = 0;
+                    document.getElementById('formFixedItineraryId').value = '';
+                    document.getElementById('formFixedPrice').value = '';
+                    document.getElementById('fixed-price-notice')?.classList.add('d-none');
                     document.getElementById('proposal-overview').value = fi.description || '';
                     document.getElementById('proposal-highlights').value = ensureArray(fi.highlights).join('\n');
                     document.getElementById('proposal-inclusions').value = ensureArray(fi.inclusions).join('\n');
@@ -1891,7 +1909,19 @@
                         };
                     });
 
-                    window.itinerary = newItinerary;
+                    itinerary = newItinerary;
+                    fixedItineraryId = safeFloat(fi.fixed_price) > 0 ? fi.id : null;
+                    fixedPrice = safeFloat(fi.fixed_price) > 0 ? safeFloat(fi.fixed_price) : 0;
+                    currency = fi.currency || currency;
+                    document.getElementById('formFixedItineraryId').value = fixedItineraryId || '';
+                    document.getElementById('formFixedPrice').value = fixedPrice > 0 ? fixedPrice : '';
+                    document.getElementById('formCurrency').value = currency;
+                    document.getElementById('quote-currency').value = currency;
+                    document.getElementById('exchange-rate').value = 1;
+                    const notice = document.getElementById('fixed-price-notice');
+                    if (notice) notice.classList.toggle('d-none', fixedPrice <= 0);
+                    const label = document.getElementById('fixed-price-label');
+                    if (label) label.textContent = `${currency} ${fixedPrice.toFixed(2)}`;
                     const durationInput = document.getElementById('trip-duration');
                     if (durationInput) {
                         durationInput.value = newItinerary.length;
@@ -2413,7 +2443,12 @@
             text += `\n📞 *Tourliz Holidays*\nMalaysia: +60 10-233 9314 / +60 18-983 6532\nIndia: +91 96338 50694\n`;
             text += `\nThank you for choosing *Tourliz* — your travel partner. 🌴`;
             
-            window.openWhatsApp(text);
+            const primaryNumber = document.getElementById('client-phone').value;
+            if (!primaryNumber.trim()) {
+                alert('Please enter the customer primary phone number before sending the quotation.');
+                return;
+            }
+            window.openWhatsApp(text, primaryNumber);
         };
 
         window.shareDayToDriver = (dayIndex) => {
@@ -2536,7 +2571,10 @@
             document.getElementById('formPhoneSecondary').value = document.getElementById('client-phone-secondary').value;
             document.getElementById('formLeadSource').value = document.getElementById('lead-source').value;
             document.getElementById('formMarkup').value = document.getElementById('markup-percentage').value;
+            document.getElementById('formCurrency').value = currency;
             document.getElementById('formQuoteCurrency').value = document.getElementById('quote-currency').value;
+            document.getElementById('formFixedItineraryId').value = fixedItineraryId || '';
+            document.getElementById('formFixedPrice').value = fixedPrice > 0 ? fixedPrice : '';
             document.getElementById('formExchangeRate').value = document.getElementById('exchange-rate').value || 1;
             document.getElementById('formExchangeRateDate').value = document.getElementById('exchange-rate-date').value;
             document.getElementById('formRoundQuote').value = document.getElementById('round-quote').checked ? 1 : 0;

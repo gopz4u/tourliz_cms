@@ -80,10 +80,20 @@ class B2CItineraryController extends Controller
 
         $itineraryStructure = null;
         $masterContent = [];
+        $fixedPricing = [];
 
         // 1. Check if a Fixed Itinerary (Master Package) was selected (Optional)
         if ($request->import_source === 'fixed' && $request->filled('fixed_itinerary_id')) {
             $fi = \App\Models\FixedItinerary::find($request->fixed_itinerary_id);
+            if ($fi && (float) $fi->fixed_price > 0) {
+                $fixedPricing = [
+                    'fixed_itinerary_id' => $fi->id,
+                    'fixed_price' => $fi->fixed_price,
+                    'currency' => $fi->currency ?: 'MYR',
+                    'quote_currency' => $fi->currency ?: 'MYR',
+                    'exchange_rate' => 1,
+                ];
+            }
             if ($fi && !empty($fi->days)) {
                 $masterContent = [
                     'short_description' => $fi->short_description ?: $fi->itinerary_description,
@@ -295,7 +305,7 @@ class B2CItineraryController extends Controller
             $itineraryStructure = ItineraryHelper::generateSampleItinerary($request->duration_days, $request->destination_id);
         }
 
-        $itinerary = B2CItinerary::create([
+        $itinerary = B2CItinerary::create(array_merge([
             'user_id' => $request->user_id ?? auth()->id(),
             'destination_id' => $request->destination_id,
             'country_ids' => $request->country_ids ?? [],
@@ -313,7 +323,7 @@ class B2CItineraryController extends Controller
             'terms_conditions' => $masterContent['terms_conditions'] ?? null,
             'status' => 'draft',
             'lead_source' => $request->lead_source ?? 'walk_in',
-        ]);
+        ], $fixedPricing));
 
         $itinerary->calculatePricing()->save();
 
@@ -354,6 +364,7 @@ class B2CItineraryController extends Controller
             'client_name' => 'required|string',
             'adults' => 'required|integer|min:1',
             'quote_currency' => 'nullable|in:MYR,USD,SGD,INR,AED,EUR,GBP',
+            'currency' => 'nullable|in:MYR,USD,SGD,INR,AED,EUR,GBP',
             'exchange_rate' => 'nullable|numeric|min:0.00000001',
             'exchange_rate_date' => 'nullable|date',
             'supplier_id' => 'nullable|exists:suppliers,id',
@@ -363,6 +374,8 @@ class B2CItineraryController extends Controller
             'inclusions' => 'nullable|string',
             'exclusions' => 'nullable|string',
             'terms_conditions' => 'nullable|string',
+            'fixed_itinerary_id' => 'nullable|exists:fixed_itineraries,id',
+            'fixed_price' => 'nullable|numeric|min:0',
         ]);
 
         $prevStatus = $itinerary->followup_status;
@@ -382,6 +395,7 @@ class B2CItineraryController extends Controller
             'secondary_phone' => $request->secondary_phone,
             'lead_source' => $request->lead_source,
             'markup_percentage' => $request->markup_percentage ?: 0,
+            'currency' => $request->currency ?: $itinerary->currency,
             'quote_currency' => $request->quote_currency ?: $itinerary->currency,
             'exchange_rate' => $request->exchange_rate ?: 1,
             'exchange_rate_date' => $request->exchange_rate_date ?: now()->toDateString(),
@@ -398,6 +412,12 @@ class B2CItineraryController extends Controller
             'duration_days' => $request->duration_days,
             'notes' => $request->notes,
             'user_id' => $request->user_id ?? $itinerary->user_id,
+            'fixed_itinerary_id' => $request->filled('fixed_price') && (float) $request->fixed_price > 0
+                ? $request->fixed_itinerary_id
+                : null,
+            'fixed_price' => $request->filled('fixed_price') && (float) $request->fixed_price > 0
+                ? $request->fixed_price
+                : null,
         ];
         if (!\Illuminate\Support\Facades\Schema::hasColumn('b2c_itineraries', 'supplier_id')) {
             unset($proposalUpdates['supplier_id']);

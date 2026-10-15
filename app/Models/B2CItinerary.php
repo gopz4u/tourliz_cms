@@ -16,6 +16,7 @@ class B2CItinerary extends Model
     protected $fillable = [
         'user_id',
         'destination_id',
+        'fixed_itinerary_id',
         'country_ids',
         'supplier_id',
         'client_name',
@@ -38,6 +39,7 @@ class B2CItinerary extends Model
         'markup_percentage',
         'markup_amount',
         'total_price',
+        'fixed_price',
         'currency',
         'quote_currency',
         'exchange_rate',
@@ -57,6 +59,7 @@ class B2CItinerary extends Model
     ];
 
     protected $casts = [
+        'fixed_itinerary_id' => 'integer',
         'start_date' => 'date',
         'itinerary' => 'array',
         'highlights' => 'array',
@@ -69,6 +72,7 @@ class B2CItinerary extends Model
         'markup_percentage' => 'decimal:2',
         'markup_amount' => 'decimal:2',
         'total_price' => 'decimal:2',
+        'fixed_price' => 'decimal:2',
         'adults' => 'integer',
         'country_ids' => 'array',
         'children_2_6' => 'integer',
@@ -147,7 +151,10 @@ class B2CItinerary extends Model
         $childAddOn = ($adultPerPerson * 0.25 * max(0, (int) $this->children_2_6))
             + ($adultPerPerson * 0.50 * max(0, (int) $this->children_6_11));
 
-        $this->total_price = round($adultPackageSubtotal + $childAddOn, 2);
+        $calculatedTotal = round($adultPackageSubtotal + $childAddOn, 2);
+        $this->total_price = (float) $this->fixed_price > 0
+            ? round((float) $this->fixed_price, 2)
+            : $calculatedTotal;
 
         return $this;
     }

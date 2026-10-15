@@ -11,6 +11,7 @@ use App\Models\Destination;
 use App\Models\B2CItinerary;
 use App\Models\Supplier;
 use App\Models\ItineraryExpense;
+use App\Models\FixedItinerary;
 
 class B2CItineraryModuleTest extends TestCase
 {
@@ -133,6 +134,67 @@ class B2CItineraryModuleTest extends TestCase
         $this->assertSame(['Private city discovery'], $copy->highlights);
         $this->assertNotSame($source->client_name, $copy->client_name);
         $this->assertNotSame($source->phone, $copy->phone);
+    }
+
+    /** @test */
+    public function fixed_itinerary_price_is_retained_in_the_lead_and_customer_quote()
+    {
+        $fixed = FixedItinerary::create([
+            'user_id' => $this->admin->id,
+            'title' => 'Locked Thailand Package',
+            'duration_days' => 1,
+            'duration_nights' => 0,
+            'days' => [[
+                'day_number' => 1, 'title' => 'Bangkok Arrival',
+                'items' => [['item_type' => 'transport', 'title' => 'Transfer', 'room_type' => 'Private', 'price' => 100]],
+            ]],
+            'fixed_price' => 2500,
+            'currency' => 'MYR',
+            'status' => 'active',
+        ]);
+
+        $response = $this->actingAs($this->admin)->post(route('admin.b2c-itineraries.store'), [
+            'import_source' => 'fixed',
+            'fixed_itinerary_id' => $fixed->id,
+            'destination_id' => $this->country->id,
+            'title' => 'Customer Fixed Quote',
+            'client_name' => 'Direct Customer',
+            'phone' => '+60123456789',
+            'duration_days' => 1,
+        ]);
+        $response->assertSessionHasNoErrors()->assertRedirect();
+
+        $lead = B2CItinerary::where('title', 'Customer Fixed Quote')->firstOrFail();
+        $this->assertSame($fixed->id, $lead->fixed_itinerary_id);
+        $this->assertSame('2500.00', $lead->fixed_price);
+        $this->assertSame('2500.00', $lead->total_price);
+        $this->assertSame(2500.0, $lead->customer_total_price);
+
+        $message = $this->actingAs($this->admin)
+            ->get(route('admin.b2c-itineraries.whatsapp', $lead->id))
+            ->json('text');
+        $this->assertStringContainsString('MYR 2,500.00', $message);
+
+        $this->actingAs($this->admin)
+            ->get(route('admin.b2c-itineraries.pdf', $lead->id) . '?public=1')
+            ->assertOk()->assertHeader('content-type', 'application/pdf');
+    }
+
+    /** @test */
+    public function an_empty_fixed_price_keeps_dynamic_item_pricing()
+    {
+        $itinerary = new B2CItinerary([
+            'currency' => 'MYR', 'adults' => 1, 'markup_percentage' => 0,
+            'fixed_price' => null,
+            'itinerary' => [[
+                'day' => 1,
+                'hotels' => [['name' => 'Hotel', 'price_per_night' => 350, 'quantity' => 1]],
+            ]],
+        ]);
+
+        $itinerary->calculatePricing();
+
+        $this->assertSame('350.00', $itinerary->total_price);
     }
 
     /** @test */
