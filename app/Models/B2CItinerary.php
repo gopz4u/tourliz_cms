@@ -214,6 +214,10 @@ class B2CItinerary extends Model
 
     public function convertForCustomer($amount): float
     {
+        if ($this->customer_currency === ($this->currency ?: 'MYR')) {
+            return $this->round_quote ? round((float) $amount) : round((float) $amount, 2);
+        }
+
         $converted = (float) $amount * max((float) ($this->exchange_rate ?: 1), 0.00000001);
 
         return $this->round_quote ? round($converted) : round($converted, 2);

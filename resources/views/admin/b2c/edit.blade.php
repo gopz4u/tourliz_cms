@@ -948,15 +948,24 @@
 
         function applyManualCurrencyRate() {
             const currencyCode = document.getElementById('quote-currency')?.value || 'MYR';
+            if (currencyCode === currency) {
+                document.getElementById('exchange-rate').value = 1;
+                document.getElementById('exchange-rate-date').value = new Date().toISOString().slice(0, 10);
+                calculateDynamicTotal();
+                return;
+            }
             $.ajax({
                 url: @json(route('admin.currency-rates.index')),
                 headers: { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' }
             }).done(function(response) {
                 const rates = response.data || response || [];
-                const selected = rates.find(rate => String(rate.code || rate.currency_code).toUpperCase() === currencyCode && rate.is_active);
-                const myrPerUnit = currencyCode === 'MYR' ? 1 : Number(selected?.exchange_rate || selected?.rate_to_inr || 0);
-                if (myrPerUnit > 0) {
-                    document.getElementById('exchange-rate').value = (1 / myrPerUnit).toFixed(8);
+                const findRate = code => rates.find(rate => String(rate.code || rate.currency_code).toUpperCase() === code && rate.is_active);
+                const quoteRate = findRate(currencyCode);
+                const baseRate = findRate(currency);
+                const quoteMyrPerUnit = currencyCode === 'MYR' ? 1 : Number(quoteRate?.exchange_rate || quoteRate?.rate_to_inr || 0);
+                const baseMyrPerUnit = currency === 'MYR' ? 1 : Number(baseRate?.exchange_rate || baseRate?.rate_to_inr || 0);
+                if (quoteMyrPerUnit > 0 && baseMyrPerUnit > 0) {
+                    document.getElementById('exchange-rate').value = (baseMyrPerUnit / quoteMyrPerUnit).toFixed(8);
                     document.getElementById('exchange-rate-date').value = new Date().toISOString().slice(0, 10);
                 }
                 calculateDynamicTotal();
@@ -1115,13 +1124,17 @@
             const baseCurrency = currency;
             const useFixedPrice = pricingMode === 'fixed' && fixedPrice > 0;
             const quoteCurrency = useFixedPrice ? currency : (document.getElementById('quote-currency')?.value || baseCurrency);
-            const exchangeRate = useFixedPrice ? 1 : Math.max(parseFloat(document.getElementById('exchange-rate')?.value || 1), 0.00000001);
+            const sameCurrency = quoteCurrency === baseCurrency;
+            const exchangeRate = useFixedPrice || sameCurrency ? 1 : Math.max(parseFloat(document.getElementById('exchange-rate')?.value || 1), 0.00000001);
+            if (sameCurrency && document.getElementById('exchange-rate')) {
+                document.getElementById('exchange-rate').value = 1;
+            }
             const roundQuote = document.getElementById('round-quote')?.checked || false;
             const convert = value => {
                 const converted = value * exchangeRate;
                 return roundQuote ? Math.round(converted) : Math.round(converted * 100) / 100;
             };
-            const currency = quoteCurrency + " ";
+            const displayCurrency = quoteCurrency + " ";
 
             itinerary.forEach(day => {
                 // 1. Hotels
@@ -1191,7 +1204,7 @@
             const grandTotal = useFixedPrice ? fixedPrice : calculatedGrandTotal;
             const customerGrandTotal = useFixedPrice ? fixedPrice : convert(grandTotal);
 
-            const safeSet = (id, val) => { const el = document.getElementById(id); if (el) el.innerText = currency + val.toFixed(2); };
+            const safeSet = (id, val) => { const el = document.getElementById(id); if (el) el.innerText = displayCurrency + val.toFixed(2); };
             safeSet('preview-hotels', convert(totals.hotels));
             safeSet('preview-transport', convert(totals.transport));
             safeSet('preview-activities', convert(totals.activities + totals.tickets));

@@ -375,6 +375,18 @@ class B2CItineraryModuleTest extends TestCase
     }
 
     /** @test */
+    public function same_currency_live_quote_ignores_an_invalid_saved_exchange_rate()
+    {
+        $itinerary = new B2CItinerary([
+            'currency' => 'INR', 'quote_currency' => 'INR',
+            'exchange_rate' => 24, 'total_price' => 1500,
+            'pricing_mode' => 'live',
+        ]);
+
+        $this->assertSame(1500.0, $itinerary->customer_total_price);
+    }
+
+    /** @test */
     public function children_are_added_to_the_established_adult_package_price()
     {
         $itinerary = new B2CItinerary([
