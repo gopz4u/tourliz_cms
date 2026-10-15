@@ -52,7 +52,13 @@ class SupplierController extends Controller
             return response()->json($results);
         }
         $filterType = $request->input('type');
-        return view('admin.suppliers.index', compact('filterType'));
+        $suppliers = Supplier::orderBy('name')
+            ->when($filterType, function ($query, $type) {
+                $query->where('type', $type);
+            })
+            ->get();
+
+        return view('admin.suppliers.index', compact('filterType', 'suppliers'));
     }
 
     public function show(Supplier $supplier)

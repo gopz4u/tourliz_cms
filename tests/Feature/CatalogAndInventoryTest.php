@@ -441,8 +441,14 @@ class CatalogAndInventoryTest extends TestCase
     /** @test */
     public function admin_can_view_suppliers_list()
     {
+        Supplier::create([
+            'name' => 'Visible Supplier',
+            'type' => 'Hotel',
+            'is_active' => true,
+        ]);
+
         $response = $this->actingAs($this->admin)->get(route('admin.suppliers.index'));
-        $response->assertStatus(200);
+        $response->assertStatus(200)->assertSee('Visible Supplier');
     }
 
     /** @test */

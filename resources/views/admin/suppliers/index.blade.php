@@ -64,7 +64,36 @@
                         </tr>
                     </thead>
                     <tbody>
-                        <!-- Populated via JS/AJAX -->
+                        @forelse($suppliers as $supplier)
+                            <tr>
+                                <td class="fw-bold">{{ $supplier->name }}</td>
+                                <td><span class="badge bg-light text-dark border">{{ $supplier->type }}</span></td>
+                                <td>
+                                    <div class="small">{{ $supplier->contact_person ?: '-' }}</div>
+                                    <div class="text-muted small">{{ $supplier->phone }}</div>
+                                </td>
+                                <td>
+                                    @if($supplier->destination_id)
+                                        <span class="badge bg-info bg-opacity-10 text-info">Specific</span>
+                                    @else
+                                        <span class="badge bg-secondary bg-opacity-10 text-secondary">Global</span>
+                                    @endif
+                                </td>
+                                <td>
+                                    @if($supplier->is_active)
+                                        <span class="status-badge bg-success">Active</span>
+                                    @else
+                                        <span class="status-badge bg-danger">Inactive</span>
+                                    @endif
+                                </td>
+                                <td class="text-end">
+                                    <button class="btn btn-sm btn-link text-primary" onclick="editSupplier({{ $supplier->id }})"><i class="bi bi-pencil"></i></button>
+                                    <button class="btn btn-sm btn-link text-danger" onclick="deleteSupplier({{ $supplier->id }})"><i class="bi bi-trash"></i></button>
+                                </td>
+                            </tr>
+                        @empty
+                            <tr><td colspan="6" class="text-center py-4 text-muted">No suppliers found. Add one to get started.</td></tr>
+                        @endforelse
                     </tbody>
                 </table>
             </div>
@@ -248,51 +277,6 @@
 
     @push('scripts')
         <script>
-            document.addEventListener('DOMContentLoaded', function () {
-                loadSuppliersTable();
-            });
-
-            function loadSuppliersTable() {
-                const tbody = document.querySelector('#suppliersTable tbody');
-                tbody.innerHTML = '<tr><td colspan="6" class="text-center py-4"><div class="spinner-border text-primary"></div></td></tr>';
-
-                const filterType = '{{ $filterType }}';
-                const url = filterType ? `{{ route('admin.suppliers.index') }}?type=${filterType}` : '{{ route("admin.suppliers.index") }}';
-
-                fetch(url, {
-                    headers: { 'X-Requested-With': 'XMLHttpRequest' }
-                })
-                    .then(res => res.json())
-                    .then(data => {
-                        tbody.innerHTML = '';
-                        if (data.length === 0) {
-                            tbody.innerHTML = '<tr><td colspan="6" class="text-center py-4 text-muted">No suppliers found. Add one to get started.</td></tr>';
-                            return;
-                        }
-
-                        data.forEach(s => {
-                            const tr = document.createElement('tr');
-                            tr.innerHTML = `
-                                    <td class="fw-bold">${s.name}</td>
-                                    <td><span class="badge bg-light text-dark border">${s.type}</span></td>
-                                    <td>
-                                        <div class="small">${s.contact_person || '-'}</div>
-                                        <div class="text-muted small">${s.phone || ''}</div>
-                                    </td>
-                                    <td>${s.destination_id ? '<span class="badge bg-info bg-opacity-10 text-info">Specific</span>' : '<span class="badge bg-secondary bg-opacity-10 text-secondary">Global</span>'}</td>
-                                    <td>
-                                        ${s.is_active ? '<span class="status-badge bg-success">Active</span>' : '<span class="status-badge bg-danger">Inactive</span>'}
-                                    </td>
-                                    <td class="text-end">
-                                        <button class="btn btn-sm btn-link text-primary" onclick="editSupplier(${s.id})"><i class="bi bi-pencil"></i></button>
-                                        <button class="btn btn-sm btn-link text-danger" onclick="deleteSupplier(${s.id})"><i class="bi bi-trash"></i></button>
-                                    </td>
-                                `;
-                            tbody.appendChild(tr);
-                        });
-                    });
-            }
-
             function deleteSupplier(id) {
                 if (!confirm('Delete this supplier?')) return;
 
@@ -303,7 +287,7 @@
                         'Content-Type': 'application/json'
                     }
                 }).then(res => res.json()).then(data => {
-                    if (data.success) loadSuppliersTable();
+                    if (data.success) window.location.reload();
                 });
             }
 
@@ -359,7 +343,7 @@
                         const modalElement = document.getElementById('editSupplierModal');
                         const modalInstance = bootstrap.Modal.getInstance(modalElement) || new bootstrap.Modal(modalElement);
                         modalInstance.hide();
-                        loadSuppliersTable();
+                        window.location.reload();
                     } else {
                         alert('Error updating supplier');
                     }
