@@ -2389,19 +2389,17 @@
         let isDirty = false;
         window.confirmPdfDownload = (e) => {
             if (isDirty) {
-                if (!confirm("Warning: You have unsaved changes. The PDF will generate using the saved database values, which doesn't include your current changes. Please click 'Save Proposal' to apply your changes first. Download anyway?")) {
-                    e.preventDefault();
-                    return false;
-                }
+                e.preventDefault();
+                alert("Please click 'Save Proposal' before downloading the PDF. This ensures the PDF uses your selected Fixed Price or Live Rate method.");
+                return false;
             }
             return true;
         };
 
         window.copyPdfLink = () => {
             if (isDirty) {
-                if (!confirm("Warning: You have unsaved changes. The copied link will generate a PDF based on the saved database values, which doesn't include your current changes. Copy anyway?")) {
-                    return;
-                }
+                alert("Please click 'Save Proposal' before copying the PDF link. This ensures the PDF uses your selected pricing method.");
+                return;
             }
             navigator.clipboard.writeText("{{ route('admin.b2c-itineraries.pdf', data_get($itinerary, 'id')) }}?public=1").then(() => alert('Customer PDF Link copied!'));
         };
@@ -2418,11 +2416,15 @@
             const c2 = document.getElementById('pax-child-large').value;
             
             const total = document.getElementById('preview-grand-total').innerText;
-            const totalVal = parseFloat(total.replace(/[^0-9.]/g, '') || 0);
+            const liveTotal = parseFloat(total.replace(/[^0-9.]/g, '') || 0);
+            const useFixedPrice = pricingMode === 'fixed' && fixedPrice > 0;
+            const totalVal = useFixedPrice ? fixedPrice : liveTotal;
             const adultsCount = parseInt(adults || 0);
             const c1Count = parseInt(c1 || 0);
             const c2Count = parseInt(c2 || 0);
-            const currencyStr = document.getElementById('quote-currency')?.value || "{{ data_get($itinerary, 'currency', 'MYR') }}";
+            const currencyStr = useFixedPrice
+                ? currency
+                : (document.getElementById('quote-currency')?.value || "{{ data_get($itinerary, 'currency', 'MYR') }}");
 
             let adultRate = 0;
             let childRateSmall = 0;
@@ -2484,6 +2486,7 @@
             (exclusions.length ? exclusions : ['Flights, visas and travel insurance unless listed', 'Personal expenses and optional activities'])
                 .forEach(item => text += `  × ${item}\n`);
             text += `\n💰 *PACKAGE PRICE*\n`;
+            text += `*Pricing method:* ${useFixedPrice ? 'Fixed package price' : 'Live calculated rate'}\n`;
             text += `• Adult: *${currencyStr} ${adultRate.toFixed(2)} per person*\n`;
             if(c1 > 0) text += `• Child (2–6 years): *${currencyStr} ${childRateSmall.toFixed(2)} per child*\n`;
             if(c2 > 0) text += `• Child (6–11 years): *${currencyStr} ${childRateLarge.toFixed(2)} per child*\n`;

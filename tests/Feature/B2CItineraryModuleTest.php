@@ -238,6 +238,25 @@ class B2CItineraryModuleTest extends TestCase
     }
 
     /** @test */
+    public function editor_sharing_uses_the_selected_pricing_mode_and_blocks_stale_pdf_output()
+    {
+        $itinerary = B2CItinerary::create([
+            'user_id' => $this->admin->id, 'destination_id' => $this->country->id,
+            'title' => 'Pricing Mode Share', 'client_name' => 'Share Customer',
+            'duration_days' => 1, 'itinerary' => [], 'fixed_price' => 21200,
+            'pricing_mode' => 'fixed', 'currency' => 'INR', 'status' => 'draft',
+        ]);
+
+        $response = $this->actingAs($this->admin)
+            ->get(route('admin.b2c-itineraries.edit', $itinerary->id));
+
+        $response->assertOk()
+            ->assertSee("const useFixedPrice = pricingMode === 'fixed' && fixedPrice > 0;", false)
+            ->assertSee("Please click 'Save Proposal' before downloading the PDF", false)
+            ->assertSee("useFixedPrice ? fixedPrice : liveTotal", false);
+    }
+
+    /** @test */
     public function admin_can_view_b2c_kanban_board()
     {
         $response = $this->actingAs($this->admin)->get(route('admin.b2c-itineraries.kanban'));
