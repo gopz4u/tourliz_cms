@@ -775,6 +775,13 @@
             <div class="sidebar-section-title mt-4">Sales & Bookings</div>
             <ul class="sidebar-menu">
                 <li>
+                    <a href="{{ route('admin.marketing-campaigns.index') }}" class="{{ request()->routeIs('admin.marketing-campaigns.*') ? 'active' : '' }}">
+                        <i class="bi bi-megaphone-fill main-icon"></i>
+                        <span>Marketing</span>
+                        <i class="bi bi-arrow-right nav-arrow"></i>
+                    </a>
+                </li>
+                <li>
                     <a href="{{ route('admin.b2c-itineraries.index') }}" class="{{ request()->routeIs('admin.b2c-itineraries.*') ? 'active' : '' }}">
                         <i class="bi bi-funnel-fill main-icon"></i>
                         <span>Leads & Quotes</span>

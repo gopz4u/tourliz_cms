@@ -377,6 +377,10 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:admin'])->grou
     Route::post('fixed-itineraries/{id}/duplicate', [\App\Http\Controllers\Admin\FixedItineraryController::class, 'duplicate'])->name('fixed-itineraries.duplicate');
     Route::resource('fixed-itineraries', \App\Http\Controllers\Admin\FixedItineraryController::class);
 
+    // Manual WhatsApp Marketing Campaigns
+    Route::patch('marketing-campaigns/{marketingCampaign}/recipients/{recipient}', [\App\Http\Controllers\Admin\MarketingCampaignController::class, 'updateRecipient'])->name('marketing-campaigns.recipients.update');
+    Route::resource('marketing-campaigns', \App\Http\Controllers\Admin\MarketingCampaignController::class)->only(['index', 'create', 'store', 'show']);
+
     // Group Departures (announced dates, rates, capacity and customer roster)
     Route::post('group-departures/{groupDeparture}/customers', [\App\Http\Controllers\Admin\GroupDepartureController::class, 'addCustomer'])->name('group-departures.customers.store');
     Route::patch('group-departures/{groupDeparture}/customers/{customer}', [\App\Http\Controllers\Admin\GroupDepartureController::class, 'updateCustomer'])->name('group-departures.customers.update');
