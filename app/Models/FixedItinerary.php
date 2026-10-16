@@ -117,6 +117,85 @@ class FixedItinerary extends Model
         'fixed_price' => 'decimal:2',
     ];
 
+    public function setSupplierIdsAttribute($value): void
+    {
+        $this->setSafeJsonAttribute('supplier_ids', $value);
+    }
+
+    public function getSupplierIdsAttribute($value): array
+    {
+        return $this->getSafeJsonAttribute($value);
+    }
+
+    public function setCountryIdsAttribute($value): void
+    {
+        $this->setSafeJsonAttribute('country_ids', $value);
+    }
+
+    public function getCountryIdsAttribute($value): array
+    {
+        return $this->getSafeJsonAttribute($value);
+    }
+
+    public function setHighlightsAttribute($value): void
+    {
+        $this->setSafeJsonAttribute('highlights', $value);
+    }
+
+    public function getHighlightsAttribute($value): array
+    {
+        return $this->getSafeJsonAttribute($value);
+    }
+
+    public function setInclusionsAttribute($value): void
+    {
+        $this->setSafeJsonAttribute('inclusions', $value);
+    }
+
+    public function getInclusionsAttribute($value): array
+    {
+        return $this->getSafeJsonAttribute($value);
+    }
+
+    public function setExclusionsAttribute($value): void
+    {
+        $this->setSafeJsonAttribute('exclusions', $value);
+    }
+
+    public function getExclusionsAttribute($value): array
+    {
+        return $this->getSafeJsonAttribute($value);
+    }
+
+    public function setDaysAttribute($value): void
+    {
+        $this->setSafeJsonAttribute('days', $value);
+    }
+
+    public function getDaysAttribute($value): array
+    {
+        return $this->getSafeJsonAttribute($value);
+    }
+
+    private function setSafeJsonAttribute(string $key, $value): void
+    {
+        $this->attributes[$key] = json_encode(
+            is_array($value) ? $value : ($value ?? []),
+            JSON_UNESCAPED_UNICODE | JSON_INVALID_UTF8_SUBSTITUTE
+        );
+    }
+
+    private function getSafeJsonAttribute($value): array
+    {
+        if (is_array($value)) {
+            return $value;
+        }
+
+        $decoded = json_decode((string) $value, true, 512, JSON_INVALID_UTF8_SUBSTITUTE);
+
+        return is_array($decoded) ? $decoded : [];
+    }
+
     public function user()
     {
         return $this->belongsTo(Admin::class, 'user_id');
@@ -196,4 +275,3 @@ class FixedItinerary extends Model
         return $converted;
     }
 }
-
