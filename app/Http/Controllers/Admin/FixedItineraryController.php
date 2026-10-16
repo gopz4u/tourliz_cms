@@ -97,6 +97,7 @@ class FixedItineraryController extends Controller
             'exclusions' => 'nullable',
             'terms_conditions' => 'nullable|string',
             'fixed_price' => 'required|numeric|min:0',
+            'markup_percentage' => 'nullable|numeric|min:0|max:10000',
             'currency' => 'nullable|string|max:10',
             'status' => 'nullable|string',
             'image' => 'nullable|image|max:4096',
@@ -109,6 +110,7 @@ class FixedItineraryController extends Controller
         }
 
         $days = $this->cleanDaysData($request->input('days', []));
+        $operationalCost = $this->calculateOperationalCost($days);
 
         $rawSupplierIds = $request->input('supplier_ids', []);
         if (empty($rawSupplierIds) && $request->filled('supplier_id')) {
@@ -134,6 +136,8 @@ class FixedItineraryController extends Controller
             'terms_conditions' => $validated['terms_conditions'] ?? null,
             'days' => $days,
             'fixed_price' => $validated['fixed_price'],
+            'operational_cost' => $operationalCost,
+            'markup_percentage' => $validated['markup_percentage'] ?? 0,
             'currency' => $validated['currency'] ?? 'MYR',
             'image' => $imagePath,
             'status' => $validated['status'] ?? 'active',
@@ -191,6 +195,7 @@ class FixedItineraryController extends Controller
             'exclusions' => 'nullable',
             'terms_conditions' => 'nullable|string',
             'fixed_price' => 'required|numeric|min:0',
+            'markup_percentage' => 'nullable|numeric|min:0|max:10000',
             'currency' => 'nullable|string|max:10',
             'status' => 'nullable|string',
             'image' => 'nullable|image|max:4096',
@@ -203,6 +208,7 @@ class FixedItineraryController extends Controller
         }
 
         $days = $this->cleanDaysData($request->input('days', []));
+        $operationalCost = $this->calculateOperationalCost($days);
 
         $rawSupplierIds = $request->input('supplier_ids', []);
         if (empty($rawSupplierIds) && $request->filled('supplier_id')) {
@@ -228,6 +234,8 @@ class FixedItineraryController extends Controller
             'terms_conditions' => $validated['terms_conditions'] ?? $itinerary->terms_conditions,
             'days' => $days,
             'fixed_price' => $validated['fixed_price'],
+            'operational_cost' => $operationalCost,
+            'markup_percentage' => $validated['markup_percentage'] ?? 0,
             'currency' => $validated['currency'] ?? $itinerary->currency,
             'image' => $imagePath,
             'status' => $validated['status'] ?? $itinerary->status,
@@ -412,6 +420,18 @@ class FixedItineraryController extends Controller
         }
 
         return $cleanedDays;
+    }
+
+    protected function calculateOperationalCost(array $days): float
+    {
+        $total = 0;
+        foreach ($days as $day) {
+            foreach ($day['items'] ?? [] as $item) {
+                $total += max(0, (float) ($item['price'] ?? 0));
+            }
+        }
+
+        return round($total, 2);
     }
 
     /**

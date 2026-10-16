@@ -278,6 +278,18 @@
                     </div>
 
                     <div class="mb-3">
+                        <div class="p-3 rounded border bg-light mb-3">
+                            <div class="d-flex justify-content-between mb-2"><span class="fw-bold">Live Operational Cost</span><strong id="operationalCostDisplay">RM 0.00</strong></div>
+                            <div id="operationalCostBreakdown" class="small text-muted mb-3">Add inventory items to calculate cost.</div>
+                            <label class="form-label small fw-bold">Markup Percentage</label>
+                            <div class="input-group input-group-sm mb-2">
+                                <input type="number" min="0" max="10000" step="0.01" name="markup_percentage" id="markupPercentageInput" class="form-control" value="{{ old('markup_percentage', 0) }}">
+                                <span class="input-group-text">%</span>
+                            </div>
+                            <div class="d-flex justify-content-between"><span class="small text-muted">Profit</span><strong id="profitAmountDisplay">RM 0.00</strong></div>
+                            <div class="d-flex justify-content-between"><span class="small text-muted">Suggested Price</span><strong id="suggestedPriceDisplay">RM 0.00</strong></div>
+                            <button type="button" id="useSuggestedPriceBtn" class="btn btn-sm btn-outline-success w-100 mt-2">Use Suggested Price</button>
+                        </div>
                         <label class="form-label font-weight-bold text-success">
                             Fixed Package Price <span class="text-danger">*</span>
                         </label>
@@ -440,9 +452,42 @@
         container.innerHTML = html;
     }
 
-    document.getElementById('fixedCurrencySelect')?.addEventListener('change', updateMultiCurrencyPreview);
+    function updateOperationalPricing() {
+        const totals = {};
+        let operationalCost = 0;
+        document.querySelectorAll('.item-rate-input').forEach(input => {
+            const row = input.closest('.item-row');
+            const type = row?.querySelector('input[name$="[item_type]"]')?.value || 'other';
+            const amount = Math.max(0, parseFloat(input.value) || 0);
+            totals[type] = (totals[type] || 0) + amount;
+            operationalCost += amount;
+        });
+        const currency = document.getElementById('fixedCurrencySelect')?.value || 'MYR';
+        const symbol = currencySymbols[currency] || currency;
+        const markup = Math.max(0, parseFloat(document.getElementById('markupPercentageInput')?.value) || 0);
+        const profit = operationalCost * markup / 100;
+        const suggested = operationalCost + profit;
+        document.getElementById('operationalCostDisplay').textContent = `${symbol} ${operationalCost.toFixed(2)}`;
+        document.getElementById('profitAmountDisplay').textContent = `${symbol} ${profit.toFixed(2)}`;
+        document.getElementById('suggestedPriceDisplay').textContent = `${symbol} ${suggested.toFixed(2)}`;
+        const breakdown = Object.entries(totals).filter(([, total]) => total > 0).map(([type, total]) => `${type.charAt(0).toUpperCase() + type.slice(1)}: ${symbol} ${total.toFixed(2)}`);
+        document.getElementById('operationalCostBreakdown').textContent = breakdown.length ? breakdown.join(' • ') : 'Add inventory items to calculate cost.';
+        return suggested;
+    }
+
+    document.addEventListener('input', event => {
+        if (event.target.matches('.item-rate-input, #markupPercentageInput')) updateOperationalPricing();
+    });
+    document.getElementById('useSuggestedPriceBtn')?.addEventListener('click', () => {
+        document.getElementById('fixedPriceInput').value = updateOperationalPricing().toFixed(2);
+        updateMultiCurrencyPreview();
+    });
+    new MutationObserver(updateOperationalPricing).observe(document.getElementById('daysContainer'), { childList: true, subtree: true });
+
+    document.getElementById('fixedCurrencySelect')?.addEventListener('change', () => { updateMultiCurrencyPreview(); updateOperationalPricing(); });
     document.getElementById('fixedPriceInput')?.addEventListener('input', updateMultiCurrencyPreview);
     updateMultiCurrencyPreview();
+    updateOperationalPricing();
 </script>
 
 <!-- Quick Add Custom Supplier Modal (Compact & Responsive) -->

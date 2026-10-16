@@ -56,6 +56,12 @@ class FixedItinerary extends Model
                 if (!\Illuminate\Support\Facades\Schema::hasColumn('fixed_itineraries', 'image')) {
                     $table->string('image')->nullable()->after('currency');
                 }
+                if (!\Illuminate\Support\Facades\Schema::hasColumn('fixed_itineraries', 'operational_cost')) {
+                    $table->decimal('operational_cost', 15, 2)->default(0)->after('fixed_price');
+                }
+                if (!\Illuminate\Support\Facades\Schema::hasColumn('fixed_itineraries', 'markup_percentage')) {
+                    $table->decimal('markup_percentage', 8, 2)->default(0)->after('operational_cost');
+                }
             });
             $repaired = true;
         } catch (\Throwable $e) {
@@ -102,6 +108,8 @@ class FixedItinerary extends Model
         'terms_conditions',
         'days',
         'fixed_price',
+        'operational_cost',
+        'markup_percentage',
         'currency',
         'image',
         'status',
@@ -115,6 +123,8 @@ class FixedItinerary extends Model
         'exclusions' => 'array',
         'days' => 'array',
         'fixed_price' => 'decimal:2',
+        'operational_cost' => 'decimal:2',
+        'markup_percentage' => 'decimal:2',
     ];
 
     public function setSupplierIdsAttribute($value): void
