@@ -77,17 +77,46 @@
                                                 <option value="">-- None / Blank (Build Custom Day-Wise Plan) --</option>
                                                 @if(isset($fixedItineraries))
                                                     @foreach($fixedItineraries as $fi)
+                                                        @php
+                                                            $fixedDays = is_array($fi->days) ? $fi->days : (json_decode($fi->days, true) ?: []);
+                                                            $livePrice = collect($fixedDays)->sum(function ($day) {
+                                                                return collect($day['items'] ?? [])->sum(function ($item) {
+                                                                    return in_array(strtolower($item['item_type'] ?? ''), ['hotel', 'transport', 'activity', 'ticket', 'meal'], true)
+                                                                        ? (float) ($item['price'] ?? 0)
+                                                                        : 0;
+                                                                });
+                                                            });
+                                                        @endphp
                                                         <option value="{{ $fi->id }}" 
                                                                 data-days="{{ $fi->duration_days ?: 1 }}" 
                                                                 data-title="{{ $fi->title }}" 
                                                                 data-destination="{{ $fi->destination_id }}"
                                                                 data-price="{{ $fi->fixed_price }}"
+                                                                data-live-price="{{ $livePrice }}"
                                                                 data-currency="{{ $fi->currency ?: 'MYR' }}">
                                                             {{ $fi->title }} ({{ $fi->duration_days }}D{{ $fi->duration_nights ?: 0 }}N - {{ $fi->currency ?: 'MYR' }} {{ number_format($fi->fixed_price, 2) }})
                                                         </option>
                                                     @endforeach
                                                 @endif
                                             </select>
+                                            <div id="fixed-price-choice" class="mt-3 p-3 bg-white border rounded d-none">
+                                                <div class="small fw-bold text-dark mb-2">Choose the price to use</div>
+                                                <div class="row g-2">
+                                                    <div class="col-md-6">
+                                                        <label class="border rounded p-2 w-100 h-100 d-flex align-items-center gap-2" for="create-pricing-fixed">
+                                                            <input class="form-check-input mt-0" type="radio" name="pricing_mode" id="create-pricing-fixed" value="fixed" checked>
+                                                            <span><small class="text-muted d-block">Fixed Price</small><strong id="create-fixed-price">—</strong></span>
+                                                        </label>
+                                                    </div>
+                                                    <div class="col-md-6">
+                                                        <label class="border rounded p-2 w-100 h-100 d-flex align-items-center gap-2" for="create-pricing-live">
+                                                            <input class="form-check-input mt-0" type="radio" name="pricing_mode" id="create-pricing-live" value="live">
+                                                            <span><small class="text-muted d-block">Live Price</small><strong id="create-live-price">—</strong></span>
+                                                        </label>
+                                                    </div>
+                                                </div>
+                                                <div class="form-text">Live price is calculated from the current package items. You can change the method again on the proposal edit screen.</div>
+                                            </div>
                                         </div>
                                         <div class="col-12 import-source-panel d-none" data-source="b2c">
                                             <label class="form-label small text-muted mb-1 fw-semibold">
@@ -208,6 +237,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     const sourceRadios = document.querySelectorAll('.import-source-radio');
     const destinationSelect = document.querySelector('select[name="destination_id"]');
+    const fixedPriceChoice = document.getElementById('fixed-price-choice');
 
     function selectSource(source) {
         const radio = document.getElementById(`import_source_${source}`);
@@ -229,11 +259,18 @@ document.addEventListener('DOMContentLoaded', function() {
         if (titleInput && opt.dataset.title) titleInput.value = opt.dataset.title;
         if (daysInput && opt.dataset.days) daysInput.value = opt.dataset.days;
         if (destinationSelect && opt.dataset.destination) destinationSelect.value = opt.dataset.destination;
+        if (source === 'fixed' && fixedPriceChoice) {
+            const currency = opt.dataset.currency || 'MYR';
+            document.getElementById('create-fixed-price').textContent = `${currency} ${Number(opt.dataset.price || 0).toFixed(2)}`;
+            document.getElementById('create-live-price').textContent = `${currency} ${Number(opt.dataset.livePrice || 0).toFixed(2)}`;
+            fixedPriceChoice.classList.remove('d-none');
+        }
     }
 
     sourceRadios.forEach(radio => radio.addEventListener('change', function() {
         showSourcePanel(this.value);
         if (this.value === 'blank') [fixedSelect, b2cSelect, groupSelect].forEach(select => { if (select) select.value = ''; });
+        if (this.value !== 'fixed' && fixedPriceChoice) fixedPriceChoice.classList.add('d-none');
     }));
 
     showSourcePanel(document.querySelector('.import-source-radio:checked')?.value || 'blank');
@@ -241,6 +278,7 @@ document.addEventListener('DOMContentLoaded', function() {
     if (fixedSelect) {
         fixedSelect.addEventListener('change', function() {
             applyTemplate(this, 'fixed');
+            if (!this.value && fixedPriceChoice) fixedPriceChoice.classList.add('d-none');
         });
     }
 
