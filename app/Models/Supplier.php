@@ -62,6 +62,28 @@ class Supplier extends Model
         return $classes[$cat] ?? 'bg-light text-dark border';
     }
 
+    public function inventoryCreateRouteName(): ?string
+    {
+        return [
+            'Hotel' => 'admin.hotels.create',
+            'Transport' => 'admin.transports.create',
+            'Entry Tickets' => 'admin.entry-tickets.create',
+            'Activities' => 'admin.activities.create',
+            'Meals' => 'admin.meals.create',
+        ][$this->category_label] ?? null;
+    }
+
+    public function inventoryActionLabel(): string
+    {
+        return [
+            'Hotel' => 'Add hotel & room rates',
+            'Transport' => 'Add vehicle & route',
+            'Entry Tickets' => 'Add ticket prices',
+            'Activities' => 'Add activity & price',
+            'Meals' => 'Add meal & price',
+        ][$this->category_label] ?? 'Add inventory';
+    }
+
     public function destination()
     {
         return $this->belongsTo(Destination::class, 'destination_id');

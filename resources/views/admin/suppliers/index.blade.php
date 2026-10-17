@@ -87,6 +87,11 @@
                                     @endif
                                 </td>
                                 <td class="text-end">
+                                    @if($inventoryRoute = $supplier->inventoryCreateRouteName())
+                                        <a href="{{ route($inventoryRoute, ['supplier_id' => $supplier->id]) }}" class="btn btn-sm btn-primary rounded-pill px-3" title="{{ $supplier->inventoryActionLabel() }}">
+                                            <i class="bi bi-plus-lg me-1"></i>{{ $supplier->inventoryActionLabel() }}
+                                        </a>
+                                    @endif
                                     <button class="btn btn-sm btn-link text-primary" onclick="editSupplier({{ $supplier->id }})"><i class="bi bi-pencil"></i></button>
                                     <button class="btn btn-sm btn-link text-danger" onclick="deleteSupplier({{ $supplier->id }})"><i class="bi bi-trash"></i></button>
                                 </td>

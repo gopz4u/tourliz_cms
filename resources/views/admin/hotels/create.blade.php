@@ -62,7 +62,7 @@
                             <select name="supplier_id" class="form-select">
                                 <option value="">— Select Hotel Vendor —</option>
                                 @foreach($suppliers as $s)
-                                    <option value="{{ $s->id }}">{{ $s->name }}</option>
+                                    <option value="{{ $s->id }}" {{ old('supplier_id', request('supplier_id')) == $s->id ? 'selected' : '' }}>{{ $s->name }}</option>
                                 @endforeach
                             </select>
                             <small class="form-text text-muted">Link this hotel to a vendor from your Supplier Master</small>
@@ -86,7 +86,7 @@
                             <select name="supplier_id" class="form-select">
                                 <option value="">— None / Walk-in —</option>
                                 @foreach($suppliers as $s)
-                                    <option value="{{ $s->id }}">{{ $s->name }}</option>
+                                    <option value="{{ $s->id }}" {{ old('supplier_id', request('supplier_id')) == $s->id ? 'selected' : '' }}>{{ $s->name }}</option>
                                 @endforeach
                             </select>
                             <small class="form-text text-muted">Link to a Hotel supplier from your Supplier Master</small>

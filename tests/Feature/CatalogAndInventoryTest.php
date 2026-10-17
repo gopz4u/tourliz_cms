@@ -465,7 +465,8 @@ class CatalogAndInventoryTest extends TestCase
 
         $response = $this->actingAs($this->admin)->post(route('admin.suppliers.store'), $data);
 
-        $response->assertRedirect(route('admin.suppliers.index'));
+        $createdSupplier = Supplier::where('name', 'ABC Travel Agency')->firstOrFail();
+        $response->assertRedirect(route('admin.hotels.create', ['supplier_id' => $createdSupplier->id]));
         $this->assertDatabaseHas('suppliers', [
             'name' => 'ABC Travel Agency',
             'type' => 'Hotel',

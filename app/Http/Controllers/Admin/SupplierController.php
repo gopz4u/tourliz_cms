@@ -99,6 +99,11 @@ class SupplierController extends Controller
                 ]);
             }
 
+            if ($inventoryRoute = $supplier->inventoryCreateRouteName()) {
+                return redirect()->route($inventoryRoute, ['supplier_id' => $supplier->id])
+                    ->with('success', 'Supplier created. Now add the services and rates they provide.');
+            }
+
             return redirect()->route('admin.suppliers.index')->with('success', 'Supplier created successfully');
         } catch (\Illuminate\Validation\ValidationException $ve) {
             if ($request->ajax() || $request->wantsJson() || $request->isJson()) {

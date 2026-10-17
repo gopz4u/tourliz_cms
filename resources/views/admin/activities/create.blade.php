@@ -30,7 +30,7 @@
                             <select name="supplier_id" class="form-select">
                                 <option value="">— None / Walk-in —</option>
                                 @foreach($suppliers as $s)
-                                    <option value="{{ $s->id }}">{{ $s->name }}</option>
+                                    <option value="{{ $s->id }}" {{ old('supplier_id', request('supplier_id')) == $s->id ? 'selected' : '' }}>{{ $s->name }}</option>
                                 @endforeach
                             </select>
                             <small class="form-text text-muted">Link to an Activity supplier from your Supplier Master</small>
