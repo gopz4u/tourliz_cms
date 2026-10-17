@@ -456,20 +456,20 @@
                                 <div class="row g-4 mt-2">
                                     <div class="col-md-6">
                                         <label class="premium-label">Direct Selling Price (RM)</label>
-                                        <input type="number" name="price" id="direct-price-in" class="form-control premium-input form-control-lg fw-black text-primary" placeholder="Enter price directly" min="0" step="0.01" oninput="onDirectPriceChange()">
+                                        <input type="number" id="direct-price-in" class="form-control premium-input form-control-lg fw-black text-primary" placeholder="Enter price directly" min="0" step="0.01" oninput="onDirectPriceChange()">
                                         <small class="text-muted">Enter the final price when you don't have itemised services.</small>
                                     </div>
                                     <div class="col-md-6">
                                         <label class="premium-label">Service Markup (%)</label>
-                                        <input type="number" name="markup_percentage" class="form-control premium-input" placeholder="Optional" value="0">
+                                        <input type="number" id="direct-markup-in" class="form-control premium-input" placeholder="Optional" value="0">
                                     </div>
                                     <div class="col-md-6">
                                         <label class="premium-label">Government GST (%)</label>
-                                        <input type="number" name="gst_percentage" class="form-control premium-input" placeholder="Optional" value="0">
+                                        <input type="number" id="direct-gst-in" class="form-control premium-input" placeholder="Optional" value="0">
                                     </div>
                                     <div class="col-md-6">
                                         <label class="premium-label">TCS (If applicable %)</label>
-                                        <input type="number" name="tcs_percentage" class="form-control premium-input" placeholder="Optional" value="0">
+                                        <input type="number" id="direct-tcs-in" class="form-control premium-input" placeholder="Optional" value="0">
                                     </div>
                                 </div>
                             </div>
@@ -1177,6 +1177,9 @@
                 return;
             }
             $('#selling-in').val(directPrice);
+            $('#markup-in').val(parseFloat($('#direct-markup-in').val()) || 0);
+            $('#gst-in').val(parseFloat($('#direct-gst-in').val()) || 0);
+            $('#tcs-in').val(parseFloat($('#direct-tcs-in').val()) || 0);
         } else {
             calculateRates(); // Ensure rates and hidden fields are populated
         }
