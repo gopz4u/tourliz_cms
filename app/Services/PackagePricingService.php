@@ -26,6 +26,18 @@ class PackagePricingService
         $totalNet = 0;
         $markupPct = $package->markup_percentage ?: 0;
 
+        // Packages created with the day-by-day builder store their final price per pax.
+        // Keep the detailed amenity calculator below for legacy packages.
+        if (empty($amenities)) {
+            $perPax = (float) ($package->price ?? 0);
+            return [
+                'total_net' => (float) ($package->net_price ?? $perPax) * $paxCount,
+                'total_selling' => $perPax * $paxCount,
+                'per_pax' => round($perPax, 2),
+                'pax_count' => $paxCount,
+            ];
+        }
+
         // Fetch room if roomId provided
         $selectedRoom = null;
         if ($roomId) {

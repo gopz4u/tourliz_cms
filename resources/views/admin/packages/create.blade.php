@@ -377,7 +377,7 @@
                                 <div class="row g-4 mt-4">
                                     <div class="col-md-4">
                                         <label class="premium-label">Guest Limit (Min)</label>
-                                        <input type="number" name="min_pax" class="form-control premium-input" value="1">
+                                        <input type="number" name="min_pax" id="min-pax-in" class="form-control premium-input" value="2" min="1" oninput="calculateRates()">
                                     </div>
                                     <div class="col-md-4">
                                         <label class="premium-label">Guest Limit (Max)</label>
@@ -473,12 +473,13 @@
                         <div class="row g-5">
                             <div class="col-md-7">
                                 <div class="bg-white border rounded-4 p-5 shadow-sm mb-4">
-                                    <h5 class="fw-black mb-4">Net Cost Aggregate</h5>
+                                    <h5 class="fw-black mb-1">Per-Pax Pricing Calculator</h5>
+                                    <p class="text-muted small mb-4">Hotel and transport are shared costs. Tickets, activities and meals are calculated per passenger.</p>
                                     <div id="cost-breakdown" class="mb-4">
                                         <!-- Dynamic Breakdown -->
                                     </div>
                                     <div class="d-flex justify-content-between align-items-center pt-4 border-top">
-                                        <span class="fw-bold text-muted">Total Component Value</span>
+                                        <span class="fw-bold text-muted">Total cost for group</span>
                                         <span class="fs-2 fw-black text-dark" id="net-total">RM 0</span>
                                     </div>
                                 </div>
@@ -513,7 +514,7 @@
                                                 class="form-control premium-input" value="0" oninput="calculateRates()">
                                         </div>
                                         <div class="col-md-6">
-                                            <label class="premium-label">Final Selling Rate (Auto-Calculated)</label>
+                                            <label class="premium-label">Final Selling Price / Pax</label>
                                             <input type="number" name="price" id="selling-in"
                                                 class="form-control premium-input form-control-lg fw-black text-primary"
                                                 readonly>
@@ -525,27 +526,26 @@
                                 <div id="direct-price-section" style="display:none;">
                                     <div class="row g-4 mt-2">
                                         <div class="col-md-6">
-                                            <label class="premium-label">Direct Selling Price (RM)</label>
-                                            <input type="number" name="price" id="direct-price-in"
+                                            <label class="premium-label">Direct Selling Price / Pax (RM)</label>
+                                            <input type="number" id="direct-price-in"
                                                 class="form-control premium-input form-control-lg fw-black text-primary"
                                                 placeholder="Enter price directly" min="0" step="0.01"
                                                 oninput="onDirectPriceChange()">
-                                            <small class="text-muted">Enter the final price when you don't have itemised
-                                                services.</small>
+                                            <small class="text-muted">Enter the final amount charged to one adult passenger.</small>
                                         </div>
                                         <div class="col-md-6">
                                             <label class="premium-label">Service Markup (%)</label>
-                                            <input type="number" name="markup_percentage" class="form-control premium-input"
+                                            <input type="number" id="direct-markup-in" class="form-control premium-input"
                                                 placeholder="Optional" value="0">
                                         </div>
                                         <div class="col-md-6">
                                             <label class="premium-label">Government GST (%)</label>
-                                            <input type="number" name="gst_percentage" class="form-control premium-input"
+                                            <input type="number" id="direct-gst-in" class="form-control premium-input"
                                                 placeholder="Optional" value="0">
                                         </div>
                                         <div class="col-md-6">
                                             <label class="premium-label">TCS (If applicable %)</label>
-                                            <input type="number" name="tcs_percentage" class="form-control premium-input"
+                                            <input type="number" id="direct-tcs-in" class="form-control premium-input"
                                                 placeholder="Optional" value="0">
                                         </div>
                                     </div>
@@ -995,7 +995,8 @@
         }
 
         function calculateRates() {
-            let total = 0;
+            let groupCost = 0;
+            let costingPax = Math.max(1, parseInt($('#min-pax-in').val()) || 1);
             let html = '';
             $('.itinerary-day-card').each(function () {
                 let dNum = $(this).attr('data-day');
@@ -1003,20 +1004,23 @@
                     let type = $(this).find('input[name*="[item_type]"]').val() || 'service';
                     let title = $(this).find('input[name*="[title]"]').val() || 'Inventory item';
                     let p = parseFloat($(this).find('.item-rate-input').val()) || 0;
-                    total += p;
+                    let isShared = type === 'hotel' || type === 'transport';
+                    let lineCost = isShared ? p : p * costingPax;
+                    groupCost += lineCost;
                     let typeLabel = type.charAt(0).toUpperCase() + type.slice(1);
-                    html += `<div class="d-flex justify-content-between mb-2"><span>Day ${dNum}: ${typeLabel} - ${title}</span><span class="fw-bold text-dark">RM ${p.toLocaleString()}</span></div>`;
+                    html += `<div class="d-flex justify-content-between mb-2"><span>Day ${dNum}: ${typeLabel} - ${title} <small class="text-muted">(${isShared ? 'shared' : 'per pax'})</small></span><span class="fw-bold text-dark">RM ${lineCost.toLocaleString()}</span></div>`;
                 });
             });
             $('#cost-breakdown').html(html || '<p class="text-muted italic">No components added yet</p>');
-            $('#net-total').text(`RM ${total.toLocaleString()}`);
+            $('#net-total').text(`RM ${groupCost.toLocaleString()} / ${costingPax} pax`);
 
             let mPercent = parseFloat($('#markup-in').val()) || 0;
             let gstPercent = parseFloat($('#gst-in').val()) || 0;
             let tcsPercent = parseFloat($('#tcs-in').val()) || 0;
 
-            let markupAmount = total * (mPercent / 100);
-            let subtotalWithMarkup = total + markupAmount;
+            let netPerPax = groupCost / costingPax;
+            let markupAmount = netPerPax * (mPercent / 100);
+            let subtotalWithMarkup = netPerPax + markupAmount;
 
             let gstAmount = subtotalWithMarkup * (gstPercent / 100);
             let tcsAmount = subtotalWithMarkup * (tcsPercent / 100);
@@ -1028,9 +1032,9 @@
             $('#foot-price').text(`RM ${Math.round(final).toLocaleString()}`);
 
             // Show profit margin
-            if (total > 0) {
-                let profit = final - total;
-                let profitPct = (profit / total) * 100;
+            if (netPerPax > 0) {
+                let profit = final - netPerPax;
+                let profitPct = (profit / netPerPax) * 100;
                 $('#profit-display').show();
                 let color = profit >= 0 ? '#198754' : '#dc3545';
                 $('#foot-profit').css('color', color).text(`RM ${Math.round(profit).toLocaleString()} (${profitPct.toFixed(1)}%)`);
@@ -1044,7 +1048,7 @@
                 $('#package-wizard-form').append(`<input type="hidden" name="markup_amount" id="markup-amount-hidden">`);
                 $('#package-wizard-form').append(`<input type="hidden" name="tax_amount" id="tax-amount-hidden">`);
             }
-            $('#net-price-hidden').val(total);
+            $('#net-price-hidden').val(netPerPax.toFixed(2));
             $('#markup-amount-hidden').val(markupAmount);
             $('#tax-amount-hidden').val(totalTax);
 
@@ -1105,6 +1109,9 @@
                 }
                 // Sync price to the selling-in hidden value so form captures it
                 $('#selling-in').val(directPrice);
+                $('#markup-in').val(parseFloat($('#direct-markup-in').val()) || 0);
+                $('#gst-in').val(parseFloat($('#direct-gst-in').val()) || 0);
+                $('#tcs-in').val(parseFloat($('#direct-tcs-in').val()) || 0);
             } else {
                 calculateRates(); // Ensure rates and hidden fields are populated
             }

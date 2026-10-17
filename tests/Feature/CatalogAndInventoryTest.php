@@ -222,6 +222,37 @@ class CatalogAndInventoryTest extends TestCase
     }
 
     /** @test */
+    public function modern_package_price_is_calculated_per_pax()
+    {
+        $destination = $this->makeDestination([
+            'name' => 'Per Pax Destination',
+            'slug' => 'per-pax-destination',
+        ]);
+
+        $package = Package::create([
+            'country_id' => $this->country->id,
+            'destination_id' => $destination->id,
+            'name' => 'Per Pax Package',
+            'slug' => 'per-pax-package',
+            'price' => 250,
+            'net_price' => 200,
+            'addon_amenities' => [],
+            'status' => 'active',
+        ]);
+
+        $response = $this->post(route('packages.calculate-price', $package->slug), [
+            'adults' => 4,
+            'children' => 0,
+        ]);
+
+        $response->assertOk()->assertJson([
+            'success' => true,
+            'raw_per_pax' => 250,
+            'raw_total' => 1000,
+        ]);
+    }
+
+    /** @test */
     public function admin_can_soft_delete_a_package()
     {
         $package = Package::create([
