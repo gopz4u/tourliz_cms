@@ -1229,11 +1229,14 @@
         formData.append('duration_days', $('.itinerary-day-card').length);
         formData.append('duration_nights', Math.max(0, $('.itinerary-day-card').length - 1));
         formData.append('_method', 'PUT');
-        Swal.fire({ title: 'Updating Experience...', text: 'Syncing your journey configuration', didOpen: () => { Swal.showLoading(); } });
-        $.ajax({
+        Swal.fire({ title: 'Updating Experience...', text: 'Checking your session and saving the journey', allowOutsideClick: false, didOpen: () => { Swal.showLoading(); } });
+        refreshSessionToken().done(token => {
+            formData.set('_token', token);
+            $.ajax({
             url: '{{ route("admin.packages.update", $package->id) }}',
             type: 'POST',
             data: formData,
+            headers: { 'X-CSRF-TOKEN': token },
             processData: false,
             contentType: false,
             success: (res) => { Swal.fire({ icon: 'success', title: 'Package Updated!', text: 'Your multi-vendor experience is now live.' }).then(() => window.location.href = '{{ route("admin.packages.index") }}'); },
@@ -1253,9 +1256,23 @@
                 } else {
                     msg = err.statusText || 'Server Error';
                 }
-                Swal.fire({ icon: 'error', title: 'Configuration Error', html: `<div class="text-start small">${msg}</div>` });
+                const expired = err.status === 419;
+                Swal.fire({ icon: 'error', title: expired ? 'Session expired' : 'Could not update package', html: `<div class="text-start small">${expired ? 'Your login session expired while this form was open. Open the admin panel in a new tab, sign in again, then return here and click Update Package once more.' : msg}</div>` });
             }
+            });
+        }).fail(() => {
+            Swal.fire({ icon: 'warning', title: 'Please sign in again', html: '<div class="text-start small">Your form is still here. Open the admin panel in a new tab, sign in, then return to this tab and submit again.</div>' });
         });
+    }
+
+    function refreshSessionToken() {
+        return $.ajax({ url: '{{ route("admin.session-token") }}', type: 'GET', dataType: 'json', cache: false })
+            .then(response => {
+                if (!response || !response.token) return $.Deferred().reject().promise();
+                $('meta[name="csrf-token"]').attr('content', response.token);
+                $('#package-wizard-form input[name="_token"]').val(response.token);
+                return response.token;
+            });
     }
 </script>
 @endpush

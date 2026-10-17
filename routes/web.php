@@ -75,6 +75,11 @@ Route::middleware('auth')->group(function () {
 
 // Admin CMS Routes (Protected)
 Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:admin'])->group(function () {
+    // Refresh the session token before submitting long-running admin forms.
+    Route::get('/session-token', function () {
+        return response()->json(['token' => csrf_token()]);
+    })->name('session-token');
+
     // Redirect /admin to dashboard
     Route::get('/', function () {
         return redirect()->route('admin.dashboard');
