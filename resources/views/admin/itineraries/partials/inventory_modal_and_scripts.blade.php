@@ -447,6 +447,7 @@
     function renderItemRow(dayIndex, itemData) {
         const container = document.getElementById(`day-items-${dayIndex}`);
         if (!container) return;
+        container.querySelector('.services-empty')?.remove();
 
         const itemIndex = container.querySelectorAll('.item-row').length;
 
@@ -480,9 +481,9 @@
                 <div class="d-flex align-items-center gap-2">
                     <div class="input-group input-group-sm" style="width: 140px;">
                         <span class="input-group-text bg-light currency-rate-label">Rate ${getActiveCurrencyInfo().symbol}</span>
-                        <input type="number" step="0.01" name="days[${dayIndex}][items][${itemIndex}][price]" value="${itemData.price || 0}" class="form-control text-end item-rate-input">
+                        <input type="number" step="0.01" name="days[${dayIndex}][items][${itemIndex}][price]" value="${itemData.price || 0}" class="form-control text-end item-rate-input" onchange="if(typeof calculateRates === 'function') calculateRates();">
                     </div>
-                    <button type="button" class="btn btn-sm btn-outline-danger border-0 rounded-circle" onclick="this.closest('.item-row').remove();" title="Remove Item">
+                    <button type="button" class="btn btn-sm btn-outline-danger border-0 rounded-circle" onclick="this.closest('.item-row').remove(); if(typeof calculateRates === 'function') calculateRates();" title="Remove Item">
                         <i class="bi bi-trash"></i>
                     </button>
                 </div>
@@ -490,5 +491,6 @@
         `;
 
         container.appendChild(row);
+        if (typeof calculateRates === 'function') calculateRates();
     }
 </script>

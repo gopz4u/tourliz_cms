@@ -663,8 +663,7 @@
             <div class="day-header">
                 <div class="d-flex align-items-center gap-3">
                     <div class="day-count">{N}</div>
-                    <input type="text" class="form-control border-0 bg-transparent fw-black fs-5 day-title-in"
-                        placeholder="Day Theme (e.g. Arrival & Sunset Cruise)" style="width: 400px; outline:none;">
+                    <div><div class="small text-muted fw-bold">DAY {N} SCHEDULE</div><input type="text" class="form-control border-0 bg-transparent fw-black fs-5 day-title-in p-0" placeholder="Arrival & Welcome" style="width:min(460px,60vw); outline:none;"></div>
                 </div>
                 <button type="button" class="btn btn-outline-danger btn-sm border-0 rounded-circle"
                     onclick="deleteDay(this)">
@@ -672,59 +671,24 @@
                 </button>
             </div>
             <div class="p-4">
-                <div class="mb-4">
-                    <label class="premium-label">Day description</label>
-                    <textarea class="form-control premium-input day-desc-in" rows="3"
-                        placeholder="Explain the day's flow, pickup, visits and overnight plan in simple guest-friendly language..."></textarea>
-                </div>
-
-                <div class="mb-4">
-                    <label class="premium-label d-block mb-2">
-                        <i class="bi bi-geo-alt-fill text-danger me-2"></i> Tourist Spots / Sightseeing Places
-                    </label>
-                    <select class="form-select select2-spots-multi" multiple
-                        data-placeholder="Select multiple tourist spots for Day {N}..." style="width: 100%;">
-                        @foreach($touristSpots as $spot)
-                            <option value="{{ $spot->id }}"
-                                data-country="{{ $spot->country->name ?? $spot->destination->country ?? '' }}">
-                                {{ $spot->name }}
-                            </option>
-                        @endforeach
-                    </select>
+                <div class="row g-3 mb-3">
+                    <div class="col-md-8"><label class="premium-label">Day description</label><textarea class="form-control premium-input day-desc-in" rows="3" placeholder="Day description and itinerary flow..."></textarea></div>
+                    <div class="col-md-4"><label class="premium-label">Overnight location</label><input type="text" class="form-control premium-input overnight-in" placeholder="City / hotel"></div>
                 </div>
 
                 <div class="bg-light p-4 rounded-4 border">
-                    <div class="mb-3">
-                        <label class="premium-label mb-2"><i class="bi bi-box-seam me-2 text-primary"></i>Operations & supplier bookings</label>
-                        <div class="inventory-actions">
-                            <button type="button" class="inventory-action" onclick="addServiceRow({N}, null, 'hotel')"><i class="bi bi-building text-primary"></i>Hotel</button>
-                            <button type="button" class="inventory-action" onclick="addServiceRow({N}, null, 'transport')"><i class="bi bi-car-front text-secondary"></i>Transport</button>
-                            <button type="button" class="inventory-action" onclick="addServiceRow({N}, null, 'ticket')"><i class="bi bi-ticket-perforated text-danger"></i>Ticket</button>
-                            <button type="button" class="inventory-action" onclick="addServiceRow({N}, null, 'activity')"><i class="bi bi-lightning text-warning"></i>Activity</button>
-                            <button type="button" class="inventory-action" onclick="addServiceRow({N}, null, 'meal')"><i class="bi bi-cup-hot text-success"></i>Meal</button>
+                    <div class="d-flex justify-content-between align-items-center mb-3 pb-3 border-bottom flex-wrap gap-2">
+                        <label class="premium-label mb-0"><i class="bi bi-box-seam me-2 text-primary"></i>Operations Inventory & Supplier Bookings</label>
+                        <div class="btn-group btn-group-sm flex-wrap">
+                            <button type="button" class="btn btn-outline-primary" onclick="openInventoryModal({I}, 'hotels')"><i class="bi bi-building"></i> + Hotel</button>
+                            <button type="button" class="btn btn-outline-secondary" onclick="openInventoryModal({I}, 'transports')"><i class="bi bi-car-front"></i> + Transport</button>
+                            <button type="button" class="btn btn-outline-danger" onclick="openInventoryModal({I}, 'tickets')"><i class="bi bi-ticket-perforated"></i> + Ticket</button>
+                            <button type="button" class="btn btn-outline-info" onclick="openInventoryModal({I}, 'spots')"><i class="bi bi-geo-alt"></i> + Spot</button>
+                            <button type="button" class="btn btn-outline-warning text-dark" onclick="openInventoryModal({I}, 'activities')"><i class="bi bi-lightning"></i> + Activity</button>
+                            <button type="button" class="btn btn-outline-success" onclick="openInventoryModal({I}, 'meals')"><i class="bi bi-cup-hot"></i> + Meal</button>
                         </div>
                     </div>
-                    <div class="services-container" id="services-day-{N}">
-                        <div class="services-empty"><i class="bi bi-plus-circle me-1"></i>No bookings added yet. Choose a service above.</div>
-                    </div>
-
-                    <div class="mt-4 pt-3 border-top">
-                        <label class="premium-label d-block mb-3">Complimentary Meals</label>
-                        <div class="d-flex gap-4">
-                            <div class="form-check custom-check">
-                                <input class="form-check-input meal-cb" type="checkbox" value="Breakfast">
-                                <label class="form-check-label fw-bold small">Breakfast</label>
-                            </div>
-                            <div class="form-check custom-check">
-                                <input class="form-check-input meal-cb" type="checkbox" value="Lunch">
-                                <label class="form-check-label fw-bold small">Lunch</label>
-                            </div>
-                            <div class="form-check custom-check">
-                                <input class="form-check-input meal-cb" type="checkbox" value="Dinner">
-                                <label class="form-check-label fw-bold small">Dinner</label>
-                            </div>
-                        </div>
-                    </div>
+                    <div class="day-items-container" id="day-items-{I}"><div class="services-empty"><i class="bi bi-plus-circle me-1"></i>Selected inventory items will appear here.</div></div>
                 </div>
 
                 <div class="day-notes row g-3 mt-4 p-3">
@@ -735,43 +699,7 @@
             </div>
         </div>
     </template>
-
-    <!-- Template: Service Row -->
-    <template id="service-row-tpl">
-        <div class="row g-3 mb-3 service-row align-items-end">
-            <div class="col-md-3">
-                <label class="small fw-bold text-muted mb-1">Type</label>
-                <select class="form-select premium-input service-type" onchange="onServiceTypeChange(this)">
-                    <option value="hotel">Hotel</option>
-                    <option value="transport">Transport</option>
-                    <option value="activity">Activity</option>
-                    <option value="ticket">Entry Ticket</option>
-                    <option value="meal">Meal</option>
-                </select>
-            </div>
-            <div class="col-md-3">
-                <label class="small fw-bold text-muted mb-1">Vendor</label>
-                <select class="form-select select2-vendor" onchange="onVendorChange(this)">
-                    <option value="">Select Vendor</option>
-                    @foreach($suppliers as $s)
-                        <option value="{{ $s->id }}">{{ $s->name }}</option>
-                    @endforeach
-                </select>
-            </div>
-            <div class="col-md-5">
-                <label class="small fw-bold text-muted mb-1">Product / Service</label>
-                <select class="form-select select2-service" onchange="calculateRates()">
-                    <option value="">Choose Service</option>
-                </select>
-            </div>
-            <div class="col-md-1">
-                <button type="button" class="btn btn-outline-danger border-0 mb-1"
-                    onclick="$(this).closest('.service-row').remove(); calculateRates();">
-                    <i class="bi bi-trash"></i>
-                </button>
-            </div>
-        </div>
-    </template>
+    @include('admin.itineraries.partials.inventory_modal_and_scripts')
 @endsection
 
 @push('scripts')
@@ -954,20 +882,8 @@
 
         function addDay() {
             let n = $('.itinerary-day-card').length + 1;
-            let tpl = $('#day-tpl').html().replace(/{N}/g, n);
-            let card = $(tpl).appendTo('#itinerary-timeline');
-            card.find('.select2-spots-multi').select2({ theme: 'bootstrap-5' });
-            // Apply current country filter to new day
-            let selectedCountryName = $('#country_id').find(':selected').data('country-name') || '';
-            if (selectedCountryName) {
-                card.find('.select2-spots-multi option').each(function () {
-                    let spotCountry = ($(this).data('country') || '').trim().toLowerCase();
-                    if (spotCountry && spotCountry !== selectedCountryName.trim().toLowerCase()) {
-                        $(this).prop('disabled', true);
-                    }
-                });
-                card.find('.select2-spots-multi').select2({ theme: 'bootstrap-5' });
-            }
+            let tpl = $('#day-tpl').html().replace(/{N}/g, n).replace(/{I}/g, n - 1);
+            $(tpl).appendTo('#itinerary-timeline');
             updateDuration();
         }
 
@@ -1063,8 +979,8 @@
             $('.itinerary-day-card').each(function (i) {
                 let n = i + 1;
                 $(this).attr('data-day', n).find('.day-count').text(n);
-                $(this).find('.services-container').attr('id', `services-day-${n}`);
-                $(this).find('button[onclick^="addServiceRow"]').attr('onclick', `addServiceRow(${n})`);
+                $(this).find('.day-items-container').attr('id', `day-items-${i}`);
+                $(this).find('button[onclick^="openInventoryModal"]').each(function () { this.setAttribute('onclick', this.getAttribute('onclick').replace(/openInventoryModal\(\d+,/, `openInventoryModal(${i},`)); });
             });
             updateDuration();
             calculateRates();
@@ -1080,18 +996,13 @@
             let html = '';
             $('.itinerary-day-card').each(function () {
                 let dNum = $(this).attr('data-day');
-                $(this).find('.service-row').each(function () {
-                    let type = $(this).find('.service-type').val();
-                    let s = $(this).find('.select2-service option:selected');
-                    if (s.val()) {
-                        let p = parseFloat(s.data('price')) || 0;
-                        if (type !== 'hotel' && type !== 'transport') {
-                            total += p;
-                        }
-                        let typeLabel = type.charAt(0).toUpperCase() + type.slice(1);
-                        if (type === 'ticket') typeLabel = 'Entry Ticket';
-                        html += `<div class="d-flex justify-content-between mb-2"><span>Day ${dNum}: ${typeLabel} - ${s.text()}</span><span class="fw-bold text-dark">RM ${p.toLocaleString()}</span></div>`;
-                    }
+                $(this).find('.item-row').each(function () {
+                    let type = $(this).find('input[name*="[item_type]"]').val() || 'service';
+                    let title = $(this).find('input[name*="[title]"]').val() || 'Inventory item';
+                    let p = parseFloat($(this).find('.item-rate-input').val()) || 0;
+                    total += p;
+                    let typeLabel = type.charAt(0).toUpperCase() + type.slice(1);
+                    html += `<div class="d-flex justify-content-between mb-2"><span>Day ${dNum}: ${typeLabel} - ${title}</span><span class="fw-bold text-dark">RM ${p.toLocaleString()}</span></div>`;
                 });
             });
             $('#cost-breakdown').html(html || '<p class="text-muted italic">No components added yet</p>');
@@ -1211,25 +1122,19 @@
             const formData = new FormData(document.getElementById('package-wizard-form'));
             let itinerary = [];
             $('.itinerary-day-card').each(function () {
-                let day = { day_number: $(this).attr('data-day'), title: $(this).find('.day-title-in').val(), description: $(this).find('.day-desc-in').val(), highlights: $(this).find('.day-highlights-in').val(), inclusions: $(this).find('.day-inclusions-in').val(), exclusions: $(this).find('.day-exclusions-in').val(), meals: [], hotels: [], transports: [], activities: [], tickets: [], meals_list: [], spots: [] };
-                $(this).find('.meal-cb:checked').each(function () { day.meals.push($(this).val()); });
-
-                // Collect multi-select tourist spots
-                let spotsVal = $(this).find('.select2-spots-multi').val() || [];
-                spotsVal.forEach(val => {
-                    day.spots.push({ tourist_spot_id: val, hours: 1, price_per_hour: 0 });
-                });
-
-                $(this).find('.service-row').each(function () {
-                    let type = $(this).find('.service-type').val();
-                    let val = $(this).find('.select2-service').val();
-                    if (val) {
-                        if (type === 'hotel') day.hotels.push({ hotel_id: val });
-                        else if (type === 'transport') day.transports.push({ transport_id: val });
-                        else if (type === 'activity') day.activities.push({ activity_id: val });
-                        else if (type === 'ticket') day.tickets.push({ ticket_id: val });
-                        else if (type === 'meal') day.meals_list.push({ meal_id: val });
-                    }
+                let day = { day_number: $(this).attr('data-day'), title: $(this).find('.day-title-in').val(), description: $(this).find('.day-desc-in').val(), overnight_location: $(this).find('.overnight-in').val(), highlights: $(this).find('.day-highlights-in').val(), inclusions: $(this).find('.day-inclusions-in').val(), exclusions: $(this).find('.day-exclusions-in').val(), meals: [], hotels: [], transports: [], activities: [], tickets: [], meals_list: [], spots: [], items: [] };
+                $(this).find('.item-row').each(function () {
+                    let type = $(this).find('input[name*="[item_type]"]').val();
+                    let id = $(this).find('input[name*="[item_id]"]').val();
+                    let item = { type, id, title: $(this).find('input[name*="[title]"]').val(), description: $(this).find('input[name*="[description]"]').val(), price: parseFloat($(this).find('.item-rate-input').val()) || 0 };
+                    day.items.push(item);
+                    if (!id) return;
+                    if (type === 'hotel') day.hotels.push({ hotel_id: id });
+                    else if (type === 'transport') day.transports.push({ transport_id: id });
+                    else if (type === 'activity') day.activities.push({ activity_id: id });
+                    else if (type === 'ticket') day.tickets.push({ ticket_id: id });
+                    else if (type === 'meal') day.meals_list.push({ meal_id: id });
+                    else if (type === 'spot') day.spots.push({ tourist_spot_id: id, hours: 1, price_per_hour: item.price });
                 });
                 itinerary.push(day);
             });
