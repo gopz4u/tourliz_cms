@@ -352,16 +352,19 @@
                                     <div class="col-md-12">
                                         <label class="premium-label">Source Vendors (Suppliers)</label>
                                         <select name="supplier_ids[]" id="supplier_ids" class="form-select select2" multiple
-                                            data-placeholder="Select vendors for this package...">
-                                            @foreach($suppliers as $supplier)
-                                                <option value="{{ $supplier->id }}"
-                                                    data-country="{{ $supplier->destination->country ?? '' }}">
-                                                    {{ $supplier->name }}
-                                                </option>
+                                            data-placeholder="Search vendor, category or location...">
+                                            @foreach($suppliers->groupBy(fn($supplier) => $supplier->category_label)->sortKeys() as $category => $categorySuppliers)
+                                                <optgroup label="{{ $category }}">
+                                                    @foreach($categorySuppliers as $supplier)
+                                                        <option value="{{ $supplier->id }}" data-category="{{ $category }}"
+                                                            data-country="{{ $supplier->destination->country ?? '' }}">
+                                                            [{{ $category }}] {{ $supplier->name }}{{ $supplier->destination ? ' — ' . ($supplier->destination->name ?: $supplier->destination->city) : '' }}
+                                                        </option>
+                                                    @endforeach
+                                                </optgroup>
                                             @endforeach
                                         </select>
-                                        <small class="text-muted">Select all vendors providing services for this
-                                            package.</small>
+                                        <small class="text-muted"><i class="bi bi-info-circle me-1"></i>Vendors are grouped and labelled by service category.</small>
                                     </div>
                                 </div>
 
