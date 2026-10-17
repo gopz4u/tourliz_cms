@@ -2,7 +2,7 @@
 
 @section('title', 'Create Premium Holiday Package')
 
-@push('extra_css')
+@push('styles')
     <style>
         :root {
             --primary-gradient: linear-gradient(135deg, #0052cc 0%, #00a3ff 100%);
@@ -180,6 +180,23 @@
             font-weight: 800;
             font-size: 0.9rem;
         }
+
+        .day-builder-help {
+            background: linear-gradient(135deg, #f0f4ff, #f8fbff);
+            border: 1px solid #dfe7ff;
+            border-radius: 18px;
+            color: #526078;
+            padding: 1rem 1.25rem;
+        }
+
+        .inventory-actions { display: flex; flex-wrap: wrap; gap: .55rem; }
+        .inventory-action {
+            align-items: center; background: white; border: 1px solid #dfe5ef; border-radius: 12px;
+            color: #475569; display: inline-flex; font-size: .78rem; font-weight: 700; gap: .4rem; padding: .6rem .8rem;
+        }
+        .inventory-action:hover { border-color: #8aa8ff; color: #0052cc; transform: translateY(-1px); }
+        .services-empty { border: 1px dashed #cfd8e6; border-radius: 14px; color: #94a3b8; font-size: .8rem; padding: 1rem; text-align: center; }
+        .day-notes { background: #fbfcfe; border: 1px solid #edf0f5; border-radius: 16px; }
 
         /* Modern Dropzone */
         .dropzone-box {
@@ -427,15 +444,20 @@
 
                     <!-- STEP 2: JOURNEY MAP -->
                     <div class="form-step" id="step-2">
-                        <div class="d-flex justify-content-between align-items-center mb-5">
+                        <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-3">
                             <div>
-                                <h4 class="fw-black text-dark mb-1">Itinerary Builder</h4>
-                                <p class="text-muted small mb-0">Total Duration: <span id="dur-count"
+                                <h4 class="fw-black text-dark mb-1">Day-by-Day Itinerary</h4>
+                                <p class="text-muted small mb-0">Build the journey in the same order your guest will experience it. Total: <span id="dur-count"
                                         class="fw-bold text-primary">0 Days</span></p>
                             </div>
                             <button type="button" class="btn btn-primary rounded-pill px-4" onclick="addDay()">
-                                <i class="bi bi-plus-lg me-2"></i> Add New Day
+                                <i class="bi bi-plus-lg me-2"></i> Add another day
                             </button>
+                        </div>
+
+                        <div class="day-builder-help d-flex align-items-start gap-3 mb-4">
+                            <i class="bi bi-lightbulb-fill text-warning fs-5"></i>
+                            <div><strong class="d-block text-dark mb-1">Quick guide</strong><span class="small">Name the day, describe the guest experience, then add hotels, transport, tickets, activities or meals using the quick buttons.</span></div>
                         </div>
 
                         <div id="itinerary-timeline">
@@ -651,9 +673,9 @@
             </div>
             <div class="p-4">
                 <div class="mb-4">
-                    <label class="premium-label">Experience Narration</label>
+                    <label class="premium-label">Day description</label>
                     <textarea class="form-control premium-input day-desc-in" rows="3"
-                        placeholder="Describe the day's journey..."></textarea>
+                        placeholder="Explain the day's flow, pickup, visits and overnight plan in simple guest-friendly language..."></textarea>
                 </div>
 
                 <div class="mb-4">
@@ -672,16 +694,18 @@
                 </div>
 
                 <div class="bg-light p-4 rounded-4 border">
-                    <div class="d-flex justify-content-between align-items-center mb-3">
-                        <label class="premium-label mb-0"><i class="bi bi-box-seam me-2 text-primary"></i> Inventory
-                            Components</label>
-                        <button type="button" class="btn btn-sm btn-outline-primary rounded-pill px-3"
-                            onclick="addServiceRow({N})">
-                            <i class="bi bi-plus-lg me-1"></i> Add Service
-                        </button>
+                    <div class="mb-3">
+                        <label class="premium-label mb-2"><i class="bi bi-box-seam me-2 text-primary"></i>Operations & supplier bookings</label>
+                        <div class="inventory-actions">
+                            <button type="button" class="inventory-action" onclick="addServiceRow({N}, null, 'hotel')"><i class="bi bi-building text-primary"></i>Hotel</button>
+                            <button type="button" class="inventory-action" onclick="addServiceRow({N}, null, 'transport')"><i class="bi bi-car-front text-secondary"></i>Transport</button>
+                            <button type="button" class="inventory-action" onclick="addServiceRow({N}, null, 'ticket')"><i class="bi bi-ticket-perforated text-danger"></i>Ticket</button>
+                            <button type="button" class="inventory-action" onclick="addServiceRow({N}, null, 'activity')"><i class="bi bi-lightning text-warning"></i>Activity</button>
+                            <button type="button" class="inventory-action" onclick="addServiceRow({N}, null, 'meal')"><i class="bi bi-cup-hot text-success"></i>Meal</button>
+                        </div>
                     </div>
                     <div class="services-container" id="services-day-{N}">
-                        <!-- Dynamic Service Rows -->
+                        <div class="services-empty"><i class="bi bi-plus-circle me-1"></i>No bookings added yet. Choose a service above.</div>
                     </div>
 
                     <div class="mt-4 pt-3 border-top">
@@ -701,6 +725,12 @@
                             </div>
                         </div>
                     </div>
+                </div>
+
+                <div class="day-notes row g-3 mt-4 p-3">
+                    <div class="col-md-4"><label class="small fw-bold text-warning mb-2"><i class="bi bi-star me-1"></i>Highlights</label><textarea class="form-control day-highlights-in" rows="2" placeholder="One highlight per line"></textarea></div>
+                    <div class="col-md-4"><label class="small fw-bold text-success mb-2"><i class="bi bi-check-lg me-1"></i>Inclusions</label><textarea class="form-control day-inclusions-in" rows="2" placeholder="One inclusion per line"></textarea></div>
+                    <div class="col-md-4"><label class="small fw-bold text-danger mb-2"><i class="bi bi-x-lg me-1"></i>Exclusions</label><textarea class="form-control day-exclusions-in" rows="2" placeholder="One exclusion per line"></textarea></div>
                 </div>
             </div>
         </div>
@@ -941,9 +971,10 @@
             updateDuration();
         }
 
-        function addServiceRow(dayN, data = null) {
+        function addServiceRow(dayN, data = null, forcedType = null) {
             let tpl = $('#service-row-tpl').html();
             let container = $(`#services-day-${dayN}`);
+            container.find('.services-empty').remove();
             container.append(tpl);
             let row = container.find('.service-row').last();
             row.find('.select2-vendor, .select2-service').select2({ theme: 'bootstrap-5' });
@@ -954,6 +985,8 @@
                 setTimeout(() => {
                     row.find('.select2-service').val(data.id).trigger('change');
                 }, 100);
+            } else if (forcedType) {
+                row.find('.service-type').val(forcedType).trigger('change');
             } else {
                 row.find('.service-type').trigger('change');
             }
@@ -1178,7 +1211,7 @@
             const formData = new FormData(document.getElementById('package-wizard-form'));
             let itinerary = [];
             $('.itinerary-day-card').each(function () {
-                let day = { day_number: $(this).attr('data-day'), title: $(this).find('.day-title-in').val(), description: $(this).find('.day-desc-in').val(), meals: [], hotels: [], transports: [], activities: [], tickets: [], meals_list: [], spots: [] };
+                let day = { day_number: $(this).attr('data-day'), title: $(this).find('.day-title-in').val(), description: $(this).find('.day-desc-in').val(), highlights: $(this).find('.day-highlights-in').val(), inclusions: $(this).find('.day-inclusions-in').val(), exclusions: $(this).find('.day-exclusions-in').val(), meals: [], hotels: [], transports: [], activities: [], tickets: [], meals_list: [], spots: [] };
                 $(this).find('.meal-cb:checked').each(function () { day.meals.push($(this).val()); });
 
                 // Collect multi-select tourist spots

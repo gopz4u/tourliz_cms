@@ -2,7 +2,7 @@
 
 @section('title', 'Edit Premium Holiday Package')
 
-@push('extra_css')
+@push('styles')
 <style>
     :root {
         --primary-gradient: linear-gradient(135deg, #0052cc 0%, #00a3ff 100%);
