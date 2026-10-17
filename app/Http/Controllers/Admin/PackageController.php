@@ -157,8 +157,9 @@ class PackageController extends Controller
             'max_pax' => 'nullable|integer|min:1',
             'duration_days' => 'nullable|integer|min:0',
             'duration_nights' => 'nullable|integer|min:0',
-            'image' => 'nullable',
-            'gallery' => 'nullable',
+            'image' => 'nullable|image|mimes:jpeg,jpg,png,webp|max:8192',
+            'gallery' => 'nullable|array|max:10',
+            'gallery.*' => 'image|mimes:jpeg,jpg,png,webp|max:8192',
             'inclusions' => 'nullable',
             'exclusions' => 'nullable',
             'itinerary' => 'nullable',
@@ -273,9 +274,12 @@ class PackageController extends Controller
     {
         if ($request->hasFile($key)) {
             $file = $request->file($key);
-            $filename = time() . '_' . $file->getClientOriginalName();
+            $filename = (string) Str::uuid() . '.' . strtolower($file->getClientOriginalExtension());
             $path = $file->storeAs('packages', $filename, 's3');
-            return Storage::disk('s3')->url($path);
+            if (!$path) {
+                throw new \RuntimeException('Package image upload failed. Please try again.');
+            }
+            return $path;
         }
         return null;
     }
@@ -285,9 +289,12 @@ class PackageController extends Controller
         $urls = [];
         if ($request->hasFile($key)) {
             foreach ($request->file($key) as $file) {
-                $filename = time() . '_' . $file->getClientOriginalName();
+                $filename = (string) Str::uuid() . '.' . strtolower($file->getClientOriginalExtension());
                 $path = $file->storeAs('packages/gallery', $filename, 's3');
-                $urls[] = Storage::disk('s3')->url($path);
+                if (!$path) {
+                    throw new \RuntimeException('Package gallery upload failed. Please try again.');
+                }
+                $urls[] = $path;
             }
         }
         return $urls;
@@ -580,6 +587,9 @@ class PackageController extends Controller
             'meta_title' => 'nullable|string|max:255',
             'meta_description' => 'nullable|string',
             'meta_keywords' => 'nullable|string',
+            'image' => 'nullable|image|mimes:jpeg,jpg,png,webp|max:8192',
+            'gallery' => 'nullable|array|max:10',
+            'gallery.*' => 'image|mimes:jpeg,jpg,png,webp|max:8192',
         ]);
 
         // Handle File Uploads

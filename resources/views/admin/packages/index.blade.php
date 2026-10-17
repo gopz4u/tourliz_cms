@@ -87,8 +87,8 @@
     const escapeHtml = value => $('<div>').text(value ?? '').html();
     const money = value => new Intl.NumberFormat('en-MY', { maximumFractionDigits: 0 }).format(Number(value) || 0);
     const imageUrl = pkg => {
-        if (!pkg.image) return `https://placehold.co/800x500/f1f3f9/667085?text=${encodeURIComponent(pkg.name || 'Package')}`;
-        let url = String(pkg.image).replace(/https?:\/\/webcms\.tourliz\.com\/packages\//g,'https://img.tourliz.com/packages/').replace(/https?:\/\/webcms\.tourliz\.com\/images\//g,'https://img.tourliz.com/images/');
+        if (!pkg.image_url && !pkg.image) return `https://placehold.co/800x500/f1f3f9/667085?text=${encodeURIComponent(pkg.name || 'Package')}`;
+        let url = String(pkg.image_url || pkg.image).replace(/https?:\/\/webcms\.tourliz\.com\/packages\//g,'https://img.tourliz.com/packages/').replace(/https?:\/\/webcms\.tourliz\.com\/images\//g,'https://img.tourliz.com/images/');
         return /^(https?:)?\/\//.test(url) ? url : (/^(packages|images)\//.test(url) ? `https://img.tourliz.com/${url}` : `/${url.replace(/^\//,'')}`);
     };
     const statePanel = (icon,title,text,action='') => `<div class="col-12"><div class="state-panel"><div class="state-icon"><i class="bi ${icon}"></i></div><h5 class="fw-bold text-dark">${title}</h5><p class="mb-3">${text}</p>${action}</div></div>`;

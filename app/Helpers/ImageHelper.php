@@ -37,8 +37,9 @@ if (!function_exists('getImageUrl')) {
         $path = ltrim($path, '/');
         
         // If it starts with packages/ or images/ and we have AWS_URL configured, return R2 URL
-        if (env('AWS_URL') && (strpos($path, 'packages/') === 0 || strpos($path, 'images/') === 0)) {
-            return rtrim(env('AWS_URL'), '/') . '/' . $path;
+        $cdnUrl = config('filesystems.disks.s3.url');
+        if ($cdnUrl && (strpos($path, 'packages/') === 0 || strpos($path, 'images/') === 0)) {
+            return rtrim($cdnUrl, '/') . '/' . $path;
         }
         
         // Check if symlink exists and is valid

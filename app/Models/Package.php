@@ -177,7 +177,7 @@ class Package extends Model
             return $this->image;
         }
 
-        $cdnUrl = env('AWS_URL');
+        $cdnUrl = config('filesystems.disks.s3.url');
         if ($cdnUrl) {
             return rtrim($cdnUrl, '/') . '/' . ltrim($this->image, '/');
         }
