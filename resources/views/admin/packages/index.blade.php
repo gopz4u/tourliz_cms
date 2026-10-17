@@ -36,6 +36,12 @@
     .price-label { color:#98a2b3; font-size:.66rem; font-weight:700; text-transform:uppercase; }
     .package-price { color:var(--ink); font-size:1.1rem; font-weight:800; }
     .duration { background:var(--soft); border-radius:9px; color:#64748b; font-size:.7rem; font-weight:700; padding:.42rem .58rem; }
+    .package-actions { border-top:1px solid var(--line); display:flex; gap:.55rem; margin-top:1rem; padding-top:1rem; }
+    .package-actions .btn { border-radius:11px; font-size:.76rem; font-weight:700; padding:.58rem .7rem; }
+    .package-actions .edit-action { background:#efeffd; border-color:#dcdafa; color:var(--brand); flex:1; }
+    .package-actions .edit-action:hover { background:var(--brand); border-color:var(--brand); color:#fff; }
+    .package-actions .delete-action { border-color:#fee2e2; color:#dc3545; }
+    .package-actions .delete-action:hover { background:#dc3545; border-color:#dc3545; color:#fff; }
     .state-panel { background:#fff; border:1px dashed #d7deea; border-radius:20px; color:var(--muted); padding:4rem 1rem; text-align:center; }
     .state-icon { align-items:center; background:#efeffd; border-radius:18px; color:var(--brand); display:inline-flex; font-size:1.4rem; height:56px; justify-content:center; margin-bottom:1rem; width:56px; }
     @media (max-width:767.98px) { .packages-page { padding:.25rem!important; } .summary-card { padding:.9rem; } .toolbar-scroll { overflow-x:auto; padding-bottom:.2rem; } }
@@ -104,7 +110,9 @@
                         <li><button class="dropdown-item rounded-2 text-primary js-duplicate" data-id="${Number(pkg.id)}"><i class="bi bi-copy me-2"></i>Duplicate</button></li><li><hr class="dropdown-divider"></li>
                         <li><button class="dropdown-item rounded-2 text-danger js-delete" data-id="${Number(pkg.id)}"><i class="bi bi-trash3 me-2"></i>Delete</button></li></ul></div></div>
                 <div class="package-body"><div class="package-category">${escapeHtml(pkg.package_category || 'Standard')}</div><h2 class="package-name text-truncate">${escapeHtml(pkg.name)}</h2><div class="package-place text-truncate"><i class="bi bi-geo-alt me-1"></i>${escapeHtml(place)}</div>
-                    <div class="package-footer"><div><div class="price-label">Starting from</div><div class="package-price">RM ${money(pkg.price)}</div></div><span class="duration"><i class="bi bi-clock me-1"></i>${escapeHtml(pkg.duration || 'Flexible')}</span></div></div></article></div>`;
+                    <div class="package-footer"><div><div class="price-label">Price per pax</div><div class="package-price">RM ${money(pkg.price)}</div></div><span class="duration"><i class="bi bi-clock me-1"></i>${escapeHtml(pkg.duration || 'Flexible')}</span></div>
+                    <div class="package-actions"><a class="btn edit-action" href="/admin/packages/${Number(pkg.id)}/edit"><i class="bi bi-pencil-square me-1"></i>Edit package</a><button class="btn btn-outline-danger delete-action js-delete" data-id="${Number(pkg.id)}" aria-label="Delete ${escapeHtml(pkg.name)}"><i class="bi bi-trash3"></i></button></div>
+                </div></article></div>`;
         }).join(''));
     }
     function updateStats() {
