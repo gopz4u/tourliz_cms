@@ -398,6 +398,7 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:admin'])->grou
     Route::prefix('itineraries')->name('itineraries.')->group(function () {
         Route::get('b2c/{b2c}/pdf', [\App\Http\Controllers\Admin\Itinerary\B2CItineraryController::class, 'generatePdf'])->name('b2c.pdf');
         Route::get('b2c/{b2c}/whatsapp', [\App\Http\Controllers\Admin\Itinerary\B2CItineraryController::class, 'shareWhatsapp'])->name('b2c.whatsapp');
+        Route::post('b2c/import', [\App\Http\Controllers\Admin\Itinerary\B2CItineraryController::class, 'import'])->name('b2c.import');
         Route::resource('b2c', \App\Http\Controllers\Admin\Itinerary\B2CItineraryController::class);
         Route::resource('b2b', \App\Http\Controllers\Admin\Itinerary\B2BItineraryController::class);
 

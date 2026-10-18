@@ -23,6 +23,75 @@
     </div>
 @endif
 
+<div class="card border-primary mb-4 shadow-sm">
+    <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+        <span><i class="bi bi-layers-half me-2"></i>Start from an Existing Itinerary</span>
+        <span class="badge bg-white text-primary">Creates a safe draft copy</span>
+    </div>
+    <div class="card-body">
+        <p class="text-muted small mb-3">
+            Import the day plan, inventory items and package content into the unified B2C module. The original master or previous quotation is never changed.
+        </p>
+        <form action="{{ route('admin.itineraries.b2c.import') }}" method="POST" id="itineraryImportForm" class="row g-3 align-items-end">
+            @csrf
+            <div class="col-lg-3">
+                <label for="importSourceType" class="form-label fw-bold small">Source Type</label>
+                <select name="source_type" id="importSourceType" class="form-select form-select-sm">
+                    <option value="fixed">Fixed-Price Itinerary</option>
+                    <option value="group">Group Tour Master</option>
+                    <option value="legacy_b2c">Legacy B2C Itinerary</option>
+                    <option value="unified_b2c">Unified B2C Template / Quote</option>
+                </select>
+            </div>
+            <div class="col-lg-4">
+                <label class="form-label fw-bold small">Select Source</label>
+                <select name="source_id" class="form-select form-select-sm import-source-select" data-source="fixed">
+                    <option value="">Select fixed-price itinerary</option>
+                    @foreach($fixedItineraries as $source)
+                        <option value="{{ $source->id }}">{{ $source->title }} @if($source->duration_days) · {{ $source->duration_days }}D @endif</option>
+                    @endforeach
+                </select>
+                <select class="form-select form-select-sm import-source-select d-none" data-source="group" disabled>
+                    <option value="">Select group tour master</option>
+                    @foreach($groupPackages as $source)
+                        <option value="{{ $source->id }}">{{ $source->name }} @if($source->duration) · {{ $source->duration }} @endif</option>
+                    @endforeach
+                </select>
+                <select class="form-select form-select-sm import-source-select d-none" data-source="legacy_b2c" disabled>
+                    <option value="">Select legacy B2C itinerary</option>
+                    @foreach($legacyB2cItineraries as $source)
+                        <option value="{{ $source->id }}">{{ $source->title }} @if($source->duration_days) · {{ $source->duration_days }}D @endif</option>
+                    @endforeach
+                </select>
+                <select class="form-select form-select-sm import-source-select d-none" data-source="unified_b2c" disabled>
+                    <option value="">Select unified B2C record</option>
+                    @foreach($unifiedB2cItineraries as $source)
+                        <option value="{{ $source->id }}">{{ $source->title }} @if($source->b2cDetail && !$source->b2cDetail->is_template) · Quote @else · Template @endif</option>
+                    @endforeach
+                </select>
+            </div>
+            <div class="col-lg-3">
+                <label for="importDestination" class="form-label fw-bold small">Destination for New Draft</label>
+                <select name="destination_id" id="importDestination" class="form-select form-select-sm" required>
+                    <option value="">Select destination</option>
+                    @foreach($destinations as $dest)
+                        <option value="{{ $dest->id }}">{{ $dest->name }}</option>
+                    @endforeach
+                </select>
+            </div>
+            <div class="col-lg-2">
+                <div class="form-check mb-2">
+                    <input class="form-check-input" type="checkbox" value="1" name="as_quote" id="importAsQuote">
+                    <label class="form-check-label small" for="importAsQuote">Create customer quote</label>
+                </div>
+                <button type="submit" class="btn btn-primary btn-sm w-100">
+                    <i class="bi bi-copy me-1"></i> Import &amp; Edit
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
 <form action="{{ route('admin.itineraries.b2c.store') }}" method="POST" enctype="multipart/form-data">
     @csrf
     <div class="row">
@@ -331,6 +400,25 @@
 
 @push('scripts')
 <script>
+    const importSourceType = document.getElementById('importSourceType');
+    const importSourceSelects = document.querySelectorAll('.import-source-select');
+
+    function showImportSource(sourceType) {
+        importSourceSelects.forEach(function(select) {
+            const isActive = select.dataset.source === sourceType;
+            select.classList.toggle('d-none', !isActive);
+            select.disabled = !isActive;
+            select.name = isActive ? 'source_id' : '';
+        });
+    }
+
+    if (importSourceType) {
+        importSourceType.addEventListener('change', function() {
+            showImportSource(this.value);
+        });
+        showImportSource(importSourceType.value);
+    }
+
     let dayCount = 1;
     document.getElementById('addDayBtn').addEventListener('click', function() {
         dayCount++;

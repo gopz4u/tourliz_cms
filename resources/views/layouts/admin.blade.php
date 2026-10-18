@@ -744,21 +744,21 @@
                 <li>
                     <a href="{{ route('admin.itineraries.b2c.index') }}" class="{{ request()->routeIs('admin.itineraries.b2c.*') ? 'active' : '' }}">
                         <i class="bi bi-person-badge-fill main-icon"></i>
-                        <span>B2C Itineraries</span>
+                        <span>B2C Templates &amp; Quotes</span>
                         <i class="bi bi-arrow-right nav-arrow"></i>
                     </a>
                 </li>
                 <li>
                     <a href="{{ route('admin.group-package-itineraries.index') }}" class="{{ request()->routeIs('admin.group-package-itineraries.*') ? 'active' : '' }}">
                         <i class="bi bi-people-fill main-icon"></i>
-                        <span>Itinerary Templates</span>
+                        <span>Group Tour Masters</span>
                         <i class="bi bi-arrow-right nav-arrow"></i>
                     </a>
                 </li>
                 <li>
                     <a href="{{ route('admin.fixed-itineraries.index') }}" class="{{ request()->routeIs('admin.fixed-itineraries.*') ? 'active' : '' }}">
                         <i class="bi bi-pin-map-fill main-icon"></i>
-                        <span>Fixed Itineraries</span>
+                        <span>Fixed-Price Itineraries</span>
                         <i class="bi bi-arrow-right nav-arrow"></i>
                     </a>
                 </li>
@@ -784,7 +784,7 @@
                 <li>
                     <a href="{{ route('admin.b2c-itineraries.index') }}" class="{{ request()->routeIs('admin.b2c-itineraries.*') ? 'active' : '' }}">
                         <i class="bi bi-funnel-fill main-icon"></i>
-                        <span>Leads & Quotes</span>
+                        <span>Legacy Leads &amp; Quotes</span>
                         <i class="bi bi-arrow-right nav-arrow"></i>
                     </a>
                 </li>
@@ -1238,9 +1238,9 @@
                 </div>
             </a>
             <!-- New Walk-in Lead -->
-            <a href="{{ route('admin.b2c-itineraries.create') }}" class="fab-item">
-                <span class="fab-label">New Walk-in Lead</span>
-                <div class="fab-icon-btn b2c" title="New Walk-in Lead">
+            <a href="{{ route('admin.itineraries.b2c.create') }}" class="fab-item">
+                <span class="fab-label">New B2C Quote</span>
+                <div class="fab-icon-btn b2c" title="New B2C Quote">
                     <i class="bi bi-person-badge-fill"></i>
                 </div>
             </a>
