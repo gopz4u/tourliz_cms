@@ -94,14 +94,17 @@ class B2CItineraryController extends Controller
                 && \Illuminate\Support\Facades\Schema::hasColumn('b2c_itineraries', 'fixed_price')
                 && \Illuminate\Support\Facades\Schema::hasColumn('b2c_itineraries', 'pricing_mode')
                 && \Illuminate\Support\Facades\Schema::hasColumn('b2c_itineraries', 'fixed_price_currency')) {
+                $fixedCurrency = $fi->currency ?: 'MYR';
                 $fixedPricing = [
                     'fixed_itinerary_id' => $fi->id,
                     'fixed_price' => $fi->fixed_price,
-                    'fixed_price_currency' => $fi->currency ?: 'MYR',
+                    'fixed_price_currency' => $fixedCurrency,
                     'pricing_mode' => $request->pricing_mode === 'live' ? 'live' : 'fixed',
                     'currency' => 'MYR',
-                    'quote_currency' => $fi->currency ?: 'MYR',
-                    'exchange_rate' => 1,
+                    'quote_currency' => $fixedCurrency,
+                    'exchange_rate' => $fixedCurrency === 'MYR'
+                        ? 1
+                        : \App\Models\CurrencyExchangeRate::convert(1, 'MYR', $fixedCurrency),
                 ];
             }
             if ($fi && !empty($fi->days)) {
@@ -411,7 +414,7 @@ class B2CItineraryController extends Controller
             'markup_percentage' => $request->markup_percentage ?: 0,
             'currency' => $baseCurrency,
             'quote_currency' => $quoteCurrency,
-            'exchange_rate' => $useFixedPricing || $quoteCurrency === $baseCurrency ? 1 : ($request->exchange_rate ?: 1),
+            'exchange_rate' => $quoteCurrency === $baseCurrency ? 1 : ($request->exchange_rate ?: 1),
             'exchange_rate_date' => $request->exchange_rate_date ?: now()->toDateString(),
             'round_quote' => $request->boolean('round_quote'),
             'adults' => $request->adults,

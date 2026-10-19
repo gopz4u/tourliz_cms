@@ -258,6 +258,33 @@ class B2CItinerary extends Model
         return $this->convertForCustomer($this->total_price);
     }
 
+    /**
+     * Reporting amount in MYR. Live customer quotes retain their MYR base
+     * amount; fixed foreign-currency quotes use their saved proposal rate.
+     */
+    public function getMyrQuotedTotalAttribute(): float
+    {
+        $baseCurrency = strtoupper($this->currency ?: 'MYR');
+        $customerCurrency = strtoupper($this->customer_currency ?: $baseCurrency);
+        $customerTotal = $this->customer_total_price;
+
+        if ($customerCurrency === 'MYR') {
+            return round($customerTotal, 2);
+        }
+
+        if ($baseCurrency === 'MYR' && $this->pricing_mode !== 'fixed') {
+            return round((float) $this->total_price, 2);
+        }
+
+        // New fixed-price proposals save this rate. Older proposals that have
+        // no usable saved rate fall back to the configured MYR rate.
+        if ($baseCurrency === 'MYR' && (float) $this->exchange_rate > 0 && (float) $this->exchange_rate !== 1.0) {
+            return round($customerTotal / (float) $this->exchange_rate, 2);
+        }
+
+        return (float) \App\Models\CurrencyExchangeRate::convert($customerTotal, $customerCurrency, 'MYR');
+    }
+
     public function getCustomerBaseCostAttribute(): float
     {
         return $this->convertForCustomer($this->base_cost);

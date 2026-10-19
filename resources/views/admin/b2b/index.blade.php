@@ -217,9 +217,12 @@
                                             </div>
                                         </td>
                                         <td>
-                                            <div class="fw-bold">{{ $itinerary->currency }}
-                                                {{ number_format($itinerary->total_price, 2) }}
+                                            <div class="fw-bold">{{ $itinerary->customer_currency }}
+                                                {{ number_format($itinerary->customer_total_price, 2) }}
                                             </div>
+                                            @if($itinerary->customer_currency !== 'MYR')
+                                                <small class="text-muted d-block">≈ MYR {{ number_format($itinerary->myr_quoted_total, 2) }}</small>
+                                            @endif
                                             <div class="small text-muted">{{ $itinerary->adults }}A +
                                                 {{ $itinerary->children_2_6 + $itinerary->children_6_11 }}C
                                             </div>

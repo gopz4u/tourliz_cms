@@ -196,6 +196,26 @@ class CustomItinerary extends Model
         return $this->convertForCustomer($this->total_price);
     }
 
+    /**
+     * Reporting amount in MYR. For the normal MYR cost base this is the exact
+     * saved base amount, rather than a rate recalculated today.
+     */
+    public function getMyrQuotedTotalAttribute(): float
+    {
+        $baseCurrency = strtoupper($this->currency ?: 'MYR');
+        $customerCurrency = strtoupper($this->customer_currency ?: $baseCurrency);
+
+        if ($customerCurrency === 'MYR') {
+            return round($this->customer_total_price, 2);
+        }
+
+        if ($baseCurrency === 'MYR') {
+            return round((float) $this->total_price, 2);
+        }
+
+        return (float) \App\Models\CurrencyExchangeRate::convert($this->customer_total_price, $customerCurrency, 'MYR');
+    }
+
     public function getCurrencySymbolAttribute(): string
     {
         $symbols = [

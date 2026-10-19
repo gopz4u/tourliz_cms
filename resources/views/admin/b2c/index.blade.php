@@ -117,7 +117,14 @@
                                     @endif
                                 </td>
                                 <td>
-                                    <div class="fw-bold">{{ $it->currency }} {{ number_format($it->total_price, 2) }}</div>
+                                    @php
+                                        $quoteCurrency = $it->customer_currency;
+                                        $quoteTotal = $it->customer_total_price;
+                                    @endphp
+                                    <div class="fw-bold">{{ $quoteCurrency }} {{ number_format($quoteTotal, 2) }}</div>
+                                    @if($quoteCurrency !== 'MYR')
+                                        <small class="text-muted d-block">≈ MYR {{ number_format($it->myr_quoted_total, 2) }}</small>
+                                    @endif
                                     <small class="text-muted">{{ $it->destination->name ?? '' }} |
                                         {{ $it->duration_days }}D</small>
                                 </td>

@@ -22,26 +22,26 @@
         <div class="col-md-6 col-xl-2">
             <div class="card border-0 shadow-sm transition hover-shadow">
                 <div class="card-body">
-                    <div class="small text-uppercase text-muted fw-bold mb-1">B2C Quoted Revenue</div>
-                    <h3 class="fw-bold text-primary mb-0">{{ $salesStats['b2c_quoted'] }}</h3>
-                    <div class="small text-muted mt-1">Current direct guests only</div>
+                    <div class="small text-uppercase text-muted fw-bold mb-1">B2C Quoted Revenue (MYR)</div>
+                    <h3 class="fw-bold text-primary mb-0">MYR {{ $salesStats['b2c_quoted'] }}</h3>
+                    <div class="small text-muted mt-1">Current direct guests; locked quote equivalent</div>
                 </div>
             </div>
         </div>
         <div class="col-md-6 col-xl-2">
             <div class="card border-0 shadow-sm transition hover-shadow">
                 <div class="card-body">
-                    <div class="small text-uppercase text-muted fw-bold mb-1">B2B Quoted Revenue</div>
-                    <h3 class="fw-bold text-info mb-0">{{ $salesStats['b2b_quoted'] }}</h3>
-                    <div class="small text-muted mt-1">Current agency quotes only</div>
+                    <div class="small text-uppercase text-muted fw-bold mb-1">B2B Quoted Revenue (MYR)</div>
+                    <h3 class="fw-bold text-info mb-0">MYR {{ $salesStats['b2b_quoted'] }}</h3>
+                    <div class="small text-muted mt-1">Current agency quotes; locked quote equivalent</div>
                 </div>
             </div>
         </div>
         <div class="col-md-6 col-xl-2">
             <div class="card border-0 shadow-sm transition hover-shadow">
                 <div class="card-body">
-                    <div class="small text-uppercase text-muted fw-bold mb-1">Booking Value</div>
-                    <h3 class="fw-bold text-dark mb-0">{{ $salesStats['booking_value'] }}</h3>
+                    <div class="small text-uppercase text-muted fw-bold mb-1">Booking Value (MYR)</div>
+                    <h3 class="fw-bold text-dark mb-0">MYR {{ $salesStats['booking_value'] }}</h3>
                     <div class="small text-muted mt-1">Current customer bookings</div>
                 </div>
             </div>
@@ -300,7 +300,7 @@
                     labels: {!! json_encode($chartData['labels']) !!},
                     datasets: [
                         {
-                            label: 'B2C Quoted Revenue',
+                            label: 'B2C Quoted Revenue (MYR)',
                             data: {!! json_encode($chartData['b2c_revenue']) !!},
                             borderColor: '#3b82f6',
                             backgroundColor: 'rgba(59, 130, 246, 0.1)',
@@ -308,7 +308,7 @@
                             tension: 0.4
                         },
                         {
-                            label: 'B2B Quoted Revenue',
+                            label: 'B2B Quoted Revenue (MYR)',
                             data: {!! json_encode($chartData['b2b_revenue']) !!},
                             borderColor: '#0ea5e9',
                             backgroundColor: 'rgba(14, 165, 233, 0.08)',
@@ -316,7 +316,7 @@
                             tension: 0.4
                         },
                         {
-                            label: 'Booking Value',
+                            label: 'Booking Value (MYR)',
                             data: {!! json_encode($chartData['booking_revenue']) !!},
                             borderColor: '#64748b',
                             backgroundColor: 'rgba(100, 116, 139, 0.06)',
@@ -343,7 +343,7 @@
                         y: {
                             beginAtZero: true,
                             ticks: {
-                                callback: function (value) { return '₹ ' + value.toLocaleString(); }
+                                callback: function (value) { return 'MYR ' + value.toLocaleString(); }
                             }
                         }
                     }

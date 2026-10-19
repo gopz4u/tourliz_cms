@@ -29,8 +29,8 @@ class DashboardController extends Controller
         // dashboard amount. These figures therefore always reflect the live
         // B2B/B2C customers currently in the database.
         $bookingRevenue = \App\Models\Booking::query()->sum(\DB::raw('COALESCE(total_amount, price, 0)'));
-        $b2bRevenue = CustomItinerary::query()->sum('total_price');
-        $b2cRevenue = B2CItinerary::query()->sum('total_price');
+        $b2bRevenue = CustomItinerary::query()->get()->sum('myr_quoted_total');
+        $b2cRevenue = B2CItinerary::query()->get()->sum('myr_quoted_total');
         $totalRevenue = $bookingRevenue + $b2bRevenue + $b2cRevenue;
 
         $bookingReceived = \App\Models\Booking::where('payment_status', 'paid')->sum(\DB::raw('COALESCE(total_amount, price, 0)')); // Simplified
@@ -134,11 +134,13 @@ class DashboardController extends Controller
 
             $mB2B = CustomItinerary::whereMonth('created_at', $month->month)
                 ->whereYear('created_at', $month->year)
-                ->sum('total_price');
+                ->get()
+                ->sum('myr_quoted_total');
 
             $mB2C = B2CItinerary::whereMonth('created_at', $month->month)
                 ->whereYear('created_at', $month->year)
-                ->sum('total_price');
+                ->get()
+                ->sum('myr_quoted_total');
 
             $mBooking = \App\Models\Booking::whereMonth('created_at', $month->month)
                 ->whereYear('created_at', $month->year)
