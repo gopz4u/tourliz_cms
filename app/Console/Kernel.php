@@ -16,8 +16,8 @@ class Kernel extends ConsoleKernel
     protected function schedule(Schedule $schedule)
     {
         $schedule->command('leads:send-followup-reminders')
-            ->dailyAt('09:00')
-            ->timezone('Asia/Kuala_Lumpur')
+            ->dailyAt('12:30')
+            ->timezone('Asia/Kolkata')
             ->withoutOverlapping();
     }
 

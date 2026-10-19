@@ -535,13 +535,17 @@
                                     <label class="form-label small text-muted mb-1">Lead Stage</label>
                                     <select id="followup-status" class="form-select form-select-sm">
                                         <option value="leads" {{ (data_get($itinerary, 'followup_status', 'leads') == 'leads') ? 'selected' : '' }}>New lead</option>
+                                        <option value="quoted" {{ data_get($itinerary, 'followup_status') == 'quoted' ? 'selected' : '' }}>Quote sent</option>
                                         <option value="interested" {{ data_get($itinerary, 'followup_status') == 'interested' ? 'selected' : '' }}>Interested</option>
-                                        <option value="converted" {{ data_get($itinerary, 'followup_status') == 'converted' ? 'selected' : '' }}>Booking Confirmed</option>
+                                        <option value="waiting" {{ data_get($itinerary, 'followup_status') == 'waiting' ? 'selected' : '' }}>Waiting for customer</option>
+                                        <option value="confirmed" {{ data_get($itinerary, 'followup_status') == 'confirmed' ? 'selected' : '' }}>Booking confirmed</option>
+                                        <option value="cancelled" {{ data_get($itinerary, 'followup_status') == 'cancelled' ? 'selected' : '' }}>Cancelled</option>
+                                        <option value="converted" {{ data_get($itinerary, 'followup_status') == 'converted' ? 'selected' : '' }}>Converted (legacy)</option>
                                         <option value="dead" {{ data_get($itinerary, 'followup_status') == 'dead' ? 'selected' : '' }}>Lost Lead</option>
                                     </select>
                                 </div>
                                 <div class="mb-0">
-                                    <label class="form-label small text-muted mb-1">Next Followup Date</label>
+                                    <label class="form-label small text-muted mb-1">Next Follow-up Date <span class="text-primary">(12:30 PM IST)</span></label>
                                     <input type="date" id="next-followup" class="form-control form-control-sm"
                                         value="{{ data_get($itinerary, 'next_followup_date') ? \Carbon\Carbon::parse(data_get($itinerary, 'next_followup_date'))->format('Y-m-d') : '' }}">
                                 </div>

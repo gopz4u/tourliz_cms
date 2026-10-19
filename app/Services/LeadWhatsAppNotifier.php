@@ -28,14 +28,14 @@ class LeadWhatsAppNotifier
             . "*Lead ID:* {$lead->quote_id}\n\n"
             . "Please contact the customer and update the follow-up status.";
 
-        return $this->sendToStaff($message, $lead->id, 'new_lead');
+        return $this->sendToStaff($lead, $message, 'new_lead');
     }
 
     public function notifyFollowupDue(B2CItinerary $lead): int
     {
         $lead->loadMissing(['destination', 'user']);
         $age = $lead->created_at->diffInDays(now());
-        $message = "⏰ *7-DAY FOLLOW-UP REMINDER*\n\n"
+        $message = "⏰ *FOLLOW-UP REMINDER*\n\n"
             . "*Customer:* {$lead->client_name}\n"
             . "*Phone:* " . ($lead->phone ?: 'Not provided') . "\n"
             . "*Trip:* {$lead->title}\n"
@@ -46,15 +46,20 @@ class LeadWhatsAppNotifier
             . "*Lead ID:* {$lead->quote_id}\n\n"
             . "Please follow up today and update the lead status.";
 
-        return $this->sendToStaff($message, $lead->id, 'followup');
+        return $this->sendToStaff($lead, $message, 'followup');
     }
 
-    private function sendToStaff(string $message, int $leadId, string $type): int
+    private function sendToStaff(B2CItinerary $lead, string $message, string $type): int
     {
-        $recipients = Admin::whereIn('role', ['super_admin', 'admin', 'employee'])
+        $recipients = Admin::query()
             ->where('whatsapp_notifications', true)
             ->whereNotNull('whatsapp_number')
             ->where('whatsapp_number', '!=', '')
+            ->when($lead->user_id, function ($query) use ($lead) {
+                $query->where('id', $lead->user_id);
+            }, function ($query) {
+                $query->whereIn('role', ['super_admin', 'admin']);
+            })
             ->get();
 
         $sent = 0;
@@ -62,7 +67,7 @@ class LeadWhatsAppNotifier
             if ($this->whatsapp->sendMessage($recipient->whatsapp_number, $message)) {
                 $sent++;
             } else {
-                Log::warning('Staff WhatsApp notification was not delivered.', ['lead_id' => $leadId, 'admin_id' => $recipient->id, 'type' => $type]);
+                Log::warning('Staff WhatsApp notification was not delivered.', ['lead_id' => $lead->id, 'admin_id' => $recipient->id, 'type' => $type]);
             }
         }
 

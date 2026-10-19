@@ -426,6 +426,47 @@
             box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
         }
 
+        .notification-bell {
+            position: relative;
+            width: 40px;
+            height: 40px;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            background: #fff;
+            color: var(--text-main);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .notification-bell:hover { background: var(--primary-light); color: var(--primary); }
+        .notification-badge {
+            display: none;
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            min-width: 18px;
+            height: 18px;
+            padding: 0 4px;
+            border: 2px solid #fff;
+            border-radius: 9px;
+            background: #dc3545;
+            color: #fff;
+            font-size: .65rem;
+            font-weight: 800;
+            line-height: 14px;
+        }
+        .notification-badge.has-unread { display: block; }
+        .notification-menu { width: min(360px, calc(100vw - 2rem)); padding: 0; overflow: hidden; }
+        .notification-menu-header { padding: .8rem 1rem; border-bottom: 1px solid #e9ecef; }
+        .notification-items { max-height: 330px; overflow-y: auto; }
+        .notification-item { display: block; padding: .8rem 1rem; border-bottom: 1px solid #f1f5f9; text-decoration: none; color: inherit; }
+        .notification-item:hover { background: #f8fafc; color: inherit; }
+        .notification-item-title { font-size: .82rem; font-weight: 800; }
+        .notification-item-message { margin-top: .15rem; font-size: .77rem; color: #64748b; white-space: normal; }
+        .notification-item-time { margin-top: .3rem; font-size: .68rem; color: #94a3b8; }
+        .notification-empty { padding: 1.35rem 1rem; color: #94a3b8; font-size: .8rem; text-align: center; }
+
         /* Mobile Responsive Styles */
         .mobile-header {
             display: none;
@@ -655,8 +696,24 @@
                     style="color: var(--text-main); letter-spacing:-0.5px;">{{ $brand['name'] ?? 'Tourliz' }}</span>
             @endif
         </div>
-        <div class="user-avatar" style="width:36px; height:36px; font-size:0.8rem;">
-            {{ substr(auth()->user()->name ?? 'Admin', 0, 1) }}
+        <div class="d-flex align-items-center gap-2">
+            <div class="dropdown">
+                <button class="notification-bell" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Notifications">
+                    <i class="bi bi-bell-fill"></i>
+                    <span class="notification-badge" data-notification-badge></span>
+                </button>
+                <div class="dropdown-menu dropdown-menu-end notification-menu">
+                    <div class="notification-menu-header d-flex align-items-center justify-content-between gap-2">
+                        <strong class="small">Follow-up alerts</strong>
+                        <button class="btn btn-link btn-sm p-0 text-decoration-none" type="button" data-mark-all-notifications>Mark all read</button>
+                    </div>
+                    <div class="notification-items" data-notification-items></div>
+                    <button class="btn btn-light btn-sm w-100 rounded-0 py-2 d-none" type="button" data-enable-device-notifications>Enable device alerts</button>
+                </div>
+            </div>
+            <div class="user-avatar" style="width:36px; height:36px; font-size:0.8rem;">
+                {{ substr(auth()->user()->name ?? 'Admin', 0, 1) }}
+            </div>
         </div>
     </div>
 
@@ -789,6 +846,13 @@
                     </a>
                 </li>
                 <li>
+                    <a href="{{ route('admin.follow-ups.index') }}" class="{{ request()->routeIs('admin.follow-ups.*') ? 'active' : '' }}">
+                        <i class="bi bi-alarm-fill main-icon"></i>
+                        <span>Follow-up Queue</span>
+                        <i class="bi bi-arrow-right nav-arrow"></i>
+                    </a>
+                </li>
+                <li>
                     <a href="{{ route('admin.b2b-itineraries.index') }}" class="{{ request()->routeIs('admin.b2b-itineraries.*') ? 'active' : '' }}">
                         <i class="bi bi-building-fill main-icon"></i>
                         <span>B2B Itineraries</span>
@@ -902,8 +966,24 @@
                     <i class="bi bi-search"></i>
                     <input type="text" name="q" value="{{ request('q') }}" placeholder="Search client, title, ID...">
                 </form>
-                <div class="user-avatar" title="{{ auth()->user()->name ?? 'Admin' }}">
-                    {{ substr(auth()->user()->name ?? 'Admin', 0, 1) }}
+                <div class="d-flex align-items-center gap-2">
+                    <div class="dropdown">
+                        <button class="notification-bell" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Notifications">
+                            <i class="bi bi-bell-fill"></i>
+                            <span class="notification-badge" data-notification-badge></span>
+                        </button>
+                        <div class="dropdown-menu dropdown-menu-end notification-menu">
+                            <div class="notification-menu-header d-flex align-items-center justify-content-between gap-2">
+                                <strong class="small">Follow-up alerts</strong>
+                                <button class="btn btn-link btn-sm p-0 text-decoration-none" type="button" data-mark-all-notifications>Mark all read</button>
+                            </div>
+                            <div class="notification-items" data-notification-items></div>
+                            <button class="btn btn-light btn-sm w-100 rounded-0 py-2 d-none" type="button" data-enable-device-notifications>Enable device alerts</button>
+                        </div>
+                    </div>
+                    <div class="user-avatar" title="{{ auth()->user()->name ?? 'Admin' }}">
+                        {{ substr(auth()->user()->name ?? 'Admin', 0, 1) }}
+                    </div>
                 </div>
             </div>
 
@@ -1381,6 +1461,186 @@
                     localStorage.setItem('ios-pwa-prompt-dismissed', Date.now() + 7 * 24 * 60 * 60 * 1000);
                 });
             }
+        });
+    </script>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const unreadUrl = @json(route('admin.notifications.unread'));
+            const readBaseUrl = @json(url('/admin/notifications'));
+            const readAllUrl = @json(route('admin.notifications.read-all'));
+            const pushSubscriptionUrl = @json(route('admin.notifications.push-subscriptions.store'));
+            const vapidPublicKey = @json(config('services.webpush.public_key'));
+            const csrfToken = @json(csrf_token());
+            const dashboardUrl = @json(route('admin.dashboard'));
+            const seenNotificationIds = new Set();
+            let notificationFeedInitialized = false;
+
+            const isDeviceNotificationSupported = 'Notification' in window && 'serviceWorker' in navigator;
+            const urlBase64ToUint8Array = value => {
+                const padding = '='.repeat((4 - value.length % 4) % 4);
+                const base64 = (value + padding).replace(/-/g, '+').replace(/_/g, '/');
+                const raw = window.atob(base64);
+                return Uint8Array.from(raw, character => character.charCodeAt(0));
+            };
+
+            const savePushSubscription = async () => {
+                if (!vapidPublicKey || !isDeviceNotificationSupported || Notification.permission !== 'granted') return;
+
+                try {
+                    const registration = await navigator.serviceWorker.ready;
+                    let subscription = await registration.pushManager.getSubscription();
+                    if (!subscription) {
+                        subscription = await registration.pushManager.subscribe({
+                            userVisibleOnly: true,
+                            applicationServerKey: urlBase64ToUint8Array(vapidPublicKey)
+                        });
+                    }
+
+                    await fetch(pushSubscriptionUrl, {
+                        method: 'POST',
+                        headers: {
+                            'Accept': 'application/json',
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': csrfToken,
+                            'X-Requested-With': 'XMLHttpRequest'
+                        },
+                        credentials: 'same-origin',
+                        body: JSON.stringify(subscription.toJSON())
+                    });
+                } catch (error) {
+                    console.warn('Unable to enable background push notifications.', error);
+                }
+            };
+
+            document.querySelectorAll('[data-enable-device-notifications]').forEach(button => {
+                if (isDeviceNotificationSupported && Notification.permission !== 'granted') {
+                    button.classList.remove('d-none');
+                }
+
+                button.addEventListener('click', async () => {
+                    if (!isDeviceNotificationSupported) return;
+                    const permission = await Notification.requestPermission();
+                    if (permission === 'granted') {
+                        document.querySelectorAll('[data-enable-device-notifications]').forEach(item => item.classList.add('d-none'));
+                        await savePushSubscription();
+                    }
+                });
+            });
+
+            const safeNotificationUrl = value => {
+                try {
+                    const parsed = new URL(value || dashboardUrl, window.location.origin);
+                    return parsed.origin === window.location.origin ? parsed.href : dashboardUrl;
+                } catch (error) {
+                    return dashboardUrl;
+                }
+            };
+
+            const request = (url, options = {}) => fetch(url, Object.assign({
+                headers: {
+                    'Accept': 'application/json',
+                    'X-CSRF-TOKEN': csrfToken,
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                credentials: 'same-origin'
+            }, options));
+
+            // Re-save an existing browser subscription after a user signs in.
+            // This also restores delivery after browsers rotate subscription keys.
+            savePushSubscription();
+
+            const markNotificationRead = notificationId => request(`${readBaseUrl}/${encodeURIComponent(notificationId)}/read`, {
+                method: 'POST'
+            });
+
+            const showDeviceNotification = notification => {
+                if (!isDeviceNotificationSupported || Notification.permission !== 'granted' || document.visibilityState === 'visible') return;
+
+                navigator.serviceWorker.ready.then(registration => registration.showNotification(notification.title, {
+                    body: notification.message,
+                    icon: '/img/pwa-icon-192.png',
+                    badge: '/img/pwa-icon-192.png',
+                    tag: `tourliz-${notification.id}`,
+                    data: { url: safeNotificationUrl(notification.url) }
+                })).catch(() => {});
+            };
+
+            const renderNotifications = notifications => {
+                document.querySelectorAll('[data-notification-items]').forEach(container => {
+                    container.replaceChildren();
+
+                    if (!notifications.length) {
+                        const empty = document.createElement('div');
+                        empty.className = 'notification-empty';
+                        empty.textContent = 'No unread follow-up alerts.';
+                        container.appendChild(empty);
+                        return;
+                    }
+
+                    notifications.forEach(notification => {
+                        const item = document.createElement('a');
+                        item.href = safeNotificationUrl(notification.url);
+                        item.className = 'notification-item';
+
+                        const title = document.createElement('div');
+                        title.className = 'notification-item-title';
+                        title.textContent = notification.title;
+                        const message = document.createElement('div');
+                        message.className = 'notification-item-message';
+                        message.textContent = notification.message;
+                        const time = document.createElement('div');
+                        time.className = 'notification-item-time';
+                        time.textContent = notification.created_at || '';
+
+                        item.append(title, message, time);
+                        item.addEventListener('click', async event => {
+                            event.preventDefault();
+                            await markNotificationRead(notification.id).catch(() => {});
+                            window.location.assign(item.href);
+                        });
+                        container.appendChild(item);
+                    });
+                });
+            };
+
+            const updateBadges = unreadCount => {
+                document.querySelectorAll('[data-notification-badge]').forEach(badge => {
+                    badge.textContent = unreadCount > 99 ? '99+' : unreadCount;
+                    badge.classList.toggle('has-unread', unreadCount > 0);
+                });
+            };
+
+            const loadNotifications = async () => {
+                try {
+                    const response = await request(unreadUrl);
+                    if (!response.ok) return;
+                    const payload = await response.json();
+                    const notifications = payload.notifications || [];
+                    const freshNotifications = notifications.filter(notification => !seenNotificationIds.has(notification.id));
+
+                    notifications.forEach(notification => seenNotificationIds.add(notification.id));
+                    renderNotifications(notifications);
+                    updateBadges(payload.unread_count || 0);
+
+                    if (notificationFeedInitialized) {
+                        freshNotifications.forEach(showDeviceNotification);
+                    }
+                    notificationFeedInitialized = true;
+                } catch (error) {
+                    // Notifications are supplementary; never interrupt the CMS when polling fails.
+                }
+            };
+
+            document.querySelectorAll('[data-mark-all-notifications]').forEach(button => {
+                button.addEventListener('click', async () => {
+                    await request(readAllUrl, { method: 'POST' }).catch(() => {});
+                    await loadNotifications();
+                });
+            });
+
+            loadNotifications();
+            window.setInterval(loadNotifications, 60000);
         });
     </script>
 

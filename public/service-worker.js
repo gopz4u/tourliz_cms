@@ -1,4 +1,4 @@
-const CACHE_NAME = 'tourliz-pwa-v4';
+const CACHE_NAME = 'tourliz-pwa-v5';
 const OFFLINE_URL = '/offline.html';
 
 // Only public shell assets are precached. Authenticated CMS pages and responses
@@ -85,4 +85,52 @@ self.addEventListener('message', event => {
     if (event.data === 'SKIP_WAITING') {
         self.skipWaiting();
     }
+});
+
+self.addEventListener('push', event => {
+    let payload = {
+        title: 'Tourliz follow-up',
+        body: 'A sales follow-up needs your attention.',
+        url: '/admin/follow-ups',
+        tag: 'tourliz-follow-up'
+    };
+
+    try {
+        if (event.data) {
+            payload = Object.assign(payload, event.data.json());
+        }
+    } catch (error) {
+        // Invalid payloads should still produce a useful, generic alert.
+    }
+
+    event.waitUntil(
+        self.registration.showNotification(payload.title, {
+            body: payload.body,
+            icon: '/img/pwa-icon-192.png',
+            badge: '/img/pwa-icon-192.png',
+            tag: payload.tag || 'tourliz-follow-up',
+            data: { url: payload.url || '/admin/follow-ups' }
+        })
+    );
+});
+
+self.addEventListener('notificationclick', event => {
+    event.notification.close();
+
+    const targetUrl = new URL(
+        (event.notification.data && event.notification.data.url) || '/admin/b2c-itineraries',
+        self.location.origin
+    ).href;
+
+    event.waitUntil(
+        clients.matchAll({ type: 'window', includeUncontrolled: true }).then(windowClients => {
+            for (const client of windowClients) {
+                if (client.url === targetUrl && 'focus' in client) {
+                    return client.focus();
+                }
+            }
+
+            return clients.openWindow(targetUrl);
+        })
+    );
 });

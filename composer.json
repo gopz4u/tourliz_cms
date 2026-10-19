@@ -14,6 +14,7 @@
         "laravel/sanctum": "^2.11",
         "laravel/tinker": "^2.5",
         "league/flysystem-aws-s3-v3": "1.0.28",
+        "minishlink/web-push": "7.0",
         "twilio/sdk": "^8.12"
     },
     "require-dev": {

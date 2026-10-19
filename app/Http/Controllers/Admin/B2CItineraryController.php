@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\B2CItinerary;
 use App\Models\Destination;
 use App\Helpers\ItineraryHelper;
+use App\Services\LeadFollowupScheduleService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use Barryvdh\DomPDF\Facade\Pdf;
@@ -336,15 +337,9 @@ class B2CItineraryController extends Controller
 
         $itinerary->calculatePricing()->save();
 
-        // Staff alerts must never block creation of the customer lead.
-        try {
-            app(\App\Services\LeadWhatsAppNotifier::class)->notifyNewLead($itinerary);
-        } catch (\Throwable $e) {
-            \Log::error('Unable to send new walk-in lead WhatsApp notification.', [
-                'lead_id' => $itinerary->id,
-                'error' => $e->getMessage(),
-            ]);
-        }
+        // A new lead is first due at 12:30 PM India time on the following day.
+        app(LeadFollowupScheduleService::class)->scheduleInitial($itinerary);
+        $itinerary->save();
 
         return redirect()->route('admin.b2c-itineraries.edit', $itinerary->id)
             ->with('success', 'Walk-in lead created. Now build the itinerary.');
@@ -388,9 +383,13 @@ class B2CItineraryController extends Controller
             'fixed_price' => 'nullable|numeric|min:0',
             'fixed_price_currency' => 'nullable|in:MYR,USD,SGD,INR,AED,EUR,GBP',
             'pricing_mode' => 'nullable|in:fixed,live',
+            'followup_status' => 'nullable|in:leads,quoted,interested,waiting,confirmed,cancelled,converted,dead,not_interested,travelled',
+            'next_followup_date' => 'nullable|date',
         ]);
 
         $prevStatus = $itinerary->followup_status;
+        $previousFollowupDate = $itinerary->next_followup_date ? $itinerary->next_followup_date->toDateString() : null;
+        $previousAssignedUser = $itinerary->user_id;
         $useFixedPricing = $request->pricing_mode === 'fixed' && (float) $request->fixed_price > 0;
         $baseCurrency = $request->currency ?: $itinerary->currency;
         $quoteCurrency = $useFixedPricing ? $baseCurrency : ($request->quote_currency ?: $baseCurrency);
@@ -455,6 +454,11 @@ class B2CItineraryController extends Controller
         }
         $itinerary->fill($proposalUpdates);
 
+        $nextFollowupDate = $itinerary->next_followup_date ? $itinerary->next_followup_date->toDateString() : null;
+        if ($nextFollowupDate !== $previousFollowupDate || (int) $itinerary->user_id !== (int) $previousAssignedUser) {
+            $itinerary->last_followup_notification_at = null;
+        }
+
         $itinerary->itinerary = json_decode($request->itinerary, true);
 
         if ($itinerary->followup_status != $prevStatus) {
@@ -470,6 +474,22 @@ class B2CItineraryController extends Controller
             $itinerary->status = 'draft';
 
         $itinerary->calculatePricing()->save();
+
+        $followupSchedule = app(LeadFollowupScheduleService::class);
+        if ($followupSchedule->isTerminal($itinerary)) {
+            $followupSchedule->stop($itinerary);
+        } elseif ($request->filled('next_followup_date') && $nextFollowupDate !== $previousFollowupDate) {
+            $followupSchedule->scheduleForDate($itinerary, $request->next_followup_date);
+        } elseif ($itinerary->followup_status !== $prevStatus) {
+            // Saving a changed active stage means the salesperson has just acted;
+            // the next reminder is two days later at 12:30 PM India time.
+            $followupSchedule->scheduleNext($itinerary);
+        } elseif (!$itinerary->next_followup_at && $itinerary->next_followup_date) {
+            $followupSchedule->scheduleForDate($itinerary, $itinerary->next_followup_date);
+        } elseif (!$itinerary->next_followup_at) {
+            $followupSchedule->scheduleInitial($itinerary);
+        }
+        $itinerary->save();
 
         // Sync Involved Vendors
         if ($request->filled('involved_vendors')) {
@@ -730,15 +750,25 @@ class B2CItineraryController extends Controller
     public function updateStatus(Request $request, $id)
     {
         $request->validate([
-            'status' => 'required|in:leads,quoted,interested,confirmed,travelled',
+            'status' => 'required|in:leads,quoted,interested,waiting,confirmed,cancelled,converted,dead,not_interested,travelled',
         ]);
 
         $itinerary = B2CItinerary::findOrFail($id);
         $itinerary->followup_status = $request->status;
         $itinerary->followed_up_at = now();
+        $followupSchedule = app(LeadFollowupScheduleService::class);
+        if ($followupSchedule->isTerminal($itinerary)) {
+            $followupSchedule->stop($itinerary);
+        } else {
+            $followupSchedule->scheduleNext($itinerary);
+        }
         $itinerary->save();
 
-        return response()->json(['success' => true, 'status' => $itinerary->followup_status]);
+        return response()->json([
+            'success' => true,
+            'status' => $itinerary->followup_status,
+            'next_followup_at' => optional($itinerary->next_followup_at)->toIso8601String(),
+        ]);
     }
 
     public function destroy($id)

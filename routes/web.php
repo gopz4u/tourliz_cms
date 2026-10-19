@@ -342,6 +342,13 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:admin'])->grou
     // Global Search
     Route::get('search', [SearchController::class, 'index'])->name('search');
 
+    // In-app PWA notifications
+    Route::get('notifications/unread', [\App\Http\Controllers\Admin\NotificationController::class, 'unread'])->name('notifications.unread');
+    Route::post('notifications/push-subscriptions', [\App\Http\Controllers\Admin\PushSubscriptionController::class, 'store'])->name('notifications.push-subscriptions.store');
+    Route::delete('notifications/push-subscriptions', [\App\Http\Controllers\Admin\PushSubscriptionController::class, 'destroy'])->name('notifications.push-subscriptions.destroy');
+    Route::post('notifications/{notification}/read', [\App\Http\Controllers\Admin\NotificationController::class, 'markAsRead'])->name('notifications.read');
+    Route::post('notifications/read-all', [\App\Http\Controllers\Admin\NotificationController::class, 'markAllAsRead'])->name('notifications.read-all');
+
     // Calendar
     Route::get('calendar', [CalendarController::class, 'index'])->name('calendar.index');
     Route::get('calendar/events', [CalendarController::class, 'events'])->name('calendar.events');
@@ -370,6 +377,12 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:admin'])->grou
     Route::get('b2c-itineraries/{id}/whatsapp', [\App\Http\Controllers\Admin\B2CItineraryController::class, 'whatsapp'])->name('b2c-itineraries.whatsapp');
     Route::get('b2c-itineraries-kanban', [\App\Http\Controllers\Admin\B2CItineraryController::class, 'kanban'])->name('b2c-itineraries.kanban');
     Route::patch('b2c-itineraries/{id}/status', [\App\Http\Controllers\Admin\B2CItineraryController::class, 'updateStatus'])->name('b2c-itineraries.updateStatus');
+
+    // Sales follow-up work queue for active direct leads.
+    Route::get('follow-ups', [\App\Http\Controllers\Admin\FollowupController::class, 'index'])->name('follow-ups.index');
+    Route::post('follow-ups/{id}/complete', [\App\Http\Controllers\Admin\FollowupController::class, 'complete'])->name('follow-ups.complete');
+    Route::post('follow-ups/{id}/snooze', [\App\Http\Controllers\Admin\FollowupController::class, 'snooze'])->name('follow-ups.snooze');
+    Route::post('follow-ups/{id}/close', [\App\Http\Controllers\Admin\FollowupController::class, 'close'])->name('follow-ups.close');
 
     // Group Itineraries (Dynamic Group Packages)
     Route::resource('group-itineraries', \App\Http\Controllers\Admin\GroupItineraryController::class);
