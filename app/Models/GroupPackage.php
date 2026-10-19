@@ -12,6 +12,7 @@ class GroupPackage extends Model
 
     protected $fillable = [
         'destination_id',
+        'fixed_itinerary_id',
         'country_ids',
         'supplier_id',
         'supplier_ids',
@@ -74,6 +75,7 @@ class GroupPackage extends Model
         'star_rating' => 'integer',
         'ticket_count' => 'integer',
         'total_pax' => 'integer',
+        'fixed_itinerary_id' => 'integer',
         'announcement_date' => 'date',
     ];
 
@@ -88,6 +90,24 @@ class GroupPackage extends Model
     public function destination()
     {
         return $this->belongsTo(Destination::class, 'destination_id')->withTrashed();
+    }
+
+    /**
+     * The fixed itinerary this public group tour was initially created from.
+     * The tour remains an independent, editable website product after import.
+     */
+    public function fixedItinerary()
+    {
+        return $this->belongsTo(FixedItinerary::class);
+    }
+
+    /**
+     * Dated departures that use the same source itinerary.
+     * This lets the public group-tour page highlight live departure dates.
+     */
+    public function departures()
+    {
+        return $this->hasMany(GroupDeparture::class, 'fixed_itinerary_id', 'fixed_itinerary_id');
     }
 
     /**

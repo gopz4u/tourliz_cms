@@ -806,9 +806,9 @@
                     </a>
                 </li>
                 <li>
-                    <a href="{{ route('admin.group-package-itineraries.index') }}" class="{{ request()->routeIs('admin.group-package-itineraries.*') ? 'active' : '' }}">
+                    <a href="{{ route('admin.group-packages.index') }}" class="{{ request()->routeIs('admin.group-packages.*') || request()->routeIs('admin.group-package-itineraries.*') ? 'active' : '' }}">
                         <i class="bi bi-people-fill main-icon"></i>
-                        <span>Group Tour Masters</span>
+                        <span>Website Group Tours</span>
                         <i class="bi bi-arrow-right nav-arrow"></i>
                     </a>
                 </li>

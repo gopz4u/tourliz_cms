@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\GroupPackage;
 use App\Models\Destination;
+use App\Models\FixedItinerary;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
@@ -75,7 +76,58 @@ class GroupPackageController extends Controller
     public function create()
     {
         $suppliers = Supplier::where('is_active', true)->orderBy('name')->get();
-        return view('admin.group-packages.create', compact('suppliers'));
+        $fixedItineraries = FixedItinerary::where('status', 'active')
+            ->orderBy('title')
+            ->get(['id', 'title', 'duration_days', 'duration_nights', 'currency', 'fixed_price']);
+
+        return view('admin.group-packages.create', compact('suppliers', 'fixedItineraries'));
+    }
+
+    /**
+     * Create an unpublished website group-tour draft from a fixed itinerary.
+     * Media remains editable on the Group Tour Master after the import.
+     */
+    public function importFixedItinerary(Request $request)
+    {
+        $validated = $request->validate([
+            'fixed_itinerary_id' => 'required|exists:fixed_itineraries,id',
+        ]);
+
+        $template = FixedItinerary::where('status', 'active')->findOrFail($validated['fixed_itinerary_id']);
+        $name = trim($template->title . ' Group Tour');
+
+        $groupPackage = GroupPackage::create([
+            'fixed_itinerary_id' => $template->id,
+            'destination_id' => $template->destination_id,
+            'country_ids' => $template->country_ids ?: [],
+            'supplier_id' => $template->supplier_id,
+            'supplier_ids' => $template->supplier_ids ?: [],
+            'name' => $name,
+            'slug' => $this->uniqueSlug($name),
+            'description' => $template->itinerary_description ?: $template->short_description,
+            'short_description' => $template->short_description,
+            'price' => $template->fixed_price ?: 0,
+            'net_price' => $template->operational_cost ?: 0,
+            'markup_percentage' => $template->markup_percentage ?: 0,
+            'markup_amount' => 0,
+            'currency' => $template->currency ?: 'MYR',
+            'duration' => $this->formatDuration($template->duration_days, $template->duration_nights),
+            'image' => $template->image,
+            'gallery' => [],
+            'included_services' => $template->inclusions ?: [],
+            'excluded_services' => $template->exclusions ?: [],
+            'itinerary' => $this->itineraryFromFixedTemplate($template),
+            'featured' => false,
+            // A new import must not appear on the website before its hero,
+            // album and public departure dates are reviewed.
+            'status' => false,
+        ]);
+
+        return response()->json([
+            'message' => 'Website group-tour draft created. Add the hero, album and departure dates, then publish it.',
+            'package' => $groupPackage,
+            'redirect' => route('admin.group-packages.edit', $groupPackage->id),
+        ], 201);
     }
 
     /**
@@ -213,6 +265,119 @@ class GroupPackageController extends Controller
         }
 
         return implode(', ', $parts);
+    }
+
+    private function uniqueSlug(string $name): string
+    {
+        $originalSlug = Str::slug($name) ?: 'group-tour';
+        $slug = $originalSlug;
+        $count = 2;
+
+        while (GroupPackage::withTrashed()->where('slug', $slug)->exists()) {
+            $slug = $originalSlug . '-' . $count;
+            $count++;
+        }
+
+        return $slug;
+    }
+
+    /**
+     * Convert Fixed Itinerary days into the Group Tour Master's canonical day
+     * structure. The imported tour can then be changed independently.
+     */
+    private function itineraryFromFixedTemplate(FixedItinerary $template): array
+    {
+        $days = is_array($template->days) ? $template->days : [];
+
+        return array_values(array_map(function ($rawDay, $index) {
+            $day = (array) $rawDay;
+            $dayNumber = (int) ($day['day_number'] ?? $day['day'] ?? ($index + 1));
+            $hotel = ['name' => '', 'type' => '', 'price_per_night' => 0, 'currency' => 'MYR'];
+            $transport = [];
+            $places = [];
+            $activities = [];
+            $meals = ['breakfast' => 'Not included', 'lunch' => 'Not included', 'dinner' => 'Not included'];
+            $notes = trim((string) ($day['description'] ?? $day['notes'] ?? ''));
+            $extraHotels = [];
+            $otherMeals = [];
+
+            foreach ((array) ($day['items'] ?? []) as $rawItem) {
+                $item = (array) $rawItem;
+                $type = strtolower((string) ($item['item_type'] ?? ''));
+                $title = trim((string) ($item['title'] ?? ''));
+                $description = (string) ($item['description'] ?? '');
+                $price = (float) ($item['price'] ?? 0);
+
+                if ($type === 'hotel') {
+                    $hotelItem = [
+                        'name' => $title ?: 'Hotel Accommodation',
+                        'type' => $item['room_type'] ?? 'Standard',
+                        'hotel_id' => $item['item_id'] ?? null,
+                        'price_per_night' => $price,
+                        'currency' => $item['currency'] ?? 'MYR',
+                    ];
+
+                    if (empty($hotel['name'])) {
+                        $hotel = $hotelItem;
+                    } else {
+                        $extraHotels[] = $hotelItem['name'];
+                    }
+                } elseif ($type === 'transport') {
+                    $transport[] = [
+                        'type' => 'Transfer',
+                        'mode' => $title ?: 'Local Transport',
+                        'from' => '',
+                        'to' => '',
+                        'price' => $price,
+                    ];
+                } elseif (in_array($type, ['spot', 'tourist_spot'], true)) {
+                    $places[] = [
+                        'name' => $title ?: 'Attraction / Spot',
+                        'description' => $description,
+                        'spot_id' => $item['item_id'] ?? null,
+                    ];
+                } elseif (in_array($type, ['activity', 'ticket'], true)) {
+                    $activities[] = [
+                        'name' => $title ?: 'Tour / Activity',
+                        'description' => $description,
+                        'activity_id' => $item['item_id'] ?? null,
+                    ];
+                } elseif ($type === 'meal') {
+                    $mealName = strtolower($title);
+                    if (Str::contains($mealName, 'breakfast')) {
+                        $meals['breakfast'] = 'Included';
+                    } elseif (Str::contains($mealName, 'lunch')) {
+                        $meals['lunch'] = 'Included';
+                    } elseif (Str::contains($mealName, 'dinner')) {
+                        $meals['dinner'] = 'Included';
+                    } else {
+                        $otherMeals[] = $title ?: 'Meal service';
+                    }
+                }
+            }
+
+            if (!empty($day['overnight_location'])) {
+                $extraHotels[] = 'Overnight: ' . $day['overnight_location'];
+            }
+            if (!empty($extraHotels)) {
+                $notes = trim($notes . "\nAccommodation: " . implode(', ', $extraHotels));
+            }
+            if (!empty($otherMeals)) {
+                $notes = trim($notes . "\nMeals: " . implode(', ', $otherMeals));
+            }
+
+            return [
+                'day' => $dayNumber,
+                'title' => $day['title'] ?? ('Day ' . $dayNumber),
+                'places' => $places,
+                'activities' => $activities,
+                'transport' => $transport,
+                'hotel' => $hotel,
+                'meals' => $meals,
+                'notes' => $notes,
+                'destinations' => [],
+            ];
+        }, $days, array_keys($days)));
     }
 
     /**

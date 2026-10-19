@@ -1,6 +1,6 @@
 @extends('layouts.admin')
 
-@section('title', 'Manage Group Packages')
+@section('title', 'Website Group Tours')
 
 @push('styles')
 <style>
@@ -121,11 +121,11 @@
     <!-- Header -->
     <div class="d-flex justify-content-between align-items-center mb-5">
         <div>
-            <h2 class="fw-black text-dark mb-1">Group Package Inventory</h2>
-            <p class="text-muted small mb-0">Curating the world's finest group experiences</p>
+            <h2 class="fw-black text-dark mb-1">Website Group Tours</h2>
+            <p class="text-muted small mb-0">Import your Fixed Itinerary, add the Hero and Album, then publish departure dates for tourliz.com.</p>
         </div>
         <a href="{{ route('admin.group-packages.create') }}" class="btn btn-primary rounded-pill px-4 shadow-sm">
-            <i class="bi bi-plus-lg me-2"></i> Create Group Package
+            <i class="bi bi-plus-lg me-2"></i> Create Website Group Tour
         </a>
     </div>
 
@@ -137,7 +137,7 @@
                     <i class="bi bi-people-fill"></i>
                 </div>
                 <h3 class="fw-black mb-0" id="stat-total">0</h3>
-                <p class="text-muted small mb-0">Total Group Packages</p>
+                <p class="text-muted small mb-0">Total Website Group Tours</p>
             </div>
         </div>
         <div class="col-md-3">

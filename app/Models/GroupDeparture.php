@@ -84,6 +84,10 @@ class GroupDeparture extends Model
 
     public function getBookedPaxAttribute(): int
     {
+        if (array_key_exists('booked_pax', $this->attributes)) {
+            return (int) $this->attributes['booked_pax'];
+        }
+
         return (int) $this->customers()->where('booking_status', '!=', 'cancelled')->sum('pax');
     }
 

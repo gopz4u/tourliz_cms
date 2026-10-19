@@ -236,8 +236,8 @@
         <!-- Header -->
         <div class="d-flex justify-content-between align-items-end mb-5">
             <div>
-                <h1 class="fw-black text-dark tracking-tight mb-1"><i class="bi bi-people-fill"></i> New Group Package</h1>
-                <p class="text-muted mb-0">Crafting collaborative group tours & events</p>
+                <h1 class="fw-black text-dark tracking-tight mb-1"><i class="bi bi-people-fill"></i> New Website Group Tour</h1>
+                <p class="text-muted mb-0">Create a public group-tour page, its visual album, and its bookable departure dates.</p>
             </div>
             <div class="text-end">
                 <span class="badge bg-white text-primary border rounded-pill px-3 py-2 fw-bold">
@@ -245,6 +245,33 @@
                 </span>
             </div>
         </div>
+
+        @if($fixedItineraries->isNotEmpty())
+            <div class="card border-0 shadow-sm mb-4 bg-primary bg-opacity-10">
+                <div class="card-body p-4">
+                    <div class="d-flex flex-column flex-lg-row justify-content-between gap-3 align-items-lg-center">
+                        <div>
+                            <h5 class="fw-bold mb-1"><i class="bi bi-box-arrow-in-down-right me-2"></i>Start from a Fixed Itinerary</h5>
+                            <p class="mb-0 small text-muted">Copies its route, pricing, inclusions and day plan into a private draft. You can then set the website hero image and gallery before publishing.</p>
+                        </div>
+                        <form id="fixed-itinerary-import-form" class="d-flex gap-2 flex-wrap flex-lg-nowrap">
+                            @csrf
+                            <select id="fixed_itinerary_id" class="form-select" required style="min-width: 290px;">
+                                <option value="">Choose a fixed itinerary…</option>
+                                @foreach($fixedItineraries as $fixedItinerary)
+                                    <option value="{{ $fixedItinerary->id }}">
+                                        {{ $fixedItinerary->title }} · {{ $fixedItinerary->duration_days }}D/{{ $fixedItinerary->duration_nights }}N · {{ $fixedItinerary->currency }} {{ number_format($fixedItinerary->fixed_price, 2) }}
+                                    </option>
+                                @endforeach
+                            </select>
+                            <button type="submit" id="import-fixed-itinerary-button" class="btn btn-primary text-nowrap">
+                                <i class="bi bi-arrow-down-circle me-1"></i> Import as Group Tour
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        @endif
 
         <!-- Stepper -->
         <div class="wizard-stepper mb-5">
@@ -977,6 +1004,41 @@
 
             // Add first day by default
             addItineraryDay();
+
+            $('#fixed-itinerary-import-form').on('submit', function (event) {
+                event.preventDefault();
+
+                const fixedItineraryId = $('#fixed_itinerary_id').val();
+                if (!fixedItineraryId) {
+                    Swal.fire('Choose an itinerary', 'Select the Fixed Itinerary to use as this website group tour.', 'warning');
+                    return;
+                }
+
+                const button = $('#import-fixed-itinerary-button');
+                button.prop('disabled', true).html('<span class="spinner-border spinner-border-sm me-1"></span> Importing…');
+
+                $.ajax({
+                    url: '{{ route("admin.group-packages.import-fixed-itinerary") }}',
+                    type: 'POST',
+                    data: {
+                        _token: '{{ csrf_token() }}',
+                        fixed_itinerary_id: fixedItineraryId
+                    },
+                    success: function (response) {
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Draft group tour created',
+                            text: 'Now add the hero photo, album, and the departure dates before publishing it.',
+                            confirmButtonText: 'Continue to the draft'
+                        }).then(() => window.location.href = response.redirect);
+                    },
+                    error: function (xhr) {
+                        const message = xhr.responseJSON?.message || 'The group-tour draft could not be created.';
+                        Swal.fire('Import failed', message, 'error');
+                        button.prop('disabled', false).html('<i class="bi bi-arrow-down-circle me-1"></i> Import as Group Tour');
+                    }
+                });
+            });
         });
 
         // ----------------------------------------------------

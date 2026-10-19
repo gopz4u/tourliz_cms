@@ -200,10 +200,13 @@
     <!-- Header -->
     <div class="d-flex justify-content-between align-items-end mb-5">
         <div>
-            <h1 class="fw-black text-dark tracking-tight mb-1" id="page-title-main"><i class="bi bi-pencil-square"></i> Edit Group Package</h1>
-            <p class="text-muted mb-0">Updating collaborative group tour configurations</p>
+            <h1 class="fw-black text-dark tracking-tight mb-1" id="page-title-main"><i class="bi bi-pencil-square"></i> Edit Website Group Tour</h1>
+            <p class="text-muted mb-0">Update the public Hero, Album, itinerary, price, and live status.</p>
         </div>
-        <div class="text-end">
+        <div class="text-end d-flex align-items-center gap-2">
+            <a id="manage-departures-link" href="{{ route('admin.group-departures.index') }}" class="btn btn-outline-primary btn-sm rounded-pill px-3">
+                <i class="bi bi-calendar2-plus me-1"></i> Departure Dates
+            </a>
             <span class="badge bg-white text-primary border rounded-pill px-3 py-2 fw-bold">
                 <i class="bi bi-clock-history me-1"></i> Auto-saving...
             </span>
@@ -836,7 +839,13 @@
 
         $.get('{{ route("admin.group-packages.show", $id) }}', function (pkg) {
             // Update Title
-            $('#page-title-main').html(`<i class="bi bi-pencil-square"></i> Edit Group Package: <span class="text-primary">${pkg.name}</span>`);
+            $('#page-title-main').html(`<i class="bi bi-pencil-square"></i> Edit Website Group Tour: <span class="text-primary">${pkg.name}</span>`);
+
+            if (pkg.fixed_itinerary_id) {
+                $('#manage-departures-link')
+                    .attr('href', '{{ route("admin.group-departures.create") }}?fixed_itinerary_id=' + pkg.fixed_itinerary_id)
+                    .html('<i class="bi bi-calendar2-plus me-1"></i> Add Departure Date');
+            }
 
             // Step 1: Fundamentals
             $('#name').val(pkg.name);

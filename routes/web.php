@@ -111,6 +111,7 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:admin'])->grou
         Route::resource('attractions', AttractionController::class);
 
         // Group Packages Management
+        Route::post('/group-packages/import-fixed-itinerary', [GroupPackageController::class, 'importFixedItinerary'])->name('group-packages.import-fixed-itinerary');
         Route::resource('group-packages', GroupPackageController::class);
         Route::get('/group-packages/by-destination/{destinationId}', [GroupPackageController::class, 'getByPlace'])->name('group-packages.by-destination');
         Route::post('/group-packages/{id}/duplicate', [GroupPackageController::class, 'duplicate'])->name('group-packages.duplicate');
