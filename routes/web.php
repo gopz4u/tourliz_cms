@@ -349,6 +349,12 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:admin'])->grou
     Route::post('notifications/{notification}/read', [\App\Http\Controllers\Admin\NotificationController::class, 'markAsRead'])->name('notifications.read');
     Route::post('notifications/read-all', [\App\Http\Controllers\Admin\NotificationController::class, 'markAllAsRead'])->name('notifications.read-all');
 
+    // Super Admin can broadcast a custom message to the internal staff app.
+    Route::middleware('role:super_admin')->group(function () {
+        Route::resource('notification-campaigns', \App\Http\Controllers\Admin\NotificationCampaignController::class)
+            ->only(['index', 'create', 'store', 'show']);
+    });
+
     // Calendar
     Route::get('calendar', [CalendarController::class, 'index'])->name('calendar.index');
     Route::get('calendar/events', [CalendarController::class, 'events'])->name('calendar.events');

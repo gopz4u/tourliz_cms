@@ -704,7 +704,7 @@
                 </button>
                 <div class="dropdown-menu dropdown-menu-end notification-menu">
                     <div class="notification-menu-header d-flex align-items-center justify-content-between gap-2">
-                        <strong class="small">Follow-up alerts</strong>
+                        <strong class="small">Notifications</strong>
                         <button class="btn btn-link btn-sm p-0 text-decoration-none" type="button" data-mark-all-notifications>Mark all read</button>
                     </div>
                     <div class="notification-items" data-notification-items></div>
@@ -852,6 +852,15 @@
                         <i class="bi bi-arrow-right nav-arrow"></i>
                     </a>
                 </li>
+                @if(auth()->user()->isSuperAdmin())
+                <li>
+                    <a href="{{ route('admin.notification-campaigns.index') }}" class="{{ request()->routeIs('admin.notification-campaigns.*') ? 'active' : '' }}">
+                        <i class="bi bi-bell-fill main-icon"></i>
+                        <span>Notifications</span>
+                        <i class="bi bi-arrow-right nav-arrow"></i>
+                    </a>
+                </li>
+                @endif
                 <li>
                     <a href="{{ route('admin.b2b-itineraries.index') }}" class="{{ request()->routeIs('admin.b2b-itineraries.*') ? 'active' : '' }}">
                         <i class="bi bi-building-fill main-icon"></i>
@@ -974,7 +983,7 @@
                         </button>
                         <div class="dropdown-menu dropdown-menu-end notification-menu">
                             <div class="notification-menu-header d-flex align-items-center justify-content-between gap-2">
-                                <strong class="small">Follow-up alerts</strong>
+                                <strong class="small">Notifications</strong>
                                 <button class="btn btn-link btn-sm p-0 text-decoration-none" type="button" data-mark-all-notifications>Mark all read</button>
                             </div>
                             <div class="notification-items" data-notification-items></div>
@@ -1573,7 +1582,7 @@
                     if (!notifications.length) {
                         const empty = document.createElement('div');
                         empty.className = 'notification-empty';
-                        empty.textContent = 'No unread follow-up alerts.';
+                        empty.textContent = 'No unread notifications.';
                         container.appendChild(empty);
                         return;
                     }
