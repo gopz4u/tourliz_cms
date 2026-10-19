@@ -19,16 +19,34 @@
 
     <!-- Executive Sales Analytics -->
     <div class="row g-3 mb-4">
-        <div class="col-md-3">
+        <div class="col-md-6 col-xl-2">
             <div class="card border-0 shadow-sm transition hover-shadow">
                 <div class="card-body">
-                    <div class="small text-uppercase text-muted fw-bold mb-1">Total Quoted Revenue</div>
-                    <h3 class="fw-bold text-dark mb-0">{{ $salesStats['quoted'] }}</h3>
-                    <div class="small text-muted mt-1">Gross value of all proposals</div>
+                    <div class="small text-uppercase text-muted fw-bold mb-1">B2C Quoted Revenue</div>
+                    <h3 class="fw-bold text-primary mb-0">{{ $salesStats['b2c_quoted'] }}</h3>
+                    <div class="small text-muted mt-1">Current direct guests only</div>
                 </div>
             </div>
         </div>
-        <div class="col-md-3">
+        <div class="col-md-6 col-xl-2">
+            <div class="card border-0 shadow-sm transition hover-shadow">
+                <div class="card-body">
+                    <div class="small text-uppercase text-muted fw-bold mb-1">B2B Quoted Revenue</div>
+                    <h3 class="fw-bold text-info mb-0">{{ $salesStats['b2b_quoted'] }}</h3>
+                    <div class="small text-muted mt-1">Current agency quotes only</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6 col-xl-2">
+            <div class="card border-0 shadow-sm transition hover-shadow">
+                <div class="card-body">
+                    <div class="small text-uppercase text-muted fw-bold mb-1">Booking Value</div>
+                    <h3 class="fw-bold text-dark mb-0">{{ $salesStats['booking_value'] }}</h3>
+                    <div class="small text-muted mt-1">Current customer bookings</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6 col-xl-2">
             <div class="card border-0 shadow-sm transition hover-shadow">
                 <div class="card-body">
                     <div class="small text-uppercase text-muted fw-bold mb-1">Actual Cash Received</div>
@@ -37,7 +55,7 @@
                 </div>
             </div>
         </div>
-        <div class="col-md-3">
+        <div class="col-md-6 col-xl-2">
             <div class="card border-0 shadow-sm transition hover-shadow">
                 <div class="card-body">
                     <div class="small text-uppercase text-muted fw-bold mb-1">Total Operational Cost</div>
@@ -46,7 +64,7 @@
                 </div>
             </div>
         </div>
-        <div class="col-md-3">
+        <div class="col-md-6 col-xl-2">
             <div class="card border-0 shadow-sm transition hover-shadow bg-dark">
                 <div class="card-body">
                     <div class="small text-uppercase text-white opacity-75 fw-bold mb-1">Estimated Net Profit</div>
@@ -62,8 +80,8 @@
         <div class="col-lg-8">
             <div class="card border-0 shadow-sm">
                 <div class="card-header bg-white py-3">
-                    <h6 class="mb-0 fw-bold"><i class="bi bi-graph-up-arrow me-2 text-primary"></i>Sales & Profit
-                        Performance <small class="text-muted fw-normal">(Last 6 Months)</small></h6>
+                    <h6 class="mb-0 fw-bold"><i class="bi bi-graph-up-arrow me-2 text-primary"></i>B2B, B2C &amp; Booking Performance
+                        <small class="text-muted fw-normal">(Last 6 Months)</small></h6>
                 </div>
                 <div class="card-body">
                     <canvas id="salesChart" height="280"></canvas>
@@ -282,11 +300,27 @@
                     labels: {!! json_encode($chartData['labels']) !!},
                     datasets: [
                         {
-                            label: 'Gross Revenue (Quoted)',
-                            data: {!! json_encode($chartData['revenue']) !!},
+                            label: 'B2C Quoted Revenue',
+                            data: {!! json_encode($chartData['b2c_revenue']) !!},
                             borderColor: '#3b82f6',
                             backgroundColor: 'rgba(59, 130, 246, 0.1)',
                             fill: true,
+                            tension: 0.4
+                        },
+                        {
+                            label: 'B2B Quoted Revenue',
+                            data: {!! json_encode($chartData['b2b_revenue']) !!},
+                            borderColor: '#0ea5e9',
+                            backgroundColor: 'rgba(14, 165, 233, 0.08)',
+                            fill: true,
+                            tension: 0.4
+                        },
+                        {
+                            label: 'Booking Value',
+                            data: {!! json_encode($chartData['booking_revenue']) !!},
+                            borderColor: '#64748b',
+                            backgroundColor: 'rgba(100, 116, 139, 0.06)',
+                            fill: false,
                             tension: 0.4
                         },
                         {

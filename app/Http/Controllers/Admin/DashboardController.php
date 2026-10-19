@@ -25,9 +25,12 @@ class DashboardController extends Controller
         ];
 
         // --- Advanced Sales Analytics ---
-        $bookingRevenue = \App\Models\Booking::sum(\DB::raw('COALESCE(total_amount, price, 0)'));
-        $b2bRevenue = CustomItinerary::sum('total_price');
-        $b2cRevenue = B2CItinerary::sum('total_price');
+        // Eloquent's SoftDeletes scope keeps deleted customers out of every
+        // dashboard amount. These figures therefore always reflect the live
+        // B2B/B2C customers currently in the database.
+        $bookingRevenue = \App\Models\Booking::query()->sum(\DB::raw('COALESCE(total_amount, price, 0)'));
+        $b2bRevenue = CustomItinerary::query()->sum('total_price');
+        $b2cRevenue = B2CItinerary::query()->sum('total_price');
         $totalRevenue = $bookingRevenue + $b2bRevenue + $b2cRevenue;
 
         $bookingReceived = \App\Models\Booking::where('payment_status', 'paid')->sum(\DB::raw('COALESCE(total_amount, price, 0)')); // Simplified
@@ -46,7 +49,9 @@ class DashboardController extends Controller
         $netProfit = $totalRevenue - $totalExpenses;
 
         $salesStats = [
-            'quoted' => number_format($totalRevenue, 2),
+            'b2b_quoted' => number_format($b2bRevenue, 2),
+            'b2c_quoted' => number_format($b2cRevenue, 2),
+            'booking_value' => number_format($bookingRevenue, 2),
             'received' => number_format($totalReceived, 2),
             'expenses' => number_format($totalExpenses, 2),
             'profit' => number_format($netProfit, 2),
@@ -118,7 +123,9 @@ class DashboardController extends Controller
     private function getMonthlyRevenueData()
     {
         $labels = [];
-        $revenue = [];
+        $b2bRevenue = [];
+        $b2cRevenue = [];
+        $bookingRevenue = [];
         $profit = [];
 
         for ($i = 5; $i >= 0; $i--) {
@@ -153,10 +160,18 @@ class DashboardController extends Controller
             $mExp = $mExpB2B + $mExpB2C;
 
             $totalRev = $mB2B + $mB2C + $mBooking;
-            $revenue[] = (float) $totalRev;
+            $b2bRevenue[] = (float) $mB2B;
+            $b2cRevenue[] = (float) $mB2C;
+            $bookingRevenue[] = (float) $mBooking;
             $profit[] = (float) ($totalRev - $mExp);
         }
 
-        return ['labels' => $labels, 'revenue' => $revenue, 'profit' => $profit];
+        return [
+            'labels' => $labels,
+            'b2b_revenue' => $b2bRevenue,
+            'b2c_revenue' => $b2cRevenue,
+            'booking_revenue' => $bookingRevenue,
+            'profit' => $profit,
+        ];
     }
 }
