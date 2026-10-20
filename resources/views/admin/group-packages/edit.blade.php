@@ -1139,14 +1139,6 @@
         if (activeStep === 3) {
             updateOverallPricing();
         }
-
-        // Scroll to the top of the wizard stepper instead of the absolute page top,
-        // so the sticky admin bar stays in view and the new step starts in sight.
-        const stepper = document.querySelector('.wizard-stepper');
-        if (stepper) {
-            const y = stepper.getBoundingClientRect().top + window.scrollY - 80;
-            window.scrollTo({ top: y, behavior: 'smooth' });
-        }
     }
 
     function validateStep(stepId) {

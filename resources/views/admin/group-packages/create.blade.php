@@ -1081,8 +1081,6 @@
             if (activeStep === 3) {
                 updateOverallPricing();
             }
-
-            window.scrollTo({ top: 0, behavior: 'smooth' });
         }
 
         function validateStep(stepId) {
