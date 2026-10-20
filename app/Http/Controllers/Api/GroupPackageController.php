@@ -17,6 +17,7 @@ class GroupPackageController extends Controller
     {
         $query = GroupPackage::with([
             'destination',
+            'fixedItinerary',
             'departures' => function ($query) {
                 $query->whereDate('departure_date', '>=', Carbon::today())
                     ->whereIn('status', ['announced', 'open', 'sold_out'])
@@ -69,6 +70,7 @@ class GroupPackageController extends Controller
     {
         $package = GroupPackage::with([
             'destination',
+            'fixedItinerary',
             'departures' => function ($query) {
                 $query->whereDate('departure_date', '>=', Carbon::today())
                     ->whereIn('status', ['announced', 'open', 'sold_out'])

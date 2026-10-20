@@ -98,7 +98,7 @@ class GroupPackage extends Model
      */
     public function fixedItinerary()
     {
-        return $this->belongsTo(FixedItinerary::class);
+        return $this->belongsTo(FixedItinerary::class)->withTrashed();
     }
 
     /**

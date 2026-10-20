@@ -74,6 +74,26 @@ class WebsiteGroupTourModuleTest extends TestCase
         $this->assertSame('Included', $groupTour->itinerary[0]['meals']['breakfast']);
         $this->assertSame('Petronas Towers', $groupTour->itinerary[0]['places'][0]['name']);
         $response->assertJsonPath('redirect', route('admin.group-packages.edit', $groupTour->id));
+
+        $showResponse = $this->actingAs($this->admin)->getJson(route('admin.group-packages.show', $groupTour->id));
+        $showResponse->assertOk()
+            ->assertJsonPath('fixed_itinerary.days.0.items.1.item_type', 'spot')
+            ->assertJsonPath('fixed_itinerary.days.0.items.1.title', 'Petronas Towers');
+
+        $updateResponse = $this->actingAs($this->admin)->putJson(route('admin.group-packages.update', $groupTour->id), [
+            'name' => $groupTour->name,
+            'price' => 1399,
+            'currency' => 'MYR',
+            'image' => 'uploads/new-group-hero.jpg',
+            'gallery' => ['uploads/group-album.jpg'],
+            'is_featured' => false,
+            'is_active' => false,
+        ]);
+        $updateResponse->assertOk();
+
+        $savedTour = $groupTour->fresh();
+        $this->assertSame('uploads/new-group-hero.jpg', $savedTour->image);
+        $this->assertSame('Petronas Towers', $savedTour->itinerary[0]['places'][0]['name']);
     }
 
     /** @test */
@@ -114,6 +134,8 @@ class WebsiteGroupTourModuleTest extends TestCase
         $response->assertOk()
             ->assertJsonPath('data.hero_image', getImageUrl('uploads/group-hero.jpg'))
             ->assertJsonPath('data.gallery.0', getImageUrl('uploads/group-1.jpg'))
+            ->assertJsonPath('data.source_fixed_itinerary.days.0.items.1.item_type', 'spot')
+            ->assertJsonPath('data.source_fixed_itinerary.days.0.items.1.title', 'Petronas Towers')
             ->assertJsonPath('data.upcoming_departures.0.title', 'December Malaysia Group')
             ->assertJsonPath('data.upcoming_departures.0.available_seats', 17)
             ->assertJsonPath('data.upcoming_departures.0.departure_date', now()->addDays(10)->toDateString());

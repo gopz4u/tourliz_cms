@@ -34,6 +34,21 @@ class GroupPackageResource extends JsonResource
             'included_services' => $this->included_services ?? [],
             'excluded_services' => $this->excluded_services ?? [],
             'itinerary' => $this->itinerary ?? [],
+            'source_fixed_itinerary' => $this->whenLoaded('fixedItinerary', function () {
+                if (!$this->fixedItinerary) {
+                    return null;
+                }
+
+                return [
+                    'id' => $this->fixedItinerary->id,
+                    'title' => $this->fixedItinerary->title,
+                    'duration_days' => $this->fixedItinerary->duration_days,
+                    'duration_nights' => $this->fixedItinerary->duration_nights,
+                    'short_description' => $this->fixedItinerary->short_description,
+                    'highlights' => $this->fixedItinerary->highlights ?: [],
+                    'days' => $this->fixedItinerary->days ?: [],
+                ];
+            }),
             'upcoming_departures' => $this->whenLoaded('departures', function () {
                 return $this->departures->map(function ($departure) {
                     return [

@@ -204,6 +204,9 @@
             <p class="text-muted mb-0">Update the public Hero, Album, itinerary, price, and live status.</p>
         </div>
         <div class="text-end d-flex align-items-center gap-2">
+            <a id="edit-fixed-itinerary-link" href="#" class="btn btn-outline-dark btn-sm rounded-pill px-3 d-none">
+                <i class="bi bi-map me-1"></i> Fixed Itinerary Layout
+            </a>
             <a id="manage-departures-link" href="{{ route('admin.group-departures.index') }}" class="btn btn-outline-primary btn-sm rounded-pill px-3">
                 <i class="bi bi-calendar2-plus me-1"></i> Departure Dates
             </a>
@@ -416,6 +419,22 @@
 
                 <!-- STEP 2: JOURNEY MAP (COMPONENTS + DAYS) -->
                 <div class="form-step" id="step-2">
+                    <div id="fixed-itinerary-source-panel" class="d-none">
+                        <div class="card border-0 shadow-sm mb-4">
+                            <div class="card-header bg-white d-flex justify-content-between align-items-center flex-wrap gap-2 py-3">
+                                <div>
+                                    <h5 class="fw-bold mb-1"><i class="bi bi-calendar-week text-primary me-2"></i><span id="fixed-source-title">Fixed Itinerary Schedule</span></h5>
+                                    <p class="text-muted small mb-0">This Group Tour uses the complete Fixed Itinerary layout, including Tourist Spots and operational items.</p>
+                                </div>
+                                <a id="fixed-source-edit-button" href="#" class="btn btn-sm btn-primary rounded-pill px-3">
+                                    <i class="bi bi-pencil-square me-1"></i> Edit Full Schedule
+                                </a>
+                            </div>
+                            <div class="card-body" id="fixed-source-days"></div>
+                        </div>
+                    </div>
+
+                    <div id="custom-group-itinerary-editor">
                     <div class="bg-white border rounded-4 p-4 p-md-5 mb-5 shadow-sm">
                         <div class="d-flex justify-content-between align-items-center mb-4">
                             <div>
@@ -443,6 +462,7 @@
 
                     <div id="itinerary-timeline">
                         <!-- Dynamic Day Cards -->
+                    </div>
                     </div>
                 </div>
 
@@ -829,6 +849,86 @@
     // ----------------------------------------------------
     // DATA LOADING & BINDING
     // ----------------------------------------------------
+    function escapeFixedLayoutText(value) {
+        return $('<div>').text(value == null ? '' : String(value)).html();
+    }
+
+    function renderFixedItineraryLayout(source) {
+        if (!source || !Array.isArray(source.days)) {
+            return;
+        }
+
+        const editUrl = '{{ url('/admin/fixed-itineraries') }}/' + source.id + '/edit';
+        $('#edit-fixed-itinerary-link').removeClass('d-none').attr('href', editUrl);
+        $('#fixed-source-edit-button').attr('href', editUrl);
+        $('#fixed-source-title').text(source.title + ' — Fixed Itinerary Schedule');
+        $('#fixed-itinerary-source-panel').removeClass('d-none');
+        $('#custom-group-itinerary-editor').addClass('d-none');
+
+        const itemTypes = {
+            hotel: { label: 'HOTEL', badge: 'bg-primary', icon: 'bi-building' },
+            transport: { label: 'TRANSPORT', badge: 'bg-secondary', icon: 'bi-car-front' },
+            ticket: { label: 'TICKET', badge: 'bg-danger', icon: 'bi-ticket-perforated' },
+            spot: { label: 'TOURIST SPOT', badge: 'bg-info text-white', icon: 'bi-geo-alt' },
+            tourist_spot: { label: 'TOURIST SPOT', badge: 'bg-info text-white', icon: 'bi-geo-alt' },
+            activity: { label: 'ACTIVITY', badge: 'bg-warning text-dark', icon: 'bi-lightning' },
+            meal: { label: 'MEAL', badge: 'bg-success', icon: 'bi-cup-hot' }
+        };
+
+        let html = '';
+        source.days.forEach(function (rawDay, index) {
+            const day = rawDay || {};
+            const dayNumber = day.day_number || day.day || (index + 1);
+            const items = Array.isArray(day.items) ? day.items : [];
+            const overnight = day.overnight_location
+                ? `<span class="badge bg-light text-dark border"><i class="bi bi-moon-stars me-1"></i>${escapeFixedLayoutText(day.overnight_location)}</span>`
+                : '';
+
+            let itemsHtml = '';
+            items.forEach(function (rawItem) {
+                const item = rawItem || {};
+                const type = String(item.item_type || 'activity').toLowerCase();
+                const style = itemTypes[type] || { label: type.toUpperCase(), badge: 'bg-dark', icon: 'bi-box' };
+                const details = [item.room_type, item.description].filter(Boolean).map(escapeFixedLayoutText).join(' · ');
+                const numericPrice = parseFloat(item.price || 0);
+                const price = numericPrice > 0
+                    ? `<span class="fw-bold text-nowrap">${escapeFixedLayoutText(source.currency || 'MYR')} ${numericPrice.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>`
+                    : '';
+
+                itemsHtml += `
+                    <div class="item-row card mb-2 p-2 border bg-white shadow-xs">
+                        <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+                            <div class="d-flex align-items-center flex-wrap gap-2">
+                                <span class="badge ${style.badge}"><i class="bi ${style.icon} me-1"></i>${style.label}</span>
+                                <strong>${escapeFixedLayoutText(item.title || 'Untitled item')}</strong>
+                                ${details ? `<span class="small text-muted">${details}</span>` : ''}
+                            </div>
+                            ${price}
+                        </div>
+                    </div>`;
+            });
+
+            if (!itemsHtml) {
+                itemsHtml = '<p class="text-muted small mb-0">No operational items added for this day.</p>';
+            }
+
+            html += `
+                <div class="day-card border rounded p-3 mb-3 bg-white shadow-xs">
+                    <div class="d-flex justify-content-between align-items-center mb-2 flex-wrap gap-2">
+                        <h6 class="fw-bold mb-0 text-primary"><i class="bi bi-calendar3 me-1"></i>Day ${escapeFixedLayoutText(dayNumber)} — ${escapeFixedLayoutText(day.title || 'Travel Day')}</h6>
+                        ${overnight}
+                    </div>
+                    ${day.description ? `<p class="small text-muted mb-3">${escapeFixedLayoutText(day.description)}</p>` : ''}
+                    <div class="day-inventory-box p-3 bg-light rounded border">
+                        <div class="fw-bold small text-uppercase text-primary mb-2 pb-2 border-bottom"><i class="bi bi-box-seam me-1"></i>Operations Inventory & Tourist Spots</div>
+                        ${itemsHtml}
+                    </div>
+                </div>`;
+        });
+
+        $('#fixed-source-days').html(html || '<div class="alert alert-warning mb-0">This Fixed Itinerary does not have any day schedule yet.</div>');
+    }
+
     function loadPackageData() {
         Swal.fire({
             title: 'Loading Package Data...',
@@ -845,6 +945,10 @@
                 $('#manage-departures-link')
                     .attr('href', '{{ route("admin.group-departures.create") }}?fixed_itinerary_id=' + pkg.fixed_itinerary_id)
                     .html('<i class="bi bi-calendar2-plus me-1"></i> Add Departure Date');
+            }
+
+            if (pkg.fixed_itinerary) {
+                renderFixedItineraryLayout(pkg.fixed_itinerary);
             }
 
             // Step 1: Fundamentals

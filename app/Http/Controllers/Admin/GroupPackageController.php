@@ -392,7 +392,8 @@ class GroupPackageController extends Controller
             $groupPackage = GroupPackage::withTrashed()->with([
                 'destination' => function ($q) {
                     $q->withTrashed();
-                }
+                },
+                'fixedItinerary',
             ])->findOrFail($id);
             return response()->json($groupPackage);
         } catch (\Exception $e) {
@@ -425,7 +426,7 @@ class GroupPackageController extends Controller
      */
     public function update(Request $request, $id)
     {
-        $groupPackage = GroupPackage::withTrashed()->findOrFail($id);
+        $groupPackage = GroupPackage::withTrashed()->with('fixedItinerary')->findOrFail($id);
 
         $validated = $request->validate([
             'destination_id' => 'nullable|exists:destinations,id',
@@ -505,14 +506,21 @@ class GroupPackageController extends Controller
             'price_2_6' => $validated['price_2_6'] ?? null,
             'price_6_10' => $validated['price_6_10'] ?? null,
             'currency' => $validated['currency'] ?? 'INR',
-            'duration' => $this->formatDuration($validated['duration_days'] ?? null, $validated['duration_nights'] ?? null),
+            'duration' => $groupPackage->fixedItinerary
+                ? $this->formatDuration($groupPackage->fixedItinerary->duration_days, $groupPackage->fixedItinerary->duration_nights)
+                : $this->formatDuration($validated['duration_days'] ?? null, $validated['duration_nights'] ?? null),
             'announcement_date' => $validated['announcement_date'] ?? null,
             'total_pax' => $validated['total_pax'] ?? null,
             'image' => $validated['image'] ?? null,
             'gallery' => $validated['gallery'] ?? [],
             'included_services' => $validated['inclusions'] ?? [],
             'excluded_services' => $validated['exclusions'] ?? [],
-            'itinerary' => $this->normalizeItinerary($validated['itinerary'] ?? []),
+            // Imported website tours keep the complete Fixed Itinerary item
+            // structure as their source. Rebuild the compatibility copy here
+            // so saving a Hero or Gallery cannot erase Tourist Spots.
+            'itinerary' => $groupPackage->fixedItinerary
+                ? $this->itineraryFromFixedTemplate($groupPackage->fixedItinerary)
+                : $this->normalizeItinerary($validated['itinerary'] ?? []),
             'featured' => isset($validated['is_featured']) ? (bool) $validated['is_featured'] : false,
             'status' => isset($validated['is_active']) ? (bool) $validated['is_active'] : true,
             'meta_title' => $validated['meta_title'] ?? null,
