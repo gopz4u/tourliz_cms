@@ -140,4 +140,87 @@ class WebsiteGroupTourModuleTest extends TestCase
             ->assertJsonPath('data.upcoming_departures.0.available_seats', 17)
             ->assertJsonPath('data.upcoming_departures.0.departure_date', now()->addDays(10)->toDateString());
     }
+
+    /** @test */
+    public function published_group_tour_with_a_future_departure_is_visible_on_the_website(): void
+    {
+        $groupTour = GroupPackage::create([
+            'fixed_itinerary_id' => $this->fixedItinerary->id,
+            'name' => 'Malaysia Explorer Group Tour',
+            'slug' => 'malaysia-explorer-group-tour',
+            'description' => 'Explore Malaysia with a scheduled group.',
+            'duration' => '3 Days 2 Nights',
+            'price' => 1299,
+            'currency' => 'MYR',
+            'image' => 'uploads/group-hero.jpg',
+            'gallery' => ['uploads/group-album.jpg'],
+            'status' => true,
+        ]);
+
+        $departure = GroupDeparture::create([
+            'fixed_itinerary_id' => $this->fixedItinerary->id,
+            'title' => 'Malaysia November Group',
+            'departure_date' => now()->addDays(14)->toDateString(),
+            'return_date' => now()->addDays(16)->toDateString(),
+            'adult_rate' => 1499,
+            'currency' => 'MYR',
+            'capacity' => 12,
+            'status' => 'open',
+        ]);
+
+        GroupDepartureCustomer::create([
+            'group_departure_id' => $departure->id,
+            'name' => 'Two Guests',
+            'customer_type' => 'adult',
+            'pax' => 2,
+            'rate' => 1499,
+            'booking_status' => 'confirmed',
+        ]);
+
+        $this->get(route('group-tours.index'))
+            ->assertOk()
+            ->assertSee('Malaysia Explorer Group Tour')
+            ->assertSee('10 seats left');
+
+        $this->get(route('group-tours.show', $groupTour->slug))
+            ->assertOk()
+            ->assertSee('Petronas Towers')
+            ->assertSee('Tourist Spot')
+            ->assertSee('10 seats left')
+            ->assertSee('group-album.jpg');
+
+        $this->get(route('landing'))
+            ->assertOk()
+            ->assertSee('Upcoming Group Departures')
+            ->assertSee('Malaysia Explorer Group Tour');
+    }
+
+    /** @test */
+    public function drafts_and_tours_without_a_bookable_future_departure_stay_hidden(): void
+    {
+        GroupPackage::create([
+            'fixed_itinerary_id' => $this->fixedItinerary->id,
+            'name' => 'Draft Group Tour',
+            'slug' => 'draft-group-tour',
+            'price' => 999,
+            'currency' => 'MYR',
+            'status' => false,
+        ]);
+
+        GroupDeparture::create([
+            'fixed_itinerary_id' => $this->fixedItinerary->id,
+            'title' => 'Past Group',
+            'departure_date' => now()->subDay()->toDateString(),
+            'adult_rate' => 999,
+            'currency' => 'MYR',
+            'capacity' => 10,
+            'status' => 'open',
+        ]);
+
+        $this->get(route('group-tours.index'))
+            ->assertOk()
+            ->assertDontSee('Draft Group Tour');
+
+        $this->get(route('group-tours.show', 'draft-group-tour'))->assertNotFound();
+    }
 }

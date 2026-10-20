@@ -137,6 +137,8 @@
                     <li class="nav-item"><a class="nav-link fw-semibold mx-2" href="/">Home</a></li>
                     <li class="nav-item"><a class="nav-link active fw-semibold mx-2 text-danger"
                             href="/packages">Packages</a></li>
+                    <li class="nav-item"><a class="nav-link fw-semibold mx-2"
+                            href="{{ route('group-tours.index') }}">Group Tours</a></li>
                     <li class="nav-item"><a class="nav-link fw-semibold mx-2" href="#">Destinations</a></li>
                     @guest
                         <li class="nav-item ms-3"><a class="btn btn-outline-danger rounded-pill px-4"
@@ -313,6 +315,7 @@
                 <a href="#" class="text-white opacity-75"><i class="bi bi-instagram fs-5"></i></a>
                 <a href="#" class="text-white opacity-75"><i class="bi bi-twitter fs-5"></i></a>
             </div>
+            <a href="{{ route('group-tours.index') }}" class="text-white text-decoration-none opacity-75 small">Explore Group Tours</a>
             <p class="extra-small opacity-50 mb-0">&copy; {{ date('Y') }} Tourliz Travel CMS. All rights reserved.</p>
         </div>
     </footer>

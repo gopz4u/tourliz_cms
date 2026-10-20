@@ -530,9 +530,9 @@
             </button>
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav ms-auto align-items-center">
-                    <li class="nav-item"><a class="nav-link" href="#">Discover</a></li>
+                    <li class="nav-item"><a class="nav-link" href="{{ route('packages.index') }}">Discover</a></li>
                     <li class="nav-item"><a class="nav-link" href="#">Destinations</a></li>
-                    <li class="nav-item"><a class="nav-link" href="#">Special Deals</a></li>
+                    <li class="nav-item"><a class="nav-link" href="{{ route('group-tours.index') }}">Group Tours</a></li>
                     <li class="nav-item"><a class="nav-link" href="#">Support</a></li>
                     @guest
                         <li class="nav-item ms-lg-4">
@@ -618,6 +618,60 @@
             </div>
         </div>
     </section>
+
+    @if($upcomingGroupTours->count())
+        <!-- Upcoming Group Departures -->
+        <section class="section-padding" style="background: linear-gradient(180deg, #fff 0%, #fff7f8 100%);">
+            <div class="container">
+                <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-end gap-3 mb-5" data-aos="fade-up">
+                    <div>
+                        <span class="section-tag">Scheduled journeys</span>
+                        <h2 class="section-title mb-2">Upcoming Group Departures<span>.</span></h2>
+                        <p class="text-muted mb-0">Join a fixed-date tour with a ready itinerary and live seat availability.</p>
+                    </div>
+                    <a href="{{ route('group-tours.index') }}" class="btn btn-outline-danger rounded-pill px-5 py-3 fw-800">View All Group Tours <i class="bi bi-arrow-right ms-2"></i></a>
+                </div>
+
+                <div class="row g-5">
+                    @foreach($upcomingGroupTours as $index => $tour)
+                        @php
+                            $departure = $tour->departures->first();
+                            $seats = $departure ? $departure->available_seats : 0;
+                        @endphp
+                        <div class="col-lg-4 col-md-6" data-aos="fade-up" data-aos-delay="{{ $index * 100 }}">
+                            <div class="package-card" onclick="window.location.href='{{ route('group-tours.show', $tour->slug) }}'" role="link" tabindex="0">
+                                <div class="package-img-box">
+                                    @if($tour->image)
+                                        <img src="{{ getImageUrl($tour->image) }}" class="package-img" alt="{{ $tour->name }}" loading="lazy">
+                                    @else
+                                        <div class="package-img d-flex align-items-center justify-content-center text-white" style="background: linear-gradient(135deg, #7b1623, #f05b67);"><i class="bi bi-airplane-engines display-4"></i></div>
+                                    @endif
+                                    @if($departure)
+                                        <div class="package-duration"><i class="bi bi-calendar-event-fill me-1"></i>{{ $departure->departure_date->format('d M Y') }}</div>
+                                    @endif
+                                </div>
+                                <div class="package-body">
+                                    <div class="package-loc"><i class="bi bi-geo-alt-fill text-secondary"></i>{{ optional($tour->destination)->name ?: 'Multiple destinations' }}</div>
+                                    <h3 class="package-name">{{ $tour->name }}</h3>
+                                    <div class="d-flex justify-content-between align-items-center small text-muted mb-3">
+                                        <span><i class="bi bi-clock me-1"></i>{{ $tour->duration ?: 'Flexible' }}</span>
+                                        <span><i class="bi bi-people me-1"></i>{{ $seats }} seats left</span>
+                                    </div>
+                                    <div class="package-footer">
+                                        <div>
+                                            <span class="package-price-label">Per Person</span>
+                                            <div class="package-price">{{ \App\Helpers\CurrencyHelper::format($departure && $departure->adult_rate > 0 ? $departure->adult_rate : $tour->price, $departure->currency ?? $tour->currency ?? 'MYR') }}</div>
+                                        </div>
+                                        <div class="btn btn-primary p-0 d-flex align-items-center justify-content-center" style="width: 50px; height: 50px; background: var(--primary); border-radius: 18px;"><i class="bi bi-arrow-right-short fs-2 text-white"></i></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    @endforeach
+                </div>
+            </div>
+        </section>
+    @endif
 
     <!-- Luxury Packages -->
     <section class="section-padding bg-light">
@@ -726,7 +780,8 @@
                 </div>
                 <div class="col-lg-2 offset-lg-1">
                     <h5 class="footer-title">Navigation</h5>
-                    <a href="#" class="footer-link">Travel Deals</a>
+                    <a href="{{ route('packages.index') }}" class="footer-link">Travel Deals</a>
+                    <a href="{{ route('group-tours.index') }}" class="footer-link">Group Tours</a>
                     <a href="#" class="footer-link">Hidden Gems</a>
                     <a href="#" class="footer-link">Popular Spots</a>
                     <a href="#" class="footer-link">Blog & News</a>

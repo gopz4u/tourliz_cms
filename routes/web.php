@@ -4,6 +4,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\BookingController;
 use App\Http\Controllers\PackageController;
+use App\Http\Controllers\GroupTourController;
 use App\Http\Controllers\StorageController;
 use App\Http\Controllers\Admin\BookingController as AdminBookingController;
 use App\Http\Controllers\Admin\SiteUserController;
@@ -62,6 +63,10 @@ Route::get('/packages', [PackageController::class, 'index'])->name('packages.ind
 Route::get('/packages/{slug}', [PackageController::class, 'show'])->name('packages.show');
 Route::post('/packages/{slug}/calculate-price', [BookingController::class, 'calculatePricing'])->middleware('throttle:30,1')->name('packages.calculate-price');
 Route::post('/packages/{slug}/get-quote', [BookingController::class, 'getQuote'])->middleware('throttle:30,1')->name('bookings.get-quote');
+
+// Public Group Tour Routes
+Route::get('/group-tours', [GroupTourController::class, 'index'])->name('group-tours.index');
+Route::get('/group-tours/{slug}', [GroupTourController::class, 'show'])->name('group-tours.show');
 
 // Public Quotation Route
 Route::get('/quote/{slug}', [\App\Http\Controllers\QuotationController::class, 'show'])->name('quote.show');

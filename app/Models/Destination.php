@@ -52,6 +52,11 @@ class Destination extends Model
         return $this->hasMany(Package::class, 'destination_id');
     }
 
+    public function groupPackages()
+    {
+        return $this->hasMany(GroupPackage::class, 'destination_id');
+    }
+
     /**
      * Get the country model for this destination.
      */
