@@ -1063,18 +1063,38 @@
         });
     </script>
     <!-- Toast Notification Container -->
-    <div class="position-fixed bottom-0 end-0 p-3" style="z-index: 1100">
-        <div id="liveToast" class="toast align-items-center text-white bg-success border-0" role="alert"
-            aria-live="assertive" aria-atomic="true">
-            <div class="d-flex">
-                <div class="toast-body" id="toastMessage">
-                    Action completed successfully.
-                </div>
-                <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"
-                    aria-label="Close"></button>
-            </div>
-        </div>
-    </div>
+    <div class="position-fixed bottom-0 end-0 p-3 d-flex flex-column gap-2" id="toast-container" style="z-index: 1100"></div>
+    <script>
+        function showToast(message, type = 'success') {
+            const config = {
+                success: { bg: 'text-bg-success', icon: 'bi-check-circle-fill' },
+                error:   { bg: 'text-bg-danger',  icon: 'bi-x-circle-fill' },
+                warning: { bg: 'text-bg-warning', icon: 'bi-exclamation-triangle-fill' },
+                info:    { bg: 'text-bg-primary', icon: 'bi-info-circle-fill' }
+            };
+            const c = config[type] || config.success;
+
+            const toastEl = document.createElement('div');
+            toastEl.className = `toast align-items-center ${c.bg} border-0 shadow-lg`;
+            toastEl.setAttribute('role', 'alert');
+            toastEl.setAttribute('aria-live', 'assertive');
+            toastEl.setAttribute('aria-atomic', 'true');
+            toastEl.innerHTML = `
+                <div class="d-flex">
+                    <div class="toast-body d-flex align-items-center gap-2">
+                        <i class="bi ${c.icon} fs-5"></i>
+                        <span>${message}</span>
+                    </div>
+                    <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+                </div>`;
+
+            document.getElementById('toast-container').appendChild(toastEl);
+
+            const toast = new bootstrap.Toast(toastEl, { delay: 4000 });
+            toastEl.addEventListener('hidden.bs.toast', () => toastEl.remove());
+            toast.show();
+        }
+    </script>
     <!-- Quill Rich Text Editor -->
     <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
     <script src="https://cdn.quilljs.com/1.3.6/quill.js"></script>
