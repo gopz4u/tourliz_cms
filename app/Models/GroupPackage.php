@@ -102,12 +102,11 @@ class GroupPackage extends Model
     }
 
     /**
-     * Dated departures that use the same source itinerary.
-     * This lets the public group-tour page highlight live departure dates.
+     * Public departure dates owned by this Website Group Tour.
      */
     public function departures()
     {
-        return $this->hasMany(GroupDeparture::class, 'fixed_itinerary_id', 'fixed_itinerary_id');
+        return $this->hasMany(GroupDeparture::class, 'group_package_id');
     }
 
     /**

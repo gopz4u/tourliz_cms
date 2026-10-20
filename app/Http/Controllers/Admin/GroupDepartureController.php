@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\FixedItinerary;
 use App\Models\GroupDeparture;
 use App\Models\GroupDepartureCustomer;
+use App\Models\GroupPackage;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -55,6 +56,10 @@ class GroupDepartureController extends Controller
         $template = FixedItinerary::findOrFail($validated['fixed_itinerary_id']);
         $validated['user_id'] = auth()->id();
         $validated['title'] = $validated['title'] ?: $template->title;
+        $matchingWebsiteTours = GroupPackage::where('fixed_itinerary_id', $template->id)->where('status', true)->get();
+        if ($matchingWebsiteTours->count() === 1) {
+            $validated['group_package_id'] = $matchingWebsiteTours->first()->id;
+        }
         $departure = GroupDeparture::create($validated);
 
         return redirect()->route('admin.group-departures.show', $departure)->with('success', 'Group departure announced successfully.');

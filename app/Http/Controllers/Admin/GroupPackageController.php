@@ -4,12 +4,14 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\GroupPackage;
+use App\Models\GroupDeparture;
 use App\Models\Destination;
 use App\Models\FixedItinerary;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\ValidationException;
 use App\Models\Supplier;
 
 class GroupPackageController extends Controller
@@ -26,7 +28,12 @@ class GroupPackageController extends Controller
                 $query = GroupPackage::withTrashed()->with([
                     'destination' => function ($q) {
                         $q->withTrashed();
-                    }
+                    },
+                    'departures' => function ($q) {
+                        $q->whereDate('departure_date', '>=', today())
+                            ->whereIn('status', ['announced', 'open'])
+                            ->orderBy('departure_date');
+                    },
                 ]);
 
                 if ($request->has('search')) {
@@ -394,6 +401,11 @@ class GroupPackageController extends Controller
                     $q->withTrashed();
                 },
                 'fixedItinerary',
+                'departures' => function ($query) {
+                    $query->withSum([
+                        'customers as booked_pax' => fn ($customers) => $customers->where('booking_status', '!=', 'cancelled'),
+                    ], 'pax')->orderBy('departure_date');
+                },
             ])->findOrFail($id);
             return response()->json($groupPackage);
         } catch (\Exception $e) {
@@ -473,6 +485,15 @@ class GroupPackageController extends Controller
             'meta_title' => 'nullable|string',
             'meta_description' => 'nullable|string',
             'meta_keywords' => 'nullable|string',
+            'departures' => 'sometimes|array|max:50',
+            'departures.*.id' => 'nullable|integer',
+            'departures.*._delete' => 'nullable|boolean',
+            'departures.*.departure_date' => 'nullable|date',
+            'departures.*.return_date' => 'nullable|date|after_or_equal:departures.*.departure_date',
+            'departures.*.adult_rate' => 'nullable|numeric|min:0',
+            'departures.*.child_rate' => 'nullable|numeric|min:0',
+            'departures.*.capacity' => 'nullable|integer|min:1|max:10000',
+            'departures.*.status' => ['nullable', Rule::in(['draft', 'announced', 'open', 'sold_out', 'completed', 'cancelled'])],
         ]);
 
         // Handle boolean fields
@@ -528,9 +549,82 @@ class GroupPackageController extends Controller
             'meta_keywords' => $validated['meta_keywords'] ?? null,
         ];
 
-        $groupPackage->update($groupPackageData);
+        DB::transaction(function () use ($groupPackage, $groupPackageData, $validated) {
+            $groupPackage->update($groupPackageData);
 
-        return response()->json($groupPackage);
+            if (array_key_exists('departures', $validated)) {
+                $this->syncWebsiteDepartures($groupPackage, $validated['departures'] ?? []);
+            }
+        });
+
+        return response()->json($groupPackage->fresh()->load('departures'));
+    }
+
+    /**
+     * Save the public departure calendar from the Website Group Tour editor.
+     */
+    private function syncWebsiteDepartures(GroupPackage $groupPackage, array $rows): void
+    {
+        if (!$groupPackage->fixed_itinerary_id && collect($rows)->contains(fn ($row) => empty($row['_delete']) && !empty($row['departure_date']))) {
+            throw ValidationException::withMessages([
+                'departures' => 'Import or select a Fixed Itinerary before adding website departure dates.',
+            ]);
+        }
+
+        foreach ($rows as $index => $row) {
+            $departure = null;
+            if (!empty($row['id'])) {
+                $departure = GroupDeparture::where('id', $row['id'])
+                    ->where(function ($query) use ($groupPackage) {
+                        $query->where('group_package_id', $groupPackage->id)
+                            ->orWhere(function ($legacy) use ($groupPackage) {
+                                $legacy->whereNull('group_package_id')
+                                    ->where('fixed_itinerary_id', $groupPackage->fixed_itinerary_id);
+                            });
+                    })
+                    ->first();
+
+                if (!$departure) {
+                    throw ValidationException::withMessages([
+                        "departures.{$index}.id" => 'This departure does not belong to the Website Group Tour.',
+                    ]);
+                }
+            }
+
+            if (!empty($row['_delete'])) {
+                if ($departure) {
+                    if ($departure->customers()->where('booking_status', '!=', 'cancelled')->exists()) {
+                        $departure->update(['status' => 'cancelled']);
+                    } else {
+                        $departure->delete();
+                    }
+                }
+                continue;
+            }
+
+            if (empty($row['departure_date'])) {
+                throw ValidationException::withMessages([
+                    "departures.{$index}.departure_date" => 'Every departure row needs a departure date.',
+                ]);
+            }
+
+            $departure = $departure ?: new GroupDeparture();
+            $departure->fill([
+                'group_package_id' => $groupPackage->id,
+                'fixed_itinerary_id' => $groupPackage->fixed_itinerary_id,
+                'user_id' => auth()->id(),
+                'title' => $groupPackage->name,
+                'announcement_date' => $groupPackage->announcement_date ?: today(),
+                'departure_date' => $row['departure_date'],
+                'return_date' => $row['return_date'] ?? null,
+                'adult_rate' => $row['adult_rate'] ?? $groupPackage->price,
+                'child_rate' => $row['child_rate'] ?? $groupPackage->price_6_10,
+                'currency' => $groupPackage->currency ?: 'MYR',
+                'capacity' => $row['capacity'] ?? $groupPackage->total_pax ?? 20,
+                'status' => $row['status'] ?? 'open',
+            ]);
+            $departure->save();
+        }
     }
 
     /**

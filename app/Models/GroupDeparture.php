@@ -21,6 +21,7 @@ class GroupDeparture extends Model
             if (!\Illuminate\Support\Facades\Schema::hasTable('group_departures')) {
                 \Illuminate\Support\Facades\Schema::create('group_departures', function (\Illuminate\Database\Schema\Blueprint $table) {
                     $table->id();
+                    $table->unsignedBigInteger('group_package_id')->nullable()->index();
                     $table->unsignedBigInteger('fixed_itinerary_id');
                     $table->unsignedBigInteger('user_id')->nullable();
                     $table->string('title');
@@ -36,6 +37,12 @@ class GroupDeparture extends Model
                     $table->timestamps();
                     $table->softDeletes();
                     $table->index(['departure_date', 'status']);
+                });
+            } elseif (!\Illuminate\Support\Facades\Schema::hasColumn('group_departures', 'group_package_id')) {
+                // Keep the editor/API usable during a rolling deployment; the
+                // migration performs the legacy-data backfill immediately after.
+                \Illuminate\Support\Facades\Schema::table('group_departures', function (\Illuminate\Database\Schema\Blueprint $table) {
+                    $table->unsignedBigInteger('group_package_id')->nullable()->index()->after('id');
                 });
             }
 
@@ -71,14 +78,16 @@ class GroupDeparture extends Model
         static::ensureTableSchema();
     }
 
-    protected $fillable = ['fixed_itinerary_id', 'user_id', 'title', 'announcement_date', 'departure_date', 'return_date', 'adult_rate', 'child_rate', 'currency', 'capacity', 'status', 'notes'];
+    protected $fillable = ['group_package_id', 'fixed_itinerary_id', 'user_id', 'title', 'announcement_date', 'departure_date', 'return_date', 'adult_rate', 'child_rate', 'currency', 'capacity', 'status', 'notes'];
 
     protected $casts = [
         'announcement_date' => 'date', 'departure_date' => 'date', 'return_date' => 'date',
         'adult_rate' => 'decimal:2', 'child_rate' => 'decimal:2', 'capacity' => 'integer',
+        'group_package_id' => 'integer', 'fixed_itinerary_id' => 'integer',
     ];
 
     public function fixedItinerary() { return $this->belongsTo(FixedItinerary::class); }
+    public function groupPackage() { return $this->belongsTo(GroupPackage::class); }
     public function user() { return $this->belongsTo(Admin::class, 'user_id'); }
     public function customers() { return $this->hasMany(GroupDepartureCustomer::class); }
 

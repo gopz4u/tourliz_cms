@@ -819,18 +819,18 @@
                         <i class="bi bi-arrow-right nav-arrow"></i>
                     </a>
                 </li>
-                <li>
-                    <a href="{{ route('admin.group-departures.index') }}" class="{{ request()->routeIs('admin.group-departures.*') ? 'active' : '' }}">
-                        <i class="bi bi-calendar2-event-fill main-icon"></i>
-                        <span>Group Departures</span>
-                        <i class="bi bi-arrow-right nav-arrow"></i>
-                    </a>
-                </li>
             </ul>
 
             <!-- 3. SALES & BOOKINGS -->
             <div class="sidebar-section-title mt-4">Sales & Bookings</div>
             <ul class="sidebar-menu">
+                <li>
+                    <a href="{{ route('admin.group-departures.index') }}" class="{{ request()->routeIs('admin.group-departures.*') ? 'active' : '' }}">
+                        <i class="bi bi-calendar2-event-fill main-icon"></i>
+                        <span>Departure Guests &amp; Operations</span>
+                        <i class="bi bi-arrow-right nav-arrow"></i>
+                    </a>
+                </li>
                 <li>
                     <a href="{{ route('admin.marketing-campaigns.index') }}" class="{{ request()->routeIs('admin.marketing-campaigns.*') ? 'active' : '' }}">
                         <i class="bi bi-megaphone-fill main-icon"></i>

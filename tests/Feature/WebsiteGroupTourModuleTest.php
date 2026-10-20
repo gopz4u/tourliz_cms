@@ -111,6 +111,7 @@ class WebsiteGroupTourModuleTest extends TestCase
         ]);
 
         $departure = GroupDeparture::create([
+            'group_package_id' => $groupTour->id,
             'fixed_itinerary_id' => $this->fixedItinerary->id,
             'title' => 'December Malaysia Group',
             'departure_date' => now()->addDays(10)->toDateString(),
@@ -158,6 +159,7 @@ class WebsiteGroupTourModuleTest extends TestCase
         ]);
 
         $departure = GroupDeparture::create([
+            'group_package_id' => $groupTour->id,
             'fixed_itinerary_id' => $this->fixedItinerary->id,
             'title' => 'Malaysia November Group',
             'departure_date' => now()->addDays(14)->toDateString(),
@@ -222,5 +224,91 @@ class WebsiteGroupTourModuleTest extends TestCase
             ->assertDontSee('Draft Group Tour');
 
         $this->get(route('group-tours.show', 'draft-group-tour'))->assertNotFound();
+    }
+
+    /** @test */
+    public function departure_dates_saved_inside_a_website_group_tour_feed_the_public_api(): void
+    {
+        $groupTour = GroupPackage::create([
+            'fixed_itinerary_id' => $this->fixedItinerary->id,
+            'name' => 'Integrated Departure Tour',
+            'slug' => 'integrated-departure-tour',
+            'price' => 1800,
+            'currency' => 'MYR',
+            'total_pax' => 24,
+            'status' => true,
+        ]);
+
+        $departureDate = now()->addMonth()->toDateString();
+        $returnDate = now()->addMonth()->addDays(3)->toDateString();
+
+        $this->actingAs($this->admin)->putJson(route('admin.group-packages.update', $groupTour->id), [
+            'name' => $groupTour->name,
+            'price' => 1800,
+            'currency' => 'MYR',
+            'is_active' => true,
+            'departures' => [[
+                'departure_date' => $departureDate,
+                'return_date' => $returnDate,
+                'adult_rate' => 1750,
+                'child_rate' => 1200,
+                'capacity' => 24,
+                'status' => 'open',
+            ]],
+        ])->assertOk()
+            ->assertJsonPath('departures.0.group_package_id', $groupTour->id)
+            ->assertJsonPath('departures.0.departure_date', $departureDate . 'T00:00:00.000000Z');
+
+        $this->assertDatabaseHas('group_departures', [
+            'group_package_id' => $groupTour->id,
+            'fixed_itinerary_id' => $this->fixedItinerary->id,
+            'status' => 'open',
+        ]);
+        $this->assertSame($departureDate, GroupDeparture::firstOrFail()->departure_date->toDateString());
+
+        $this->getJson('/api/v1/group-packages/integrated-departure-tour')
+            ->assertOk()
+            ->assertJsonPath('data.upcoming_departures.0.departure_date', $departureDate)
+            ->assertJsonPath('data.upcoming_departures.0.adult_rate', '1750.00')
+            ->assertJsonPath('data.upcoming_departures.0.available_seats', 24);
+    }
+
+    /** @test */
+    public function departure_dates_belong_to_one_website_tour_not_every_tour_using_the_template(): void
+    {
+        $firstTour = GroupPackage::create([
+            'fixed_itinerary_id' => $this->fixedItinerary->id,
+            'name' => 'First Website Tour',
+            'slug' => 'first-website-tour',
+            'price' => 1000,
+            'currency' => 'MYR',
+            'status' => true,
+        ]);
+        $secondTour = GroupPackage::create([
+            'fixed_itinerary_id' => $this->fixedItinerary->id,
+            'name' => 'Second Website Tour',
+            'slug' => 'second-website-tour',
+            'price' => 1200,
+            'currency' => 'MYR',
+            'status' => true,
+        ]);
+
+        GroupDeparture::create([
+            'group_package_id' => $firstTour->id,
+            'fixed_itinerary_id' => $this->fixedItinerary->id,
+            'title' => $firstTour->name,
+            'departure_date' => now()->addDays(20)->toDateString(),
+            'adult_rate' => 1000,
+            'currency' => 'MYR',
+            'capacity' => 20,
+            'status' => 'open',
+        ]);
+
+        $this->getJson('/api/v1/group-packages/first-website-tour')
+            ->assertOk()
+            ->assertJsonCount(1, 'data.upcoming_departures');
+        $this->getJson('/api/v1/group-packages/second-website-tour')
+            ->assertOk()
+            ->assertJsonCount(0, 'data.upcoming_departures');
     }
 }

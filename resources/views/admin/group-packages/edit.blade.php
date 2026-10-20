@@ -207,9 +207,9 @@
             <a id="edit-fixed-itinerary-link" href="#" class="btn btn-outline-dark btn-sm rounded-pill px-3 d-none">
                 <i class="bi bi-map me-1"></i> Fixed Itinerary Layout
             </a>
-            <a id="manage-departures-link" href="{{ route('admin.group-departures.index') }}" class="btn btn-outline-primary btn-sm rounded-pill px-3">
+            <button id="manage-departures-link" type="button" onclick="openDepartureCalendar()" class="btn btn-outline-primary btn-sm rounded-pill px-3">
                 <i class="bi bi-calendar2-plus me-1"></i> Departure Dates
-            </a>
+            </button>
             <span class="badge bg-white text-primary border rounded-pill px-3 py-2 fw-bold">
                 <i class="bi bi-clock-history me-1"></i> Auto-saving...
             </span>
@@ -413,6 +413,32 @@
                                     <label class="form-check-label small fw-bold" for="is_active">Live Status</label>
                                 </div>
                             </div>
+                        </div>
+                    </div>
+
+                    <div id="website-departures" class="bg-white border rounded-4 p-4 p-md-5 shadow-sm mt-5">
+                        <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-start gap-3 mb-4">
+                            <div>
+                                <div class="d-flex align-items-center gap-2 mb-2">
+                                    <span class="badge bg-primary-subtle text-primary rounded-pill px-3 py-2">WEBSITE</span>
+                                    <h5 class="fw-black mb-0">Group Departure Dates</h5>
+                                </div>
+                                <p class="text-muted mb-0">Add the dates customers should see on tourliz.com. Saving this Website Group Tour publishes these dates automatically.</p>
+                            </div>
+                            <button type="button" class="btn btn-primary rounded-pill px-4 flex-shrink-0" onclick="addWebsiteDepartureRow()">
+                                <i class="bi bi-plus-lg me-2"></i>Add Departure
+                            </button>
+                        </div>
+
+                        <div class="alert alert-info border-0 rounded-4 small">
+                            <i class="bi bi-info-circle-fill me-2"></i>
+                            Use <strong>Open</strong> or <strong>Announced</strong> for a future date to display this tour on the website. Draft, completed and cancelled dates stay hidden.
+                        </div>
+
+                        <div id="website-departure-rows" class="d-grid gap-3"></div>
+                        <div id="website-departures-empty" class="text-center py-4 text-muted d-none">
+                            <i class="bi bi-calendar-x fs-2 d-block mb-2"></i>
+                            No website departure date has been added.
                         </div>
                     </div>
                 </div>
@@ -941,12 +967,6 @@
             // Update Title
             $('#page-title-main').html(`<i class="bi bi-pencil-square"></i> Edit Website Group Tour: <span class="text-primary">${pkg.name}</span>`);
 
-            if (pkg.fixed_itinerary_id) {
-                $('#manage-departures-link')
-                    .attr('href', '{{ route("admin.group-departures.create") }}?fixed_itinerary_id=' + pkg.fixed_itinerary_id)
-                    .html('<i class="bi bi-calendar2-plus me-1"></i> Add Departure Date');
-            }
-
             if (pkg.fixed_itinerary) {
                 renderFixedItineraryLayout(pkg.fixed_itinerary);
             }
@@ -1003,6 +1023,18 @@
             $('#currency').val(pkg.currency || 'MYR');
             $('#announcement_date').val(pkg.announcement_date ? pkg.announcement_date.split('T')[0] : '');
             $('#total_pax').val(pkg.total_pax || '');
+            $('#website-departure-rows').empty();
+            if (pkg.departures && pkg.departures.length) {
+                pkg.departures.forEach(departure => addWebsiteDepartureRow(departure));
+            } else {
+                addWebsiteDepartureRow({
+                    adult_rate: pkg.price || '',
+                    child_rate: pkg.price_6_10 || '',
+                    capacity: pkg.total_pax || 20,
+                    status: 'open'
+                });
+            }
+            refreshWebsiteDepartureEmptyState();
 
             // Step 4: Compliance
             if (quillEditors['desc'] && pkg.description) {
@@ -1111,6 +1143,21 @@
     // ----------------------------------------------------
     // STEP NAVIGATION & VALIDATION
     // ----------------------------------------------------
+    function openDepartureCalendar() {
+        $(`#step-${activeStep}`).removeClass('active');
+        $('#step-1').addClass('active');
+        $('.step-item').removeClass('active completed');
+        $('.step-item[data-step="1"]').addClass('active');
+        activeStep = 1;
+        $('#btn-prev').hide();
+        $('#btn-next, #btn-save-immediate').show();
+        $('#btn-publish').hide();
+        setTimeout(function () {
+            const section = document.getElementById('website-departures');
+            if (section) section.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }, 100);
+    }
+
     function step(dir) {
         if (dir > 0) {
             let errors = validateStep(activeStep);
@@ -1155,6 +1202,87 @@
             const y = stepper.getBoundingClientRect().top + window.scrollY - 80;
             window.scrollTo({ top: y, behavior: 'smooth' });
         }
+    }
+
+    function departureDateValue(value) {
+        return value ? String(value).split('T')[0] : '';
+    }
+
+    function addWebsiteDepartureRow(data = {}) {
+        const id = data.id || '';
+        const bookedPax = parseInt(data.booked_pax || 0, 10);
+        const departureDate = departureDateValue(data.departure_date);
+        const returnDate = departureDateValue(data.return_date);
+        const adultRate = data.adult_rate !== undefined && data.adult_rate !== null ? data.adult_rate : ($('#price').val() || '');
+        const childRate = data.child_rate !== undefined && data.child_rate !== null ? data.child_rate : ($('#price_6_10').val() || '');
+        const capacity = data.capacity || $('#total_pax').val() || 20;
+        const status = data.status || 'open';
+        const row = $(
+            `<div class="website-departure-row border rounded-4 p-3 p-md-4 bg-light" data-delete="0">
+                <input type="hidden" class="departure-id" value="${id}">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <div>
+                        <span class="fw-bold text-dark"><i class="bi bi-calendar-event text-primary me-2"></i>${departureDate ? 'Departure ' + departureDate : 'New departure date'}</span>
+                        ${bookedPax > 0 ? `<span class="badge bg-success-subtle text-success ms-2">${bookedPax} pax booked</span>` : ''}
+                    </div>
+                    <button type="button" class="btn btn-sm btn-outline-danger rounded-pill" onclick="removeWebsiteDepartureRow(this)"><i class="bi bi-trash me-1"></i>${bookedPax > 0 ? 'Cancel' : 'Remove'}</button>
+                </div>
+                <div class="row g-3">
+                    <div class="col-md-3"><label class="premium-label">Departure Date *</label><input type="date" class="form-control premium-input departure-date" value="${departureDate}"></div>
+                    <div class="col-md-3"><label class="premium-label">Return Date</label><input type="date" class="form-control premium-input departure-return-date" value="${returnDate}"></div>
+                    <div class="col-md-2"><label class="premium-label">Adult Rate *</label><input type="number" min="0" step="0.01" class="form-control premium-input departure-adult-rate" value="${adultRate}"></div>
+                    <div class="col-md-2"><label class="premium-label">Child Rate</label><input type="number" min="0" step="0.01" class="form-control premium-input departure-child-rate" value="${childRate}"></div>
+                    <div class="col-md-2"><label class="premium-label">Capacity *</label><input type="number" min="1" class="form-control premium-input departure-capacity" value="${capacity}"></div>
+                    <div class="col-md-4"><label class="premium-label">Website Status *</label><select class="form-select premium-input departure-status"><option value="open">Open — show on website</option><option value="announced">Announced — show on website</option><option value="draft">Draft — hidden</option><option value="sold_out">Sold Out</option><option value="completed">Completed — hidden</option><option value="cancelled">Cancelled — hidden</option></select></div>
+                    <div class="col-md-8 d-flex align-items-end"><div class="small text-muted pb-3"><i class="bi bi-currency-exchange me-1"></i>Rates use the package currency selected above. Remaining seats are calculated from confirmed/reserved guests.</div></div>
+                </div>
+            </div>`
+        );
+        row.find('.departure-status').val(status);
+        $('#website-departure-rows').append(row);
+        refreshWebsiteDepartureEmptyState();
+    }
+
+    function removeWebsiteDepartureRow(button) {
+        const row = $(button).closest('.website-departure-row');
+        if (row.find('.departure-id').val()) {
+            row.attr('data-delete', '1').addClass('d-none');
+        } else {
+            row.remove();
+        }
+        refreshWebsiteDepartureEmptyState();
+    }
+
+    function refreshWebsiteDepartureEmptyState() {
+        const visibleRows = $('#website-departure-rows .website-departure-row').not('.d-none').length;
+        $('#website-departures-empty').toggleClass('d-none', visibleRows > 0);
+    }
+
+    function collectWebsiteDepartures() {
+        const departures = [];
+        $('#website-departure-rows .website-departure-row').each(function () {
+            const row = $(this);
+            const id = row.find('.departure-id').val();
+            const deleting = row.attr('data-delete') === '1';
+            const departureDate = row.find('.departure-date').val();
+
+            if (deleting) {
+                departures.push({ id: parseInt(id, 10), _delete: 1 });
+                return;
+            }
+            if (!departureDate && !id) return;
+
+            departures.push({
+                id: id ? parseInt(id, 10) : null,
+                departure_date: departureDate,
+                return_date: row.find('.departure-return-date').val() || null,
+                adult_rate: parseFloat(row.find('.departure-adult-rate').val() || $('#price').val() || 0),
+                child_rate: row.find('.departure-child-rate').val() ? parseFloat(row.find('.departure-child-rate').val()) : null,
+                capacity: parseInt(row.find('.departure-capacity').val() || $('#total_pax').val() || 20, 10),
+                status: row.find('.departure-status').val() || 'open'
+            });
+        });
+        return departures;
     }
 
     function validateStep(stepId) {
@@ -2110,7 +2238,8 @@
             exclusions: $('input[name="exclusions[]"]').map(function() { return $(this).val(); }).get().filter(v => v.trim() !== ''),
             meta_title: $('#meta_title').val() || null,
             meta_description: $('#meta_description').val() || null,
-            meta_keywords: $('#meta_keywords').val() || null
+            meta_keywords: $('#meta_keywords').val() || null,
+            departures: collectWebsiteDepartures()
         };
 
         Swal.fire({
@@ -2128,7 +2257,7 @@
                 Swal.fire({
                     icon: 'success',
                     title: 'Group Package Updated!',
-                    text: 'Your collaborative package template was successfully updated.'
+                    text: 'Your Website Group Tour and its departure dates were successfully updated.'
                 }).then(() => {
                     window.location.href = '{{ route("admin.group-packages.index") }}';
                 });
