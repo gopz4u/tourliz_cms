@@ -416,31 +416,6 @@
                         </div>
                     </div>
 
-                    <div id="website-departures" class="bg-white border rounded-4 p-4 p-md-5 shadow-sm mt-5">
-                        <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-start gap-3 mb-4">
-                            <div>
-                                <div class="d-flex align-items-center gap-2 mb-2">
-                                    <span class="badge bg-primary-subtle text-primary rounded-pill px-3 py-2">WEBSITE</span>
-                                    <h5 class="fw-black mb-0">Group Departure Dates</h5>
-                                </div>
-                                <p class="text-muted mb-0">Add the dates customers should see on tourliz.com. Saving this Website Group Tour publishes these dates automatically.</p>
-                            </div>
-                            <button type="button" class="btn btn-primary rounded-pill px-4 flex-shrink-0" onclick="addWebsiteDepartureRow()">
-                                <i class="bi bi-plus-lg me-2"></i>Add Departure
-                            </button>
-                        </div>
-
-                        <div class="alert alert-info border-0 rounded-4 small">
-                            <i class="bi bi-info-circle-fill me-2"></i>
-                            Use <strong>Open</strong> or <strong>Announced</strong> for a future date to display this tour on the website. Draft, completed and cancelled dates stay hidden.
-                        </div>
-
-                        <div id="website-departure-rows" class="d-grid gap-3"></div>
-                        <div id="website-departures-empty" class="text-center py-4 text-muted d-none">
-                            <i class="bi bi-calendar-x fs-2 d-block mb-2"></i>
-                            No website departure date has been added.
-                        </div>
-                    </div>
                 </div>
 
                 <!-- STEP 2: JOURNEY MAP (COMPONENTS + DAYS) -->
@@ -496,49 +471,28 @@
                 <div class="form-step" id="step-3">
                     <div class="row g-5">
                         <div class="col-md-7">
-                            <div class="bg-white border rounded-4 p-4 p-md-5 shadow-sm mb-4">
-                                <h5 class="fw-black mb-4">Net Cost Aggregate</h5>
-                                <div id="cost-breakdown" class="mb-4">
-                                    <!-- Dynamic breakdown of Cost Components -->
+                            <div class="bg-white border rounded-4 p-4 p-md-5 shadow-sm h-100">
+                                <h5 class="fw-black mb-2">Website Prices</h5>
+                                <p class="text-muted small mb-4">These are the prices customers see for this group tour. Set them directly.</p>
+                                <div class="row g-4">
+                                    <div class="col-md-6">
+                                        <label class="premium-label">Adult Price <span class="text-danger">*</span></label>
+                                        <input type="number" min="0" step="0.01" name="price" id="price" class="form-control premium-input form-control-lg fw-black text-primary" required>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="premium-label">Child Price</label>
+                                        <input type="number" min="0" step="0.01" name="child_price" id="child_price" class="form-control premium-input form-control-lg fw-bold">
+                                    </div>
                                 </div>
-                                <div class="d-flex justify-content-between align-items-center pt-4 border-top">
-                                    <span class="fw-bold text-muted">Total Vendor Cost</span>
-                                    <span class="fs-2 fw-black text-dark" id="net-total">RM 0.00</span>
-                                </div>
-                            </div>
-
-                            <div class="row g-4 mt-2">
-                                <div class="col-md-6">
-                                    <label class="premium-label">Net Price (Vendor Cost) <span class="text-danger">*</span></label>
-                                    <input type="number" step="0.01" name="net_price" id="net_price" class="form-control premium-input text-success fw-bold" readonly required>
-                                </div>
-                                <div class="col-md-6">
-                                    <label class="premium-label">Service Markup (%)</label>
-                                    <input type="number" step="0.01" name="markup_percentage" id="markup_percentage" class="form-control premium-input" value="10">
-                                </div>
-                                <div class="col-md-6">
-                                    <label class="premium-label">Selling Price (Adult) <span class="text-danger">*</span></label>
-                                    <input type="number" step="0.01" name="price" id="price" class="form-control premium-input form-control-lg fw-black text-primary" required>
-                                    <small class="text-muted">Formula: Vendor Cost + Markup Amount</small>
-                                </div>
-                                <div class="col-md-6">
-                                    <label class="premium-label">Discount Price</label>
-                                    <input type="number" step="0.01" name="discount_price" id="discount_price" class="form-control premium-input">
-                                </div>
-                                <div class="col-md-6">
-                                    <label class="premium-label">Kids Price (Age 2-6)</label>
-                                    <input type="number" step="0.01" name="price_2_6" id="price_2_6" class="form-control premium-input">
-                                </div>
-                                <div class="col-md-6">
-                                    <label class="premium-label">Kids Price (Age 6-10)</label>
-                                    <input type="number" step="0.01" name="price_6_10" id="price_6_10" class="form-control premium-input">
-                                </div>
+                                <input type="hidden" name="net_price" id="net_price">
+                                <input type="hidden" name="markup_percentage" id="markup_percentage" value="0">
+                                <input type="hidden" name="discount_price" id="discount_price">
                             </div>
                         </div>
 
                         <div class="col-md-5">
                             <div class="bg-light border rounded-4 p-4 mb-4">
-                                <h6 class="fw-bold mb-3 text-dark"><i class="bi bi-globe"></i> Details & Matrix</h6>
+                                <h6 class="fw-bold mb-3 text-dark"><i class="bi bi-globe"></i> Website Tour Details</h6>
                                 <div class="mb-3">
                                     <label class="premium-label">Currency</label>
                                     <select class="form-select premium-input" id="currency" name="currency">
@@ -552,6 +506,15 @@
                                 <div class="mb-3">
                                     <label class="premium-label">Announcement Date</label>
                                     <input type="date" class="form-control premium-input" id="announcement_date" name="announcement_date">
+                                </div>
+                                <div class="mb-3">
+                                    <label class="premium-label">Departure Date <span class="text-danger">*</span></label>
+                                    <input type="date" class="form-control premium-input" id="departure_date" name="departure_date">
+                                    <small class="text-muted">A live group tour with this date is shown on tourliz.com.</small>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="premium-label">Return Date</label>
+                                    <input type="date" class="form-control premium-input" id="return_date" name="return_date">
                                 </div>
                                 <div class="mb-3">
                                     <label class="premium-label">Total Pax (Passenger Limit)</label>
@@ -1014,27 +977,13 @@
             }
 
             // Step 3: Commercials
-            $('#net_price').val(pkg.net_price || '');
-            $('#markup_percentage').val(pkg.markup_percentage || 0);
             $('#price').val(pkg.price || '');
-            $('#discount_price').val(pkg.discount_price || '');
-            $('#price_2_6').val(pkg.price_2_6 || '');
-            $('#price_6_10').val(pkg.price_6_10 || '');
+            $('#child_price').val(pkg.child_price || '');
             $('#currency').val(pkg.currency || 'MYR');
             $('#announcement_date').val(pkg.announcement_date ? pkg.announcement_date.split('T')[0] : '');
+            $('#departure_date').val(pkg.departure_date ? pkg.departure_date.split('T')[0] : '');
+            $('#return_date').val(pkg.return_date ? pkg.return_date.split('T')[0] : '');
             $('#total_pax').val(pkg.total_pax || '');
-            $('#website-departure-rows').empty();
-            if (pkg.departures && pkg.departures.length) {
-                pkg.departures.forEach(departure => addWebsiteDepartureRow(departure));
-            } else {
-                addWebsiteDepartureRow({
-                    adult_rate: pkg.price || '',
-                    child_rate: pkg.price_6_10 || '',
-                    capacity: pkg.total_pax || 20,
-                    status: 'open'
-                });
-            }
-            refreshWebsiteDepartureEmptyState();
 
             // Step 4: Compliance
             if (quillEditors['desc'] && pkg.description) {
@@ -1152,10 +1101,6 @@
         $('#btn-prev').hide();
         $('#btn-next, #btn-save-immediate').show();
         $('#btn-publish').hide();
-        setTimeout(function () {
-            const section = document.getElementById('website-departures');
-            if (section) section.scrollIntoView({ behavior: 'smooth', block: 'start' });
-        }, 100);
     }
 
     function step(dir) {
@@ -1202,87 +1147,6 @@
             const y = stepper.getBoundingClientRect().top + window.scrollY - 80;
             window.scrollTo({ top: y, behavior: 'smooth' });
         }
-    }
-
-    function departureDateValue(value) {
-        return value ? String(value).split('T')[0] : '';
-    }
-
-    function addWebsiteDepartureRow(data = {}) {
-        const id = data.id || '';
-        const bookedPax = parseInt(data.booked_pax || 0, 10);
-        const departureDate = departureDateValue(data.departure_date);
-        const returnDate = departureDateValue(data.return_date);
-        const adultRate = data.adult_rate !== undefined && data.adult_rate !== null ? data.adult_rate : ($('#price').val() || '');
-        const childRate = data.child_rate !== undefined && data.child_rate !== null ? data.child_rate : ($('#price_6_10').val() || '');
-        const capacity = data.capacity || $('#total_pax').val() || 20;
-        const status = data.status || 'open';
-        const row = $(
-            `<div class="website-departure-row border rounded-4 p-3 p-md-4 bg-light" data-delete="0">
-                <input type="hidden" class="departure-id" value="${id}">
-                <div class="d-flex justify-content-between align-items-center mb-3">
-                    <div>
-                        <span class="fw-bold text-dark"><i class="bi bi-calendar-event text-primary me-2"></i>${departureDate ? 'Departure ' + departureDate : 'New departure date'}</span>
-                        ${bookedPax > 0 ? `<span class="badge bg-success-subtle text-success ms-2">${bookedPax} pax booked</span>` : ''}
-                    </div>
-                    <button type="button" class="btn btn-sm btn-outline-danger rounded-pill" onclick="removeWebsiteDepartureRow(this)"><i class="bi bi-trash me-1"></i>${bookedPax > 0 ? 'Cancel' : 'Remove'}</button>
-                </div>
-                <div class="row g-3">
-                    <div class="col-md-3"><label class="premium-label">Departure Date *</label><input type="date" class="form-control premium-input departure-date" value="${departureDate}"></div>
-                    <div class="col-md-3"><label class="premium-label">Return Date</label><input type="date" class="form-control premium-input departure-return-date" value="${returnDate}"></div>
-                    <div class="col-md-2"><label class="premium-label">Adult Rate *</label><input type="number" min="0" step="0.01" class="form-control premium-input departure-adult-rate" value="${adultRate}"></div>
-                    <div class="col-md-2"><label class="premium-label">Child Rate</label><input type="number" min="0" step="0.01" class="form-control premium-input departure-child-rate" value="${childRate}"></div>
-                    <div class="col-md-2"><label class="premium-label">Capacity *</label><input type="number" min="1" class="form-control premium-input departure-capacity" value="${capacity}"></div>
-                    <div class="col-md-4"><label class="premium-label">Website Status *</label><select class="form-select premium-input departure-status"><option value="open">Open — show on website</option><option value="announced">Announced — show on website</option><option value="draft">Draft — hidden</option><option value="sold_out">Sold Out</option><option value="completed">Completed — hidden</option><option value="cancelled">Cancelled — hidden</option></select></div>
-                    <div class="col-md-8 d-flex align-items-end"><div class="small text-muted pb-3"><i class="bi bi-currency-exchange me-1"></i>Rates use the package currency selected above. Remaining seats are calculated from confirmed/reserved guests.</div></div>
-                </div>
-            </div>`
-        );
-        row.find('.departure-status').val(status);
-        $('#website-departure-rows').append(row);
-        refreshWebsiteDepartureEmptyState();
-    }
-
-    function removeWebsiteDepartureRow(button) {
-        const row = $(button).closest('.website-departure-row');
-        if (row.find('.departure-id').val()) {
-            row.attr('data-delete', '1').addClass('d-none');
-        } else {
-            row.remove();
-        }
-        refreshWebsiteDepartureEmptyState();
-    }
-
-    function refreshWebsiteDepartureEmptyState() {
-        const visibleRows = $('#website-departure-rows .website-departure-row').not('.d-none').length;
-        $('#website-departures-empty').toggleClass('d-none', visibleRows > 0);
-    }
-
-    function collectWebsiteDepartures() {
-        const departures = [];
-        $('#website-departure-rows .website-departure-row').each(function () {
-            const row = $(this);
-            const id = row.find('.departure-id').val();
-            const deleting = row.attr('data-delete') === '1';
-            const departureDate = row.find('.departure-date').val();
-
-            if (deleting) {
-                departures.push({ id: parseInt(id, 10), _delete: 1 });
-                return;
-            }
-            if (!departureDate && !id) return;
-
-            departures.push({
-                id: id ? parseInt(id, 10) : null,
-                departure_date: departureDate,
-                return_date: row.find('.departure-return-date').val() || null,
-                adult_rate: parseFloat(row.find('.departure-adult-rate').val() || $('#price').val() || 0),
-                child_rate: row.find('.departure-child-rate').val() ? parseFloat(row.find('.departure-child-rate').val()) : null,
-                capacity: parseInt(row.find('.departure-capacity').val() || $('#total_pax').val() || 20, 10),
-                status: row.find('.departure-status').val() || 'open'
-            });
-        });
-        return departures;
     }
 
     function validateStep(stepId) {

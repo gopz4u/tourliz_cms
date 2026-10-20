@@ -5,7 +5,6 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\GroupPackageResource;
 use App\Models\GroupPackage;
-use Carbon\Carbon;
 use Illuminate\Http\Request;
 
 class GroupPackageController extends Controller
@@ -17,17 +16,10 @@ class GroupPackageController extends Controller
     {
         $query = GroupPackage::with([
             'destination',
-            'fixedItinerary',
-            'departures' => function ($query) {
-                $query->whereDate('departure_date', '>=', Carbon::today())
-                    ->whereIn('status', ['announced', 'open', 'sold_out'])
-                    ->withSum([
-                        'customers as booked_pax' => fn ($customerQuery) => $customerQuery->where('booking_status', '!=', 'cancelled'),
-                    ], 'pax')
-                    ->orderBy('departure_date');
-            },
         ])
-            ->where('status', true);
+            ->where('status', true)
+            ->whereNotNull('departure_date')
+            ->whereDate('departure_date', '>=', today());
 
         // Filter by place_id
         if ($request->has('destination_id')) {
@@ -70,18 +62,11 @@ class GroupPackageController extends Controller
     {
         $package = GroupPackage::with([
             'destination',
-            'fixedItinerary',
-            'departures' => function ($query) {
-                $query->whereDate('departure_date', '>=', Carbon::today())
-                    ->whereIn('status', ['announced', 'open', 'sold_out'])
-                    ->withSum([
-                        'customers as booked_pax' => fn ($customerQuery) => $customerQuery->where('booking_status', '!=', 'cancelled'),
-                    ], 'pax')
-                    ->orderBy('departure_date');
-            },
         ])
             ->where('slug', $slug)
             ->where('status', true)
+            ->whereNotNull('departure_date')
+            ->whereDate('departure_date', '>=', today())
             ->firstOrFail();
 
         return new GroupPackageResource($package);

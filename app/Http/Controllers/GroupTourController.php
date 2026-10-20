@@ -8,25 +8,14 @@ use Illuminate\Http\Request;
 
 class GroupTourController extends Controller
 {
-    /**
-     * Display published group tours that still have a bookable future departure.
-     */
+    /** Display published Website Group Tours with their own future date. */
     public function index(Request $request)
     {
         $query = GroupPackage::query()
-            ->with(['destination', 'fixedItinerary', 'departures' => function ($query) {
-                $this->upcomingDepartures($query)
-                    ->withSum(['customers as booked_pax' => function ($customers) {
-                        $customers->where('booking_status', '!=', 'cancelled');
-                    }], 'pax');
-            }])
-            ->withMin(['departures as next_departure_date' => function ($query) {
-                $this->upcomingDepartures($query);
-            }], 'departure_date')
+            ->with('destination')
             ->where('status', true)
-            ->whereHas('departures', function ($query) {
-                $this->upcomingDepartures($query);
-            });
+            ->whereNotNull('departure_date')
+            ->whereDate('departure_date', '>=', today());
 
         if ($request->filled('q')) {
             $search = trim($request->input('q'));
@@ -49,67 +38,43 @@ class GroupTourController extends Controller
         } elseif ($request->input('sort') === 'price_high') {
             $query->orderByDesc('price');
         } else {
-            $query->orderBy('next_departure_date');
+            $query->orderBy('departure_date');
         }
 
         $groupTours = $query->paginate(12)->withQueryString();
         $destinations = Destination::whereHas('groupPackages', function ($packages) {
             $packages->where('status', true)
-                ->whereHas('departures', function ($departures) {
-                    $this->upcomingDepartures($departures);
-                });
+                ->whereNotNull('departure_date')
+                ->whereDate('departure_date', '>=', today());
         })->orderBy('name')->get();
 
         return view('group-tours.index', compact('groupTours', 'destinations'));
     }
 
-    /**
-     * Display one published group tour and its upcoming departures.
-     */
+    /** Display one published Website Group Tour. */
     public function show(string $slug)
     {
         $groupTour = GroupPackage::query()
-            ->with(['destination', 'fixedItinerary', 'departures' => function ($query) {
-                $this->upcomingDepartures($query, true)
-                    ->withSum(['customers as booked_pax' => function ($customers) {
-                        $customers->where('booking_status', '!=', 'cancelled');
-                    }], 'pax');
-            }])
+            ->with('destination')
             ->where('slug', $slug)
             ->where('status', true)
-            ->whereHas('departures', function ($query) {
-                $this->upcomingDepartures($query);
-            })
+            ->whereNotNull('departure_date')
+            ->whereDate('departure_date', '>=', today())
             ->firstOrFail();
 
         $relatedTours = GroupPackage::query()
-            ->with(['destination', 'departures' => function ($query) {
-                $this->upcomingDepartures($query)
-                    ->withSum(['customers as booked_pax' => function ($customers) {
-                        $customers->where('booking_status', '!=', 'cancelled');
-                    }], 'pax');
-            }])
+            ->with('destination')
             ->where('status', true)
             ->where('id', '!=', $groupTour->id)
             ->when($groupTour->destination_id, function ($query) use ($groupTour) {
                 $query->where('destination_id', $groupTour->destination_id);
             })
-            ->whereHas('departures', function ($query) {
-                $this->upcomingDepartures($query);
-            })
+            ->whereNotNull('departure_date')
+            ->whereDate('departure_date', '>=', today())
+            ->orderBy('departure_date')
             ->limit(3)
             ->get();
 
         return view('group-tours.show', compact('groupTour', 'relatedTours'));
-    }
-
-    private function upcomingDepartures($query, bool $includeSoldOut = false)
-    {
-        $statuses = $includeSoldOut ? ['announced', 'open', 'sold_out'] : ['announced', 'open'];
-
-        return $query
-            ->whereDate('departure_date', '>=', today())
-            ->whereIn('status', $statuses)
-            ->orderBy('departure_date');
     }
 }

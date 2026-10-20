@@ -4,11 +4,9 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\GroupPackage;
-use App\Models\GroupDeparture;
 use App\Models\Destination;
 use App\Models\FixedItinerary;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
@@ -25,14 +23,9 @@ class GroupPackageController extends Controller
     {
         if ($request->wantsJson() || $request->ajax()) {
             try {
-                $query = GroupPackage::withTrashed()->with([
+                $query = GroupPackage::with([
                     'destination' => function ($q) {
                         $q->withTrashed();
-                    },
-                    'departures' => function ($q) {
-                        $q->whereDate('departure_date', '>=', today())
-                            ->whereIn('status', ['announced', 'open'])
-                            ->orderBy('departure_date');
                     },
                 ]);
 
@@ -114,6 +107,7 @@ class GroupPackageController extends Controller
             'description' => $template->itinerary_description ?: $template->short_description,
             'short_description' => $template->short_description,
             'price' => $template->fixed_price ?: 0,
+            'child_price' => null,
             'net_price' => $template->operational_cost ?: 0,
             'markup_percentage' => $template->markup_percentage ?: 0,
             'markup_amount' => 0,
@@ -169,16 +163,17 @@ class GroupPackageController extends Controller
             'description' => 'nullable|string',
             'short_description' => 'nullable|string',
             'price' => 'required|numeric|min:0',
+            'child_price' => 'nullable|numeric|min:0',
             'net_price' => 'nullable|numeric|min:0',
             'markup_percentage' => 'nullable|numeric|min:0',
             'markup_amount' => 'nullable|numeric|min:0',
             'discount_price' => 'nullable|numeric|min:0',
-            'price_2_6' => 'nullable|numeric|min:0',
-            'price_6_10' => 'nullable|numeric|min:0',
             'currency' => 'nullable|string|in:INR,USD,MYR,SGD,AED',
             'duration_days' => 'nullable|integer|min:0',
             'duration_nights' => 'nullable|integer|min:0',
             'announcement_date' => 'nullable|date',
+            'departure_date' => 'nullable|date',
+            'return_date' => 'nullable|date|after_or_equal:departure_date',
             'total_pax' => 'nullable|integer|min:1',
             'image' => 'nullable|string',
             'gallery' => 'nullable|array',
@@ -191,6 +186,12 @@ class GroupPackageController extends Controller
             'meta_description' => 'nullable|string',
             'meta_keywords' => 'nullable|string',
         ]);
+
+        if (($request->has('is_active') ? $request->boolean('is_active') : true) && empty($validated['departure_date'])) {
+            throw ValidationException::withMessages([
+                'departure_date' => 'Set the group tour departure date before publishing it on the website.',
+            ]);
+        }
 
         if (!isset($validated['slug']) || empty($validated['slug'])) {
             $slug = Str::slug($validated['name']);
@@ -227,15 +228,16 @@ class GroupPackageController extends Controller
             'description' => $validated['description'] ?? null,
             'short_description' => $validated['short_description'] ?? null,
             'price' => $validated['price'],
+            'child_price' => $validated['child_price'] ?? null,
             'net_price' => $validated['net_price'] ?? 0,
             'markup_percentage' => $validated['markup_percentage'] ?? 0,
             'markup_amount' => $validated['markup_amount'] ?? 0,
             'discount_price' => $validated['discount_price'] ?? null,
-            'price_2_6' => $validated['price_2_6'] ?? null,
-            'price_6_10' => $validated['price_6_10'] ?? null,
             'currency' => $validated['currency'] ?? 'INR',
             'duration' => $this->formatDuration($validated['duration_days'] ?? null, $validated['duration_nights'] ?? null),
             'announcement_date' => $validated['announcement_date'] ?? null,
+            'departure_date' => $validated['departure_date'] ?? null,
+            'return_date' => $validated['return_date'] ?? null,
             'total_pax' => $validated['total_pax'] ?? null,
             'image' => $validated['image'] ?? null,
             'gallery' => $validated['gallery'] ?? [],
@@ -396,16 +398,11 @@ class GroupPackageController extends Controller
     public function show($id)
     {
         try {
-            $groupPackage = GroupPackage::withTrashed()->with([
+            $groupPackage = GroupPackage::with([
                 'destination' => function ($q) {
                     $q->withTrashed();
                 },
                 'fixedItinerary',
-                'departures' => function ($query) {
-                    $query->withSum([
-                        'customers as booked_pax' => fn ($customers) => $customers->where('booking_status', '!=', 'cancelled'),
-                    ], 'pax')->orderBy('departure_date');
-                },
             ])->findOrFail($id);
             return response()->json($groupPackage);
         } catch (\Exception $e) {
@@ -438,7 +435,7 @@ class GroupPackageController extends Controller
      */
     public function update(Request $request, $id)
     {
-        $groupPackage = GroupPackage::withTrashed()->with('fixedItinerary')->findOrFail($id);
+        $groupPackage = GroupPackage::with('fixedItinerary')->findOrFail($id);
 
         $validated = $request->validate([
             'destination_id' => 'nullable|exists:destinations,id',
@@ -464,16 +461,17 @@ class GroupPackageController extends Controller
             'description' => 'nullable|string',
             'short_description' => 'nullable|string',
             'price' => 'required|numeric|min:0',
+            'child_price' => 'nullable|numeric|min:0',
             'net_price' => 'nullable|numeric|min:0',
             'markup_percentage' => 'nullable|numeric|min:0',
             'markup_amount' => 'nullable|numeric|min:0',
             'discount_price' => 'nullable|numeric|min:0',
-            'price_2_6' => 'nullable|numeric|min:0',
-            'price_6_10' => 'nullable|numeric|min:0',
             'currency' => 'nullable|string|in:INR,USD,MYR,SGD,AED',
             'duration_days' => 'nullable|integer|min:0',
             'duration_nights' => 'nullable|integer|min:0',
             'announcement_date' => 'nullable|date',
+            'departure_date' => 'nullable|date',
+            'return_date' => 'nullable|date|after_or_equal:departure_date',
             'total_pax' => 'nullable|integer|min:1',
             'image' => 'nullable|string',
             'gallery' => 'nullable|array',
@@ -485,16 +483,14 @@ class GroupPackageController extends Controller
             'meta_title' => 'nullable|string',
             'meta_description' => 'nullable|string',
             'meta_keywords' => 'nullable|string',
-            'departures' => 'sometimes|array|max:50',
-            'departures.*.id' => 'nullable|integer',
-            'departures.*._delete' => 'nullable|boolean',
-            'departures.*.departure_date' => 'nullable|date',
-            'departures.*.return_date' => 'nullable|date|after_or_equal:departures.*.departure_date',
-            'departures.*.adult_rate' => 'nullable|numeric|min:0',
-            'departures.*.child_rate' => 'nullable|numeric|min:0',
-            'departures.*.capacity' => 'nullable|integer|min:1|max:10000',
-            'departures.*.status' => ['nullable', Rule::in(['draft', 'announced', 'open', 'sold_out', 'completed', 'cancelled'])],
         ]);
+
+        $isActive = $request->has('is_active') ? $request->boolean('is_active') : (bool) $groupPackage->status;
+        if ($isActive && empty($validated['departure_date'])) {
+            throw ValidationException::withMessages([
+                'departure_date' => 'Set the group tour departure date before publishing it on the website.',
+            ]);
+        }
 
         // Handle boolean fields
         $validated['includes_flight'] = isset($validated['includes_flight']) && ($validated['includes_flight'] == 1 || $validated['includes_flight'] === true || $validated['includes_flight'] === '1' || $validated['includes_flight'] === 'true');
@@ -520,28 +516,28 @@ class GroupPackageController extends Controller
             'description' => $validated['description'] ?? null,
             'short_description' => $validated['short_description'] ?? null,
             'price' => $validated['price'],
+            'child_price' => $validated['child_price'] ?? null,
             'net_price' => $validated['net_price'] ?? 0,
             'markup_percentage' => $validated['markup_percentage'] ?? 0,
             'markup_amount' => $validated['markup_amount'] ?? 0,
             'discount_price' => $validated['discount_price'] ?? null,
-            'price_2_6' => $validated['price_2_6'] ?? null,
-            'price_6_10' => $validated['price_6_10'] ?? null,
             'currency' => $validated['currency'] ?? 'INR',
-            'duration' => $groupPackage->fixedItinerary
-                ? $this->formatDuration($groupPackage->fixedItinerary->duration_days, $groupPackage->fixedItinerary->duration_nights)
-                : $this->formatDuration($validated['duration_days'] ?? null, $validated['duration_nights'] ?? null),
+            'duration' => array_key_exists('duration_days', $validated) || array_key_exists('duration_nights', $validated)
+                ? $this->formatDuration($validated['duration_days'] ?? null, $validated['duration_nights'] ?? null)
+                : $groupPackage->duration,
             'announcement_date' => $validated['announcement_date'] ?? null,
+            'departure_date' => $validated['departure_date'] ?? null,
+            'return_date' => $validated['return_date'] ?? null,
             'total_pax' => $validated['total_pax'] ?? null,
             'image' => $validated['image'] ?? null,
             'gallery' => $validated['gallery'] ?? [],
             'included_services' => $validated['inclusions'] ?? [],
             'excluded_services' => $validated['exclusions'] ?? [],
-            // Imported website tours keep the complete Fixed Itinerary item
-            // structure as their source. Rebuild the compatibility copy here
-            // so saving a Hero or Gallery cannot erase Tourist Spots.
-            'itinerary' => $groupPackage->fixedItinerary
-                ? $this->itineraryFromFixedTemplate($groupPackage->fixedItinerary)
-                : $this->normalizeItinerary($validated['itinerary'] ?? []),
+            // A Fixed Itinerary is copied at import time. Saving this Website
+            // Group Tour must never rebuild it from the source template.
+            'itinerary' => array_key_exists('itinerary', $validated) && $validated['itinerary'] !== null
+                ? $this->normalizeItinerary($validated['itinerary'])
+                : ($groupPackage->itinerary ?? []),
             'featured' => isset($validated['is_featured']) ? (bool) $validated['is_featured'] : false,
             'status' => isset($validated['is_active']) ? (bool) $validated['is_active'] : true,
             'meta_title' => $validated['meta_title'] ?? null,
@@ -549,82 +545,9 @@ class GroupPackageController extends Controller
             'meta_keywords' => $validated['meta_keywords'] ?? null,
         ];
 
-        DB::transaction(function () use ($groupPackage, $groupPackageData, $validated) {
-            $groupPackage->update($groupPackageData);
+        $groupPackage->update($groupPackageData);
 
-            if (array_key_exists('departures', $validated)) {
-                $this->syncWebsiteDepartures($groupPackage, $validated['departures'] ?? []);
-            }
-        });
-
-        return response()->json($groupPackage->fresh()->load('departures'));
-    }
-
-    /**
-     * Save the public departure calendar from the Website Group Tour editor.
-     */
-    private function syncWebsiteDepartures(GroupPackage $groupPackage, array $rows): void
-    {
-        if (!$groupPackage->fixed_itinerary_id && collect($rows)->contains(fn ($row) => empty($row['_delete']) && !empty($row['departure_date']))) {
-            throw ValidationException::withMessages([
-                'departures' => 'Import or select a Fixed Itinerary before adding website departure dates.',
-            ]);
-        }
-
-        foreach ($rows as $index => $row) {
-            $departure = null;
-            if (!empty($row['id'])) {
-                $departure = GroupDeparture::where('id', $row['id'])
-                    ->where(function ($query) use ($groupPackage) {
-                        $query->where('group_package_id', $groupPackage->id)
-                            ->orWhere(function ($legacy) use ($groupPackage) {
-                                $legacy->whereNull('group_package_id')
-                                    ->where('fixed_itinerary_id', $groupPackage->fixed_itinerary_id);
-                            });
-                    })
-                    ->first();
-
-                if (!$departure) {
-                    throw ValidationException::withMessages([
-                        "departures.{$index}.id" => 'This departure does not belong to the Website Group Tour.',
-                    ]);
-                }
-            }
-
-            if (!empty($row['_delete'])) {
-                if ($departure) {
-                    if ($departure->customers()->where('booking_status', '!=', 'cancelled')->exists()) {
-                        $departure->update(['status' => 'cancelled']);
-                    } else {
-                        $departure->delete();
-                    }
-                }
-                continue;
-            }
-
-            if (empty($row['departure_date'])) {
-                throw ValidationException::withMessages([
-                    "departures.{$index}.departure_date" => 'Every departure row needs a departure date.',
-                ]);
-            }
-
-            $departure = $departure ?: new GroupDeparture();
-            $departure->fill([
-                'group_package_id' => $groupPackage->id,
-                'fixed_itinerary_id' => $groupPackage->fixed_itinerary_id,
-                'user_id' => auth()->id(),
-                'title' => $groupPackage->name,
-                'announcement_date' => $groupPackage->announcement_date ?: today(),
-                'departure_date' => $row['departure_date'],
-                'return_date' => $row['return_date'] ?? null,
-                'adult_rate' => $row['adult_rate'] ?? $groupPackage->price,
-                'child_rate' => $row['child_rate'] ?? $groupPackage->price_6_10,
-                'currency' => $groupPackage->currency ?: 'MYR',
-                'capacity' => $row['capacity'] ?? $groupPackage->total_pax ?? 20,
-                'status' => $row['status'] ?? 'open',
-            ]);
-            $departure->save();
-        }
+        return response()->json($groupPackage->fresh());
     }
 
     /**
@@ -636,56 +559,15 @@ class GroupPackageController extends Controller
     public function destroy($id)
     {
         try {
-            $groupPackage = GroupPackage::withTrashed()->findOrFail($id);
-
-            // Use DB transaction for safety
-            DB::beginTransaction();
-
-            try {
-                if ($groupPackage->trashed()) {
-                    // Force delete if already soft deleted
-                    $groupPackage->forceDelete();
-                } else {
-                    // Soft delete
-                    $groupPackage->delete();
-                }
-
-                DB::commit();
-
-                return response()->json([
-                    'message' => 'Group package deleted successfully'
-                ]);
-            } catch (\Exception $e) {
-                DB::rollBack();
-                throw $e;
-            }
-
-        } catch (\Illuminate\Database\QueryException $e) {
-            $errorCode = $e->getCode();
-            $errorMessage = $e->getMessage();
-
-            \Log::error('Database error deleting group package', [
-                'group_package_id' => $id,
-                'error_code' => $errorCode,
-                'error_message' => $errorMessage,
-            ]);
-
-            if (
-                strpos($errorMessage, 'foreign key constraint') !== false ||
-                strpos($errorMessage, '1451') !== false ||
-                strpos($errorMessage, '23000') !== false
-            ) {
-                return response()->json([
-                    'error' => 'Cannot delete group package. It is referenced by other records.',
-                    'message' => 'This group package cannot be deleted because it is being used elsewhere in the system.'
-                ], 422);
-            }
+            // Regular delete deliberately means a recoverable soft delete.
+            // Deleted records are excluded from the normal Website Group Tour
+            // list, so they cannot reappear or be force-deleted by accident.
+            $groupPackage = GroupPackage::findOrFail($id);
+            $groupPackage->delete();
 
             return response()->json([
-                'error' => 'Database error while deleting group package',
-                'message' => $errorMessage
-            ], 500);
-
+                'message' => 'Website group tour deleted successfully',
+            ]);
         } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
             return response()->json([
                 'error' => 'Group package not found',

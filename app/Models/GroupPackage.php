@@ -31,6 +31,7 @@ class GroupPackage extends Model
         'description',
         'short_description',
         'price',
+        'child_price',
         'net_price',
         'markup_percentage',
         'markup_amount',
@@ -40,6 +41,8 @@ class GroupPackage extends Model
         'currency',
         'duration',
         'announcement_date',
+        'departure_date',
+        'return_date',
         'total_pax',
         'image',
         'gallery',
@@ -63,6 +66,7 @@ class GroupPackage extends Model
         'excluded_services' => 'array',
         'itinerary' => 'array',
         'price' => 'decimal:2',
+        'child_price' => 'decimal:2',
         'net_price' => 'decimal:2',
         'markup_percentage' => 'decimal:2',
         'markup_amount' => 'decimal:2',
@@ -77,6 +81,8 @@ class GroupPackage extends Model
         'total_pax' => 'integer',
         'fixed_itinerary_id' => 'integer',
         'announcement_date' => 'date',
+        'departure_date' => 'date',
+        'return_date' => 'date',
     ];
 
     public function getRouteKeyName()
