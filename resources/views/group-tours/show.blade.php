@@ -179,17 +179,15 @@
                             <p class="small text-muted mb-0">Rates shown are per adult.</p>
                         </div>
                         <div class="p-4">
-                            @foreach($groupTour->departures as $departure)
-                                @php $soldOut = $departure->status === 'sold_out' || $departure->available_seats < 1; @endphp
-                                <div class="departure-row {{ $loop->first ? 'featured' : '' }}">
-                                    <div class="d-flex justify-content-between gap-2 mb-2">
-                                        <div class="fw-bold"><i class="bi bi-calendar-event text-danger me-2"></i>{{ $departure->departure_date->format('d M Y') }}</div>
-                                        <span class="seat-badge {{ $soldOut ? 'sold' : '' }}">{{ $soldOut ? 'Sold out' : $departure->available_seats . ' seats left' }}</span>
-                                    </div>
-                                    @if($departure->return_date)<div class="small text-muted mb-2">Returns {{ $departure->return_date->format('d M Y') }}</div>@endif
-                                    <div class="fw-bold text-danger fs-5">{{ \App\Helpers\CurrencyHelper::format($departure->adult_rate ?: $groupTour->price, $departure->currency ?: $groupTour->currency ?: 'MYR') }}</div>
+                            <div class="departure-row featured">
+                                <div class="d-flex justify-content-between gap-2 mb-2">
+                                    <div class="fw-bold"><i class="bi bi-calendar-event text-danger me-2"></i>{{ $groupTour->departure_date->format('d M Y') }}</div>
+                                    <span class="seat-badge">{{ $groupTour->total_pax ? $groupTour->total_pax . ' seats' : 'Enquire for seats' }}</span>
                                 </div>
-                            @endforeach
+                                @if($groupTour->return_date)<div class="small text-muted mb-2">Returns {{ $groupTour->return_date->format('d M Y') }}</div>@endif
+                                <div class="fw-bold text-danger fs-5">{{ \App\Helpers\CurrencyHelper::format($groupTour->price, $groupTour->currency ?: 'MYR') }}</div>
+                                @if($groupTour->child_price !== null)<div class="small text-muted mt-1">Child: {{ \App\Helpers\CurrencyHelper::format($groupTour->child_price, $groupTour->currency ?: 'MYR') }}</div>@endif
+                            </div>
                             @php $message = urlencode('Hello Tourliz, I am interested in the group tour: ' . $groupTour->name . ' ' . route('group-tours.show', $groupTour->slug)); @endphp
                             <a href="https://wa.me/?text={{ $message }}" target="_blank" rel="noopener" class="btn btn-success w-100 rounded-pill py-3 fw-bold mt-4"><i class="bi bi-whatsapp me-2"></i>Enquire on WhatsApp</a>
                             <div class="text-center small text-muted mt-3"><i class="bi bi-shield-check me-1"></i>Tourliz will confirm final availability.</div>
@@ -204,7 +202,7 @@
                     <h2 class="h3 fw-bold mb-4">You may also like</h2>
                     <div class="row g-4">
                         @foreach($relatedTours as $related)
-                            <div class="col-md-4"><article class="related-card bg-white">@if($related->image)<img src="{{ getImageUrl($related->image) }}" alt="{{ $related->name }}" class="w-100" style="height: 190px; object-fit: cover;" loading="lazy">@endif<div class="p-4"><div class="small text-danger fw-bold mb-2">{{ optional($related->departures->first())->departure_date ? $related->departures->first()->departure_date->format('d M Y') : 'Date coming soon' }}</div><h3 class="h6 fw-bold">{{ $related->name }}</h3><a href="{{ route('group-tours.show', $related->slug) }}" class="text-danger fw-bold text-decoration-none small">View group tour <i class="bi bi-arrow-right"></i></a></div></article></div>
+                            <div class="col-md-4"><article class="related-card bg-white">@if($related->image)<img src="{{ getImageUrl($related->image) }}" alt="{{ $related->name }}" class="w-100" style="height: 190px; object-fit: cover;" loading="lazy">@endif<div class="p-4"><div class="small text-danger fw-bold mb-2">{{ $related->departure_date->format('d M Y') }}</div><h3 class="h6 fw-bold">{{ $related->name }}</h3><a href="{{ route('group-tours.show', $related->slug) }}" class="text-danger fw-bold text-decoration-none small">View group tour <i class="bi bi-arrow-right"></i></a></div></article></div>
                         @endforeach
                     </div>
                 </section>

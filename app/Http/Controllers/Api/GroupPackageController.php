@@ -16,10 +16,9 @@ class GroupPackageController extends Controller
     {
         $query = GroupPackage::with([
             'destination',
+            'fixedItinerary',
         ])
-            ->where('status', true)
-            ->whereNotNull('departure_date')
-            ->whereDate('departure_date', '>=', today());
+            ->visibleOnWebsite();
 
         // Filter by place_id
         if ($request->has('destination_id')) {
@@ -62,11 +61,10 @@ class GroupPackageController extends Controller
     {
         $package = GroupPackage::with([
             'destination',
+            'fixedItinerary',
         ])
             ->where('slug', $slug)
-            ->where('status', true)
-            ->whereNotNull('departure_date')
-            ->whereDate('departure_date', '>=', today())
+            ->visibleOnWebsite()
             ->firstOrFail();
 
         return new GroupPackageResource($package);

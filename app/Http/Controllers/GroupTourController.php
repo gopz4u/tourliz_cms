@@ -13,9 +13,7 @@ class GroupTourController extends Controller
     {
         $query = GroupPackage::query()
             ->with('destination')
-            ->where('status', true)
-            ->whereNotNull('departure_date')
-            ->whereDate('departure_date', '>=', today());
+            ->visibleOnWebsite();
 
         if ($request->filled('q')) {
             $search = trim($request->input('q'));
@@ -43,9 +41,7 @@ class GroupTourController extends Controller
 
         $groupTours = $query->paginate(12)->withQueryString();
         $destinations = Destination::whereHas('groupPackages', function ($packages) {
-            $packages->where('status', true)
-                ->whereNotNull('departure_date')
-                ->whereDate('departure_date', '>=', today());
+            $packages->visibleOnWebsite();
         })->orderBy('name')->get();
 
         return view('group-tours.index', compact('groupTours', 'destinations'));
@@ -55,22 +51,18 @@ class GroupTourController extends Controller
     public function show(string $slug)
     {
         $groupTour = GroupPackage::query()
-            ->with('destination')
+            ->with(['destination', 'fixedItinerary'])
             ->where('slug', $slug)
-            ->where('status', true)
-            ->whereNotNull('departure_date')
-            ->whereDate('departure_date', '>=', today())
+            ->visibleOnWebsite()
             ->firstOrFail();
 
         $relatedTours = GroupPackage::query()
             ->with('destination')
-            ->where('status', true)
+            ->visibleOnWebsite()
             ->where('id', '!=', $groupTour->id)
             ->when($groupTour->destination_id, function ($query) use ($groupTour) {
                 $query->where('destination_id', $groupTour->destination_id);
             })
-            ->whereNotNull('departure_date')
-            ->whereDate('departure_date', '>=', today())
             ->orderBy('departure_date')
             ->limit(3)
             ->get();

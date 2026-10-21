@@ -28,25 +28,10 @@ class SiteController extends Controller
         $topDestinations = Country::orderBy('name')->limit(6)->get();
 
         $upcomingGroupTours = GroupPackage::query()
-            ->with(['destination', 'departures' => function ($query) {
-                $query->whereDate('departure_date', '>=', today())
-                    ->whereIn('status', ['announced', 'open'])
-                    ->withSum(['customers as booked_pax' => function ($customers) {
-                        $customers->where('booking_status', '!=', 'cancelled');
-                    }], 'pax')
-                    ->orderBy('departure_date');
-            }])
-            ->withMin(['departures as next_departure_date' => function ($query) {
-                $query->whereDate('departure_date', '>=', today())
-                    ->whereIn('status', ['announced', 'open']);
-            }], 'departure_date')
-            ->where('status', true)
-            ->whereHas('departures', function ($query) {
-                $query->whereDate('departure_date', '>=', today())
-                    ->whereIn('status', ['announced', 'open']);
-            })
+            ->with('destination')
+            ->visibleOnWebsite()
             ->orderByDesc('featured')
-            ->orderBy('next_departure_date')
+            ->orderBy('departure_date')
             ->limit(6)
             ->get();
 

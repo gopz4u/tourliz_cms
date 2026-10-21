@@ -410,8 +410,9 @@
                                 </div>
                                 <div class="form-check form-switch">
                                     <input class="form-check-input" type="checkbox" name="is_active" id="is_active">
-                                    <label class="form-check-label small fw-bold" for="is_active">Live Status</label>
+                                    <label class="form-check-label small fw-bold" for="is_active">Publish on website</label>
                                 </div>
+                                <div class="small text-muted mt-2" id="publish-status-help">Draft tours are hidden from the website.</div>
                             </div>
                         </div>
                     </div>
@@ -612,13 +613,13 @@
                         <span class="fw-black text-primary fs-5" id="foot-price">RM 0.00</span>
                     </div>
                     <button type="button" class="btn btn-success rounded-pill px-5 py-3 fw-bold" id="btn-save-immediate" onclick="submitPackageForm()">
-                        Update Package <i class="bi bi-check-circle ms-2"></i>
+                        Save Changes <i class="bi bi-check-circle ms-2"></i>
                     </button>
                     <button type="button" class="btn btn-dark rounded-pill px-5 py-3 fw-bold" id="btn-next" onclick="step(1)">
                         Next Step <i class="bi bi-chevron-right ms-2"></i>
                     </button>
-                    <button type="button" class="btn btn-publish px-5 py-3" id="btn-publish" style="display:none;" onclick="submitPackageForm()">
-                        FINISH & UPDATE <i class="bi bi-rocket-takeoff ms-2"></i>
+                    <button type="button" class="btn btn-publish px-5 py-3" id="btn-publish" style="display:none;" onclick="submitPackageForm(true)">
+                        FINISH & PUBLISH <i class="bi bi-rocket-takeoff ms-2"></i>
                     </button>
                 </div>
             </div>
@@ -950,6 +951,7 @@
             $('#ticket_count').val(pkg.ticket_count || '');
             $('#is_featured').prop('checked', pkg.featured || false);
             $('#is_active').prop('checked', pkg.status !== undefined ? pkg.status : true);
+            updatePublishStatusHelp();
 
             // Cover Image Preview
             if (pkg.image) {
@@ -1978,7 +1980,19 @@
     // ----------------------------------------------------
     // FORM SUBMISSION (IMMEDIATE UPDATE)
     // ----------------------------------------------------
-    function submitPackageForm() {
+    function updatePublishStatusHelp() {
+        const isLive = $('#is_active').is(':checked');
+        $('#publish-status-help')
+            .toggleClass('text-success', isLive)
+            .toggleClass('text-muted', !isLive)
+            .text(isLive
+                ? 'Live after saving when the departure date is today or later.'
+                : 'Draft tours are hidden from the website. Use Finish & Publish to make this tour live.');
+    }
+
+    $('#is_active').on('change', updatePublishStatusHelp);
+
+    function submitPackageForm(forcePublish = false) {
         const descHtml = quillEditors['desc'] ? quillEditors['desc'].root.innerHTML : '';
         $('#description').val(descHtml);
 
@@ -2090,7 +2104,7 @@
             gallery: galleryImages,
             itinerary: itineraryArr.length > 0 ? itineraryArr : null,
             is_featured: $('#is_featured').is(':checked') ? 1 : 0,
-            is_active: $('#is_active').is(':checked') ? 1 : 0,
+            is_active: forcePublish || $('#is_active').is(':checked') ? 1 : 0,
             inclusions: $('input[name="inclusions[]"]').map(function() { return $(this).val(); }).get().filter(v => v.trim() !== ''),
             exclusions: $('input[name="exclusions[]"]').map(function() { return $(this).val(); }).get().filter(v => v.trim() !== ''),
             meta_title: $('#meta_title').val() || null,
@@ -2111,7 +2125,22 @@
             data: payload,
             success: function (response) {
                 Swal.close();
-                showToast('Group package updated successfully.', 'success');
+                $('#is_active').prop('checked', response.status === true || response.status == 1);
+                updatePublishStatusHelp();
+
+                if (forcePublish) {
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Group Tour Published',
+                        text: 'The tour is now live in WebCMS and on the website.'
+                    }).then(() => {
+                        window.location.href = '{{ route("admin.group-packages.index") }}';
+                    });
+                } else {
+                    showToast(response.status
+                        ? 'Changes saved. This group tour is live.'
+                        : 'Changes saved as a draft.', response.status ? 'success' : 'info');
+                }
             },
             error: function (xhr) {
                 let errorMsg = 'Error saving group package';

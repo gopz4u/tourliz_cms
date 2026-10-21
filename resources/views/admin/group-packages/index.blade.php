@@ -351,8 +351,11 @@
                 packages.forEach(pkg => {
                     const isActive = pkg.status == 1 || pkg.status === true;
                     const isFeatured = pkg.featured == 1 || pkg.featured === true;
-                    const nextDeparture = pkg.departures && pkg.departures.length ? pkg.departures[0] : null;
-                    const isWebsiteVisible = isActive && nextDeparture;
+                    const departureDate = pkg.departure_date ? new Date(pkg.departure_date) : null;
+                    const today = new Date();
+                    today.setHours(0, 0, 0, 0);
+                    const hasUpcomingDeparture = departureDate && !Number.isNaN(departureDate.getTime()) && departureDate >= today;
+                    const isWebsiteVisible = isActive && hasUpcomingDeparture;
 
                     if (isWebsiteVisible) activeCount++;
                     if (isFeatured) featuredCount++;
@@ -385,7 +388,7 @@
                         .replace(/{DURATION}/g, durationText)
                         .replace(/{CATEGORY}/g, pkg.package_category || 'Standard')
                         .replace(/{STATUS}/g, isWebsiteVisible
-                            ? '<div class="status-dot bg-success"></div> Live · ' + new Date(nextDeparture.departure_date).toLocaleDateString('en-GB', { day: '2-digit', month: 'short' })
+                            ? '<div class="status-dot bg-success"></div> Live · ' + departureDate.toLocaleDateString('en-GB', { day: '2-digit', month: 'short' })
                             : (isActive
                                 ? '<div class="status-dot bg-warning"></div> Needs departure'
                                 : '<div class="status-dot bg-secondary"></div> Draft'))

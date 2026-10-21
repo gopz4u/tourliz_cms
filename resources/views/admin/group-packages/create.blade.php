@@ -594,13 +594,8 @@
                                             class="form-control premium-input">
                                     </div>
                                     <div class="col-md-6">
-                                        <label class="premium-label">Kids Price (Age 2-6)</label>
-                                        <input type="number" step="0.01" name="price_2_6" id="price_2_6"
-                                            class="form-control premium-input">
-                                    </div>
-                                    <div class="col-md-6">
-                                        <label class="premium-label">Kids Price (Age 6-10)</label>
-                                        <input type="number" step="0.01" name="price_6_10" id="price_6_10"
+                                        <label class="premium-label">Child Price</label>
+                                        <input type="number" min="0" step="0.01" name="child_price" id="child_price"
                                             class="form-control premium-input">
                                     </div>
                                 </div>
@@ -623,6 +618,17 @@
                                         <label class="premium-label">Announcement Date</label>
                                         <input type="date" class="form-control premium-input" id="announcement_date"
                                             name="announcement_date">
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="premium-label">Departure Date <span class="text-danger">*</span></label>
+                                        <input type="date" class="form-control premium-input" id="departure_date"
+                                            name="departure_date">
+                                        <small class="text-muted">Required when publishing the tour on the website.</small>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="premium-label">Return Date</label>
+                                        <input type="date" class="form-control premium-input" id="return_date"
+                                            name="return_date">
                                     </div>
                                     <div class="mb-3">
                                         <label class="premium-label">Total Pax (Passenger Limit)</label>
@@ -1910,11 +1916,12 @@
                 markup_percentage: $('#markup_percentage').val() ? parseFloat($('#markup_percentage').val()) : 0,
                 markup_amount: (parseFloat($('#net_price').val() || 0) * (parseFloat($('#markup_percentage').val() || 0) / 100)),
                 price: parseFloat($('#price').val()),
+                child_price: $('#child_price').val() ? parseFloat($('#child_price').val()) : null,
                 discount_price: $('#discount_price').val() ? parseFloat($('#discount_price').val()) : null,
-                price_2_6: $('#price_2_6').val() ? parseFloat($('#price_2_6').val()) : null,
-                price_6_10: $('#price_6_10').val() ? parseFloat($('#price_6_10').val()) : null,
                 currency: $('#currency').val() || 'MYR',
                 announcement_date: $('#announcement_date').val() || null,
+                departure_date: $('#departure_date').val() || null,
+                return_date: $('#return_date').val() || null,
                 total_pax: $('#total_pax').val() ? parseInt($('#total_pax').val()) : null,
                 duration_days: $('.itinerary-day-card').length,
                 duration_nights: Math.max(0, $('.itinerary-day-card').length - 1),

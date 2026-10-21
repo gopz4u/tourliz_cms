@@ -539,7 +539,7 @@ class GroupPackageController extends Controller
                 ? $this->normalizeItinerary($validated['itinerary'])
                 : ($groupPackage->itinerary ?? []),
             'featured' => isset($validated['is_featured']) ? (bool) $validated['is_featured'] : false,
-            'status' => isset($validated['is_active']) ? (bool) $validated['is_active'] : true,
+            'status' => $isActive,
             'meta_title' => $validated['meta_title'] ?? null,
             'meta_description' => $validated['meta_description'] ?? null,
             'meta_keywords' => $validated['meta_keywords'] ?? null,

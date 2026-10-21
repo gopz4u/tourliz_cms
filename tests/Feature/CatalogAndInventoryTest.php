@@ -661,6 +661,7 @@ class CatalogAndInventoryTest extends TestCase
             'slug' => 'cameron-group-tour-3d2n',
             'description' => 'Group tour package for Cameron Highlands',
             'price' => 350,
+            'departure_date' => now()->addMonth()->toDateString(),
             'min_pax' => 10,
             'max_pax' => 30,
             'currency' => 'MYR',
@@ -685,12 +686,14 @@ class CatalogAndInventoryTest extends TestCase
             'name' => 'Old Group Package',
             'slug' => 'old-group-package',
             'price' => 200,
+            'departure_date' => now()->addMonth()->toDateString(),
         ]);
 
         $updateData = [
             'destination_id' => $destination->id,
             'name' => 'Updated Group Package',
             'price' => 250,
+            'departure_date' => now()->addMonth()->toDateString(),
         ];
 
         $response = $this->actingAs($this->admin)->put(
@@ -714,7 +717,7 @@ class CatalogAndInventoryTest extends TestCase
         $response = $this->actingAs($this->admin)->delete(route('admin.group-packages.destroy', $groupPackage->id));
 
         $response->assertStatus(200);
-        $response->assertJsonFragment(['message' => 'Group package deleted successfully']);
+        $response->assertJsonFragment(['message' => 'Website group tour deleted successfully']);
         $this->assertSoftDeleted('group_packages', ['id' => $groupPackage->id]);
     }
 

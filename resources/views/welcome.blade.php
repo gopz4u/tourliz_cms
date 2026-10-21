@@ -635,8 +635,7 @@
                 <div class="row g-5">
                     @foreach($upcomingGroupTours as $index => $tour)
                         @php
-                            $departure = $tour->departures->first();
-                            $seats = $departure ? $departure->available_seats : 0;
+                            $seats = $tour->total_pax;
                         @endphp
                         <div class="col-lg-4 col-md-6" data-aos="fade-up" data-aos-delay="{{ $index * 100 }}">
                             <div class="package-card" onclick="window.location.href='{{ route('group-tours.show', $tour->slug) }}'" role="link" tabindex="0">
@@ -646,21 +645,19 @@
                                     @else
                                         <div class="package-img d-flex align-items-center justify-content-center text-white" style="background: linear-gradient(135deg, #7b1623, #f05b67);"><i class="bi bi-airplane-engines display-4"></i></div>
                                     @endif
-                                    @if($departure)
-                                        <div class="package-duration"><i class="bi bi-calendar-event-fill me-1"></i>{{ $departure->departure_date->format('d M Y') }}</div>
-                                    @endif
+                                    <div class="package-duration"><i class="bi bi-calendar-event-fill me-1"></i>{{ $tour->departure_date->format('d M Y') }}</div>
                                 </div>
                                 <div class="package-body">
                                     <div class="package-loc"><i class="bi bi-geo-alt-fill text-secondary"></i>{{ optional($tour->destination)->name ?: 'Multiple destinations' }}</div>
                                     <h3 class="package-name">{{ $tour->name }}</h3>
                                     <div class="d-flex justify-content-between align-items-center small text-muted mb-3">
                                         <span><i class="bi bi-clock me-1"></i>{{ $tour->duration ?: 'Flexible' }}</span>
-                                        <span><i class="bi bi-people me-1"></i>{{ $seats }} seats left</span>
+                                        <span><i class="bi bi-people me-1"></i>{{ $seats ? $seats . ' seats' : 'Enquire for seats' }}</span>
                                     </div>
                                     <div class="package-footer">
                                         <div>
                                             <span class="package-price-label">Per Person</span>
-                                            <div class="package-price">{{ \App\Helpers\CurrencyHelper::format($departure && $departure->adult_rate > 0 ? $departure->adult_rate : $tour->price, $departure->currency ?? $tour->currency ?? 'MYR') }}</div>
+                                            <div class="package-price">{{ \App\Helpers\CurrencyHelper::format($tour->price, $tour->currency ?? 'MYR') }}</div>
                                         </div>
                                         <div class="btn btn-primary p-0 d-flex align-items-center justify-content-center" style="width: 50px; height: 50px; background: var(--primary); border-radius: 18px;"><i class="bi bi-arrow-right-short fs-2 text-white"></i></div>
                                     </div>

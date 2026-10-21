@@ -73,6 +73,10 @@ class GroupPackageResource extends JsonResource
             'addon_amenities' => $this->addon_amenities ?? [],
             'is_featured' => $this->featured ?? false,
             'place' => $this->whenLoaded('destination', function() {
+                if (!$this->destination) {
+                    return null;
+                }
+
                 return [
                     'id' => $this->destination->id,
                     'name' => $this->destination->name,

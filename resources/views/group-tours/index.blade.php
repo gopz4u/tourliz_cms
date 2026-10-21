@@ -119,8 +119,7 @@
                 <div class="row g-4">
                     @forelse($groupTours as $tour)
                         @php
-                            $departure = $tour->departures->first();
-                            $seats = $departure ? $departure->available_seats : 0;
+                            $seats = $tour->total_pax;
                         @endphp
                         <div class="col-md-6 col-xl-4">
                             <article class="tour-card">
@@ -130,10 +129,8 @@
                                     @else
                                         <div class="tour-placeholder" aria-hidden="true"><i class="bi bi-airplane-engines display-5"></i></div>
                                     @endif
-                                    @if($departure)
-                                        <span class="status-pill status-{{ $departure->status }}">{{ str_replace('_', ' ', $departure->status) }}</span>
-                                        <span class="departure-pill"><i class="bi bi-calendar-event text-danger me-2"></i>{{ $departure->departure_date->format('d M Y') }}</span>
-                                    @endif
+                                    <span class="status-pill status-open">open</span>
+                                    <span class="departure-pill"><i class="bi bi-calendar-event text-danger me-2"></i>{{ $tour->departure_date->format('d M Y') }}</span>
                                 </div>
                                 <div class="p-4">
                                     <div class="small text-muted fw-semibold mb-2"><i class="bi bi-geo-alt-fill text-danger me-1"></i>{{ optional($tour->destination)->name ?: 'Multiple destinations' }}</div>
@@ -146,13 +143,13 @@
                                         </div>
                                         <div class="d-flex align-items-center gap-2">
                                             <span class="meta-icon"><i class="bi bi-people"></i></span>
-                                            <span class="small fw-semibold">{{ $seats }} seats left</span>
+                                            <span class="small fw-semibold">{{ $seats ? $seats . ' seats' : 'Enquire for seats' }}</span>
                                         </div>
                                     </div>
                                     <div class="d-flex justify-content-between align-items-end gap-3 border-top pt-3">
                                         <div>
                                             <div class="text-muted" style="font-size: .72rem;">FROM / PERSON</div>
-                                            <div class="price">{{ \App\Helpers\CurrencyHelper::format($departure && $departure->adult_rate > 0 ? $departure->adult_rate : $tour->price, $departure->currency ?? $tour->currency ?? 'MYR') }}</div>
+                                            <div class="price">{{ \App\Helpers\CurrencyHelper::format($tour->price, $tour->currency ?? 'MYR') }}</div>
                                         </div>
                                         <a href="{{ route('group-tours.show', $tour->slug) }}" class="btn btn-tourliz rounded-pill px-4" aria-label="View {{ $tour->name }}">View Tour</a>
                                     </div>

@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
@@ -88,6 +89,17 @@ class GroupPackage extends Model
     public function getRouteKeyName()
     {
         return 'slug';
+    }
+
+    /**
+     * Only tours that can actually be opened on the public website.
+     */
+    public function scopeVisibleOnWebsite(Builder $query): Builder
+    {
+        return $query
+            ->where('status', true)
+            ->whereNotNull('departure_date')
+            ->whereDate('departure_date', '>=', today());
     }
 
     /**
