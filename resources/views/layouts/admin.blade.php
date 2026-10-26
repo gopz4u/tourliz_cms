@@ -741,13 +741,13 @@
                 @endif
             </a>
 
-            <!-- 1. WEBSITE CMS -->
-            <div class="sidebar-section-title">Website CMS</div>
+            <!-- 1. ADVISOR WORKSPACE -->
+            <div class="sidebar-section-title">Advisor Workspace</div>
             <ul class="sidebar-menu">
                 <li>
                     <a href="{{ route('admin.dashboard') }}" class="{{ request()->routeIs('admin.dashboard') ? 'active' : '' }}">
                         <i class="bi bi-grid-1x2-fill main-icon"></i>
-                        <span>Website Dashboard</span>
+                        <span>Dashboard</span>
                         <i class="bi bi-arrow-right nav-arrow"></i>
                     </a>
                 </li>
