@@ -319,6 +319,15 @@
                                             class="bi bi-receipt me-1 text-info"></i> Customer Quote</h6>
                                     <span class="badge bg-info text-white" style="font-size: 0.6rem;">Client-Facing</span>
                                 </div>
+                                <div class="d-flex align-items-center gap-2 mb-2">
+                                    <label class="form-label small text-muted mb-0">Quote in</label>
+                                    <select id="pricing-quote-currency" class="form-select form-select-sm" style="max-width: 130px;">
+                                        @foreach(['MYR','USD','SGD','INR','AED','EUR','GBP'] as $code)
+                                            <option value="{{ $code }}" {{ ($itinerary->customer_currency ?? $itinerary->currency ?? 'MYR') === $code ? 'selected' : '' }}>{{ $code }}</option>
+                                        @endforeach
+                                    </select>
+                                    <span class="badge bg-light text-dark border small">Base: {{ $itinerary->currency ?: 'MYR' }}</span>
+                                </div>
                                 <div class="mb-3">
                                     <div class="d-flex justify-content-between mb-1 small">
                                         <span class="text-muted">Hotels & Rooms:</span>
@@ -708,6 +717,18 @@
                     });
                     document.getElementById('b2b-fixed-price-input')?.addEventListener('input', window.updateB2BPricingModeUI);
                     window.updateB2BPricingModeUI();
+
+                    const pricingQuoteCurrency = document.getElementById('pricing-quote-currency');
+                    const mainQuoteCurrency = document.getElementById('quote-currency');
+                    if (pricingQuoteCurrency && mainQuoteCurrency) {
+                        pricingQuoteCurrency.addEventListener('change', function () {
+                            mainQuoteCurrency.value = this.value;
+                            if (typeof applyManualCurrencyRate === 'function') applyManualCurrencyRate();
+                        });
+                        mainQuoteCurrency.addEventListener('change', function () {
+                            pricingQuoteCurrency.value = this.value;
+                        });
+                    }
                 });
 
                 // Helper to ensure we always have an array
@@ -923,16 +944,21 @@
                         const el = document.getElementById(id);
                         if (el) el.innerText = currency + ' ' + val.toFixed(2);
                     };
+                    const customerSafeSet = (id, val) => {
+                        const el = document.getElementById(id);
+                        const converted = roundQuote ? Math.round(val * exchangeRate) : Math.round(val * exchangeRate * 100) / 100;
+                        if (el) el.innerText = quoteCurrency + ' ' + converted.toFixed(2);
+                    };
 
-                    // Update Preview (Standard)
-                    safeSet('preview-hotels', hotels);
-                    safeSet('preview-transport', transport);
-                    safeSet('preview-activities', activities);
-                    safeSet('preview-meals', meals);
-                    safeSet('preview-base-total', baseCost);
+                    // Customer Quote — shown in the selected quote currency (base MYR)
+                    customerSafeSet('preview-hotels', hotels);
+                    customerSafeSet('preview-transport', transport);
+                    customerSafeSet('preview-activities', activities);
+                    customerSafeSet('preview-meals', meals);
+                    customerSafeSet('preview-base-total', baseCost);
                     safeSet('preview-markup-perc', markupPerc);
-                    safeSet('preview-markup', markupAmount);
-                    safeSet('preview-child-addon', childAddOn);
+                    customerSafeSet('preview-markup', markupAmount);
+                    customerSafeSet('preview-child-addon', childAddOn);
                     const customerTotalEl = document.getElementById('preview-grand-total');
                     if (customerTotalEl) {
                         const useFixed = b2bPricingMode === 'fixed' && b2bFixedPrice > 0;
