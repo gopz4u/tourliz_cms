@@ -672,10 +672,14 @@
                 const currency = "{{ $itinerary['currency'] ?? 'INR' }}";
                 const destinationId = "{{ $itinerary['destination_id'] ?? '' }}";
 
-                let b2bPricingMode = @json(data_get($itinerary, 'pricing_mode', 'live'));
-                let b2bFixedPrice = parseFloat(@json(data_get($itinerary, 'fixed_price')) || 0) || 0;
-                let b2bFixedPriceCurrency = @json(data_get($itinerary, 'fixed_price_currency') ?: data_get($itinerary, 'quote_currency') ?: data_get($itinerary, 'currency', 'MYR'));
-                let b2bFixedItineraryId = @json(data_get($itinerary, 'fixed_itinerary_id'));
+                @php($b2bPricingMode = data_get($itinerary, 'pricing_mode', 'live'))
+                @php($b2bFixedPrice = data_get($itinerary, 'fixed_price'))
+                @php($b2bFixedPriceCurrency = data_get($itinerary, 'fixed_price_currency') ?: data_get($itinerary, 'quote_currency') ?: data_get($itinerary, 'currency', 'MYR'))
+                @php($b2bFixedItineraryId = data_get($itinerary, 'fixed_itinerary_id'))
+                let b2bPricingMode = @json($b2bPricingMode);
+                let b2bFixedPrice = parseFloat(@json($b2bFixedPrice) || 0) || 0;
+                let b2bFixedPriceCurrency = @json($b2bFixedPriceCurrency);
+                let b2bFixedItineraryId = @json($b2bFixedItineraryId);
 
                 window.updateB2BPricingModeUI = function () {
                     const checked = document.querySelector('input[name="pricing_mode_ui"]:checked');
