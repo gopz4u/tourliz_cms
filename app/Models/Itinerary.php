@@ -33,6 +33,19 @@ class Itinerary extends Model
         }
 
         try {
+            if (\Illuminate\Support\Facades\Schema::hasColumn('itineraries', 'package_id')
+                && \Illuminate\Support\Facades\DB::getDriverName() === 'mysql') {
+                $legacyPackageColumn = \Illuminate\Support\Facades\DB::selectOne(
+                    "SELECT IS_NULLABLE FROM information_schema.COLUMNS
+                     WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'itineraries'
+                     AND COLUMN_NAME = 'package_id' LIMIT 1"
+                );
+                if ($legacyPackageColumn && $legacyPackageColumn->IS_NULLABLE === 'NO') {
+                    \Illuminate\Support\Facades\DB::statement(
+                        'ALTER TABLE itineraries MODIFY package_id BIGINT UNSIGNED NULL DEFAULT NULL'
+                    );
+                }
+            }
             if (!\Illuminate\Support\Facades\Schema::hasColumn('itineraries', 'currency')) {
                 \Illuminate\Support\Facades\Schema::table('itineraries', function ($table) {
                     $table->string('currency', 10)->default('MYR')->after('status');

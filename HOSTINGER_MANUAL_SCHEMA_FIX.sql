@@ -105,6 +105,25 @@ CREATE TABLE IF NOT EXISTS `itinerary_day_items` (
 ALTER TABLE `itineraries`
     ADD COLUMN IF NOT EXISTS `currency` VARCHAR(10) NOT NULL DEFAULT 'MYR' AFTER `status`;
 
+-- Older Tourliz databases used itineraries.package_id as a mandatory field.
+-- Unified B2B/B2C itineraries do not belong to a package, so make it nullable
+-- only when that legacy column is present.
+SET @package_id_fix = IF(
+    EXISTS(
+        SELECT 1
+        FROM `information_schema`.`COLUMNS`
+        WHERE `TABLE_SCHEMA` = DATABASE()
+          AND `TABLE_NAME` = 'itineraries'
+          AND `COLUMN_NAME` = 'package_id'
+          AND `IS_NULLABLE` = 'NO'
+    ),
+    'ALTER TABLE `itineraries` MODIFY `package_id` BIGINT UNSIGNED NULL DEFAULT NULL',
+    'SELECT ''itineraries.package_id is already nullable or does not exist'' AS message'
+);
+PREPARE package_id_statement FROM @package_id_fix;
+EXECUTE package_id_statement;
+DEALLOCATE PREPARE package_id_statement;
+
 ALTER TABLE `itinerary_b2c_details`
     ADD COLUMN IF NOT EXISTS `currency` VARCHAR(10) NOT NULL DEFAULT 'MYR' AFTER `selling_price`;
 
@@ -136,9 +155,21 @@ WHERE `start_date` IS NOT NULL
 
 -- Verification output: each result should show the new columns.
 SHOW COLUMNS FROM `itineraries` LIKE 'currency';
+SHOW COLUMNS FROM `itineraries` LIKE 'package_id';
 SHOW COLUMNS FROM `itinerary_b2c_details` LIKE 'currency';
 SHOW COLUMNS FROM `itinerary_b2b_details` LIKE 'currency';
 SHOW TABLES LIKE 'itinerary_days';
 SHOW TABLES LIKE 'itinerary_day_items';
 SHOW COLUMNS FROM `custom_itineraries` LIKE 'travel_date_status';
 SHOW COLUMNS FROM `b2c_itineraries` LIKE 'travel_date_status';
+
+-- Diagnostic: this result should contain only fields that the application
+-- supplies on insert. Any unexpected legacy field listed here must be made
+-- nullable before unified itinerary creation can succeed.
+SELECT `COLUMN_NAME`, `COLUMN_TYPE`
+FROM `information_schema`.`COLUMNS`
+WHERE `TABLE_SCHEMA` = DATABASE()
+  AND `TABLE_NAME` = 'itineraries'
+  AND `IS_NULLABLE` = 'NO'
+  AND `COLUMN_DEFAULT` IS NULL
+  AND `EXTRA` NOT LIKE '%auto_increment%';
