@@ -28,6 +28,7 @@ class CreateUnifiedItinerariesTables extends Migration
                 $table->json('exclusions')->nullable();
                 $table->text('terms_conditions')->nullable();
                 $table->string('status')->default('draft')->index(); // draft, published, archived
+                $table->string('currency', 10)->default('MYR');
                 $table->boolean('is_published')->default(false)->index();
                 $table->foreignId('created_by')->nullable()->constrained('admins')->nullOnDelete();
                 $table->foreignId('updated_by')->nullable()->constrained('admins')->nullOnDelete();
@@ -79,6 +80,7 @@ class CreateUnifiedItinerariesTables extends Migration
                 $table->foreignId('itinerary_id')->constrained('itineraries')->onDelete('cascade');
                 $table->foreignId('agency_id')->nullable()->constrained('agencies')->nullOnDelete();
                 $table->decimal('net_rate', 12, 2)->default(0.00);
+                $table->string('currency', 10)->default('MYR');
                 $table->decimal('agent_rate', 12, 2)->default(0.00);
                 $table->decimal('markup_percentage', 8, 2)->default(0.00);
                 $table->decimal('markup_amount', 12, 2)->default(0.00);
@@ -105,6 +107,7 @@ class CreateUnifiedItinerariesTables extends Migration
                 $table->foreignId('itinerary_id')->constrained('itineraries')->onDelete('cascade');
                 $table->text('short_description')->nullable();
                 $table->decimal('selling_price', 12, 2)->default(0.00);
+                $table->string('currency', 10)->default('MYR');
                 $table->decimal('child_price', 12, 2)->nullable();
                 $table->string('image')->nullable();
                 $table->json('gallery')->nullable();

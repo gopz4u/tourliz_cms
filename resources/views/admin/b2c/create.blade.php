@@ -178,13 +178,31 @@
                                 </select>
                             </div>
                             <div class="col-md-4">
-                                <label class="form-label fw-bold small text-muted">Arrival Date (Start)</label>
-                                <input type="date" name="start_date" class="form-control" value="{{ date('Y-m-d') }}">
-                            </div>
-                            <div class="col-md-4">
                                 <label class="form-label fw-bold small text-muted">Duration (Days) <span
                                         class="text-danger">*</span></label>
                                 <input type="number" name="duration_days" class="form-control" value="5" min="1" required>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label fw-bold small text-muted">Travel date status</label>
+                                <select name="travel_date_status" id="travel-date-status" class="form-select">
+                                    <option value="tbd" {{ old('travel_date_status', 'tbd') === 'tbd' ? 'selected' : '' }}>Date not decided</option>
+                                    <option value="flexible" {{ old('travel_date_status') === 'flexible' ? 'selected' : '' }}>Flexible month</option>
+                                    <option value="exact" {{ old('travel_date_status') === 'exact' ? 'selected' : '' }}>Exact date</option>
+                                </select>
+                            </div>
+                            <div class="col-md-4" id="exact-date-field">
+                                <label class="form-label fw-bold small text-muted">Departure date</label>
+                                <input type="date" name="start_date" class="form-control" value="{{ old('start_date') }}">
+                            </div>
+                            <div class="col-md-4" id="flexible-month-field">
+                                <label class="form-label fw-bold small text-muted">Preferred month</label>
+                                <input type="month" name="preferred_travel_month" class="form-control" value="{{ old('preferred_travel_month') }}">
+                            </div>
+                            <div class="col-md-8">
+                                <label class="form-label fw-bold small text-muted">Date preference notes</label>
+                                <input type="text" name="travel_date_notes" class="form-control" value="{{ old('travel_date_notes') }}"
+                                    placeholder="e.g. Any week after school holidays">
+                                <div class="form-text">Leave the exact date empty while this customer is still deciding.</div>
                             </div>
                             <div class="col-12 mt-2">
                                 <label class="form-label fw-bold small text-muted">Additional Countries Covered</label>
@@ -238,6 +256,21 @@ document.addEventListener('DOMContentLoaded', function() {
     const sourceRadios = document.querySelectorAll('.import-source-radio');
     const destinationSelect = document.querySelector('select[name="destination_id"]');
     const fixedPriceChoice = document.getElementById('fixed-price-choice');
+    const travelDateStatus = document.getElementById('travel-date-status');
+    const exactDateField = document.getElementById('exact-date-field');
+    const flexibleMonthField = document.getElementById('flexible-month-field');
+
+    function updateTravelDateFields() {
+        const isExact = travelDateStatus.value === 'exact';
+        exactDateField.classList.toggle('d-none', !isExact);
+        flexibleMonthField.classList.toggle('d-none', travelDateStatus.value !== 'flexible');
+        const exactDateInput = exactDateField.querySelector('input');
+        exactDateInput.required = isExact;
+        if (!isExact) exactDateInput.value = '';
+    }
+
+    travelDateStatus.addEventListener('change', updateTravelDateFields);
+    updateTravelDateFields();
 
     function selectSource(source) {
         const radio = document.getElementById(`import_source_${source}`);

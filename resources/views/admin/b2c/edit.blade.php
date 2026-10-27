@@ -303,11 +303,24 @@
                                     <input type="text" id="proposal-title" class="form-control form-control-sm"
                                         value="{{ data_get($itinerary, 'title') }}">
                                 </div>
-                                <div class="row g-2 mb-3">
-                                    <div class="col-md-7">
-                                        <label class="form-label small text-muted mb-1">Arrival Date</label>
+                                <div class="mb-2">
+                                    <label class="form-label small text-muted mb-1">Travel date status</label>
+                                    <select id="travel-date-status" class="form-select form-select-sm">
+                                        <option value="tbd" {{ $itinerary->effective_travel_date_status === 'tbd' ? 'selected' : '' }}>Date not decided</option>
+                                        <option value="flexible" {{ $itinerary->effective_travel_date_status === 'flexible' ? 'selected' : '' }}>Flexible month</option>
+                                        <option value="exact" {{ $itinerary->effective_travel_date_status === 'exact' ? 'selected' : '' }}>Exact date</option>
+                                    </select>
+                                </div>
+                                <div class="row g-2 mb-2">
+                                    <div class="col-md-7" id="exact-date-field">
+                                        <label class="form-label small text-muted mb-1">Departure date</label>
                                         <input type="date" id="arrival-date" class="form-control form-control-sm"
                                             value="{{ data_get($itinerary, 'start_date') ? \Carbon\Carbon::parse(data_get($itinerary, 'start_date'))->format('Y-m-d') : '' }}">
+                                    </div>
+                                    <div class="col-md-7" id="flexible-month-field">
+                                        <label class="form-label small text-muted mb-1">Preferred month</label>
+                                        <input type="month" id="preferred-travel-month" class="form-control form-control-sm"
+                                            value="{{ data_get($itinerary, 'preferred_travel_month') }}">
                                     </div>
                                     <div class="col-md-5">
                                         <label class="form-label small text-muted mb-1">Days</label>
@@ -399,6 +412,11 @@
                                         <input class="form-check-input pricing-mode-radio" type="radio" name="pricing_mode_ui" id="pricing-mode-live" value="live" {{ data_get($itinerary, 'pricing_mode', 'live') !== 'fixed' ? 'checked' : '' }}>
                                         <label class="form-check-label small fw-semibold" for="pricing-mode-live">Live calculated rate</label>
                                     </div>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label small text-muted mb-1">Date preference notes</label>
+                                    <input type="text" id="travel-date-notes" class="form-control form-control-sm"
+                                        value="{{ data_get($itinerary, 'travel_date_notes') }}" placeholder="e.g. After school holidays">
                                 </div>
                                 <div id="fixed-price-controls">
                                     <label class="form-label small text-muted mb-1">Editable fixed price parameter</label>
@@ -669,6 +687,9 @@
             <input type="hidden" name="next_followup_date" id="formNextFollowup">
 
             <input type="hidden" name="start_date" id="formArrivalDate">
+            <input type="hidden" name="travel_date_status" id="formTravelDateStatus">
+            <input type="hidden" name="preferred_travel_month" id="formPreferredTravelMonth">
+            <input type="hidden" name="travel_date_notes" id="formTravelDateNotes">
             <input type="hidden" name="duration_days" id="formDuration">
             <input type="hidden" name="supplier_id" id="formSupplier">
 
@@ -809,6 +830,19 @@
         let fixedPriceCurrency = @json(data_get($itinerary, 'fixed_price_currency') ?: data_get($itinerary, 'quote_currency') ?: 'MYR');
         let pricingMode = @json(data_get($itinerary, 'pricing_mode', 'live'));
         const destinationId = "{{ data_get($itinerary, 'destination_id') }}";
+
+        function updateTravelDateFields() {
+            const status = document.getElementById('travel-date-status');
+            const exactField = document.getElementById('exact-date-field');
+            const monthField = document.getElementById('flexible-month-field');
+            if (!status || !exactField || !monthField) return;
+            exactField.classList.toggle('d-none', status.value !== 'exact');
+            monthField.classList.toggle('d-none', status.value !== 'flexible');
+        }
+        document.addEventListener('DOMContentLoaded', function () {
+            document.getElementById('travel-date-status')?.addEventListener('change', updateTravelDateFields);
+            updateTravelDateFields();
+        });
 
         function ensureArray(arr) { return Array.isArray(arr) ? arr : []; }
         function safeFloat(val) {
@@ -2635,6 +2669,16 @@
         }
 
         document.getElementById('saveBtn').addEventListener('click', function () {
+            const leadStage = document.getElementById('followup-status').value;
+            const arrivalDate = document.getElementById('arrival-date').value;
+            if (['confirmed', 'converted', 'travelled'].includes(leadStage) && !arrivalDate) {
+                alert('Set an exact departure date before confirming this lead.');
+                document.getElementById('travel-date-status').value = 'exact';
+                updateTravelDateFields();
+                document.getElementById('arrival-date').focus();
+                return;
+            }
+
             // Collect involved vendors
             const selectedVendors = [];
             $('.vendor-cb:checked').each(function() {
@@ -2676,6 +2720,9 @@
             document.getElementById('formFollowupStatus').value = document.getElementById('followup-status').value;
             document.getElementById('formNextFollowup').value = document.getElementById('next-followup').value;
             document.getElementById('formArrivalDate').value = document.getElementById('arrival-date').value;
+            document.getElementById('formTravelDateStatus').value = document.getElementById('travel-date-status').value;
+            document.getElementById('formPreferredTravelMonth').value = document.getElementById('preferred-travel-month').value;
+            document.getElementById('formTravelDateNotes').value = document.getElementById('travel-date-notes').value;
             document.getElementById('formDuration').value = document.getElementById('trip-duration').value;
             document.getElementById('formNotes').value = document.getElementById('proposal-notes').value;
             document.getElementById('formOverview').value = document.getElementById('proposal-overview').value;

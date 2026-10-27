@@ -43,7 +43,7 @@
     <div class="card mb-3">
         <div class="card-body bg-light border-bottom">
             <form action="{{ route('admin.b2c-itineraries.index') }}" method="GET" class="row g-2 align-items-end">
-                <div class="col-md-3">
+                <div class="col-md-2">
                     <label class="form-label small fw-bold">Search (Name, Phone, ID)</label>
                     <input type="text" name="search" class="form-control form-control-sm" placeholder="e.g. B2C-2024..."
                         value="{{ request('search') }}">
@@ -63,21 +63,31 @@
                     <label class="form-label small fw-bold">Source</label>
                     <select name="source" class="form-select form-select-sm">
                         <option value="">All Sources</option>
-                        <option value="walk_in">Walk-in</option>
-                        <option value="call">Call</option>
-                        <option value="social">Social Media</option>
+                        <option value="walk_in" {{ request('source') == 'walk_in' ? 'selected' : '' }}>Walk-in</option>
+                        <option value="call" {{ request('source') == 'call' ? 'selected' : '' }}>Call</option>
+                        <option value="social" {{ request('source') == 'social' ? 'selected' : '' }}>Social Media</option>
                     </select>
                 </div>
                 <div class="col-md-2">
                     <label class="form-label small fw-bold">Followup</label>
                     <select name="status" class="form-select form-select-sm">
                         <option value="">All Leads</option>
-                        <option value="leads">New Leads</option>
-                        <option value="interested">Interested</option>
-                        <option value="converted">Converted</option>
+                        <option value="leads" {{ request('status') == 'leads' ? 'selected' : '' }}>New Leads</option>
+                        <option value="interested" {{ request('status') == 'interested' ? 'selected' : '' }}>Interested</option>
+                        <option value="converted" {{ request('status') == 'converted' ? 'selected' : '' }}>Converted</option>
                     </select>
                 </div>
-                <div class="col-md-3 d-flex gap-2">
+                <div class="col-md-2">
+                    <label class="form-label small fw-bold">Travel Date</label>
+                    <select name="date_status" class="form-select form-select-sm">
+                        <option value="">All Dates</option>
+                        <option value="unscheduled" {{ request('date_status') == 'unscheduled' ? 'selected' : '' }}>Unscheduled</option>
+                        <option value="tbd" {{ request('date_status') == 'tbd' ? 'selected' : '' }}>Date TBD</option>
+                        <option value="flexible" {{ request('date_status') == 'flexible' ? 'selected' : '' }}>Flexible</option>
+                        <option value="exact" {{ request('date_status') == 'exact' ? 'selected' : '' }}>Exact Date</option>
+                    </select>
+                </div>
+                <div class="col-md-2 d-flex gap-2">
                     <button type="submit" class="btn btn-sm btn-primary px-3">Filter</button>
                     <a href="{{ route('admin.b2c-itineraries.index') }}"
                         class="btn btn-sm btn-outline-secondary px-3">Reset</a>
@@ -127,6 +137,12 @@
                                     @endif
                                     <small class="text-muted">{{ $it->destination->name ?? '' }} |
                                         {{ $it->duration_days }}D</small>
+                                    @php
+                                        $dateTone = $it->effective_travel_date_status === 'exact'
+                                            ? 'success'
+                                            : ($it->effective_travel_date_status === 'flexible' ? 'warning' : 'secondary');
+                                    @endphp
+                                    <div class="mt-1"><span class="badge bg-{{ $dateTone }}-subtle text-{{ $dateTone }} border border-{{ $dateTone }}-subtle"><i class="bi bi-calendar3 me-1"></i>{{ $it->travel_date_label }}</span></div>
                                 </td>
                                 <td>
                                     <div class="small fw-bold text-dark"><i

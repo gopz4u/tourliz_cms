@@ -169,7 +169,45 @@ class B2BItineraryModuleTest extends TestCase
         $this->assertDatabaseHas('custom_itineraries', [
             'title' => 'Malaysia 5D4N B2B Tour',
             'agency_id' => $this->agency->id,
+            'travel_date_status' => 'exact',
         ]);
+    }
+
+    /** @test */
+    public function b2b_lead_can_use_a_flexible_month_without_an_exact_departure_date()
+    {
+        $response = $this->actingAs($this->admin)->post(route('admin.b2b-itineraries.store'), [
+            'agency_id' => $this->agency->id,
+            'destination_id' => $this->country->id,
+            'title' => 'Flexible Agency Lead',
+            'client_name' => 'Planning Client',
+            'duration_days' => 5,
+            'travel_date_status' => 'flexible',
+            'preferred_travel_month' => '2027-02',
+            'travel_date_notes' => 'Avoid the school holiday week.',
+        ]);
+
+        $response->assertSessionHasNoErrors()->assertRedirect();
+        $lead = CustomItinerary::where('title', 'Flexible Agency Lead')->firstOrFail();
+        $this->assertNull($lead->start_date);
+        $this->assertSame('flexible', $lead->travel_date_status);
+        $this->assertSame('2027-02', $lead->preferred_travel_month);
+        $this->assertSame('Feb 2027 (Flexible)', $lead->travel_date_label);
+
+        $this->actingAs($this->admin)->get(route('admin.b2b-itineraries.index', ['date_status' => 'unscheduled']))
+            ->assertOk()->assertSee('Flexible Agency Lead')->assertSee('Feb 2027 (Flexible)');
+    }
+
+    /** @test */
+    public function exact_b2b_date_is_required_only_when_exact_is_selected()
+    {
+        $this->actingAs($this->admin)->post(route('admin.b2b-itineraries.store'), [
+            'agency_id' => $this->agency->id,
+            'destination_id' => $this->country->id,
+            'title' => 'Exact Date Lead',
+            'duration_days' => 3,
+            'travel_date_status' => 'exact',
+        ])->assertSessionHasErrors('start_date');
     }
 
     /** @test */
@@ -203,6 +241,27 @@ class B2BItineraryModuleTest extends TestCase
             'id' => $itinerary->id,
             'followup_status' => 'interested',
         ]);
+    }
+
+    /** @test */
+    public function b2b_lead_cannot_be_converted_until_an_exact_date_is_set()
+    {
+        $itinerary = CustomItinerary::create([
+            'user_id' => $this->admin->id,
+            'agency_id' => $this->agency->id,
+            'destination_id' => $this->country->id,
+            'title' => 'Undated B2B Lead',
+            'duration_days' => 2,
+            'travel_date_status' => 'tbd',
+            'followup_status' => 'leads',
+        ]);
+
+        $this->actingAs($this->admin)
+            ->patchJson(route('admin.b2b-itineraries.updateStatus', $itinerary->id), ['status' => 'converted'])
+            ->assertStatus(422)
+            ->assertJsonPath('errors.start_date.0', 'An exact departure date is required before conversion.');
+
+        $this->assertSame('leads', $itinerary->fresh()->followup_status);
     }
 
     /** @test */

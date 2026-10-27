@@ -83,7 +83,49 @@ class B2CItineraryModuleTest extends TestCase
         $this->assertDatabaseHas('b2c_itineraries', [
             'title' => 'Bangkok 4D3N Vacation',
             'client_name' => 'Alice Smith',
+            'travel_date_status' => 'tbd',
+            'start_date' => null,
         ]);
+    }
+
+    /** @test */
+    public function walk_in_lead_can_be_saved_with_a_flexible_month_and_no_exact_date()
+    {
+        $response = $this->actingAs($this->admin)->post(route('admin.b2c-itineraries.store'), [
+            'destination_id' => $this->country->id,
+            'title' => 'Flexible Walk-in Trip',
+            'client_name' => 'Walk-in Customer',
+            'phone' => '60123456789',
+            'duration_days' => 4,
+            'lead_source' => 'walk_in',
+            'travel_date_status' => 'flexible',
+            'preferred_travel_month' => '2027-03',
+            'travel_date_notes' => 'Any week after school holidays.',
+        ]);
+
+        $response->assertSessionHasNoErrors()->assertRedirect();
+        $lead = B2CItinerary::where('title', 'Flexible Walk-in Trip')->firstOrFail();
+        $this->assertNull($lead->start_date);
+        $this->assertSame('flexible', $lead->travel_date_status);
+        $this->assertSame('Mar 2027 (Flexible)', $lead->travel_date_label);
+        $this->assertTrue(B2CItinerary::whereIn('travel_date_status', ['tbd', 'flexible'])
+            ->whereKey($lead->id)->exists());
+
+        $this->actingAs($this->admin)->get(route('admin.b2c-itineraries.index', ['date_status' => 'unscheduled']))
+            ->assertOk()
+            ->assertViewHas('itineraries', fn ($itineraries) => $itineraries->contains('id', $lead->id));
+    }
+
+    /** @test */
+    public function exact_b2c_date_is_required_only_when_exact_is_selected()
+    {
+        $this->actingAs($this->admin)->post(route('admin.b2c-itineraries.store'), [
+            'destination_id' => $this->country->id,
+            'title' => 'Exact Walk-in Trip',
+            'client_name' => 'Exact Date Customer',
+            'duration_days' => 3,
+            'travel_date_status' => 'exact',
+        ])->assertSessionHasErrors('start_date');
     }
 
     /** @test */
@@ -288,6 +330,27 @@ class B2CItineraryModuleTest extends TestCase
             'id' => $itinerary->id,
             'followup_status' => 'interested',
         ]);
+    }
+
+    /** @test */
+    public function b2c_lead_cannot_be_confirmed_until_an_exact_date_is_set()
+    {
+        $itinerary = B2CItinerary::create([
+            'user_id' => $this->admin->id,
+            'destination_id' => $this->country->id,
+            'title' => 'Undated Direct Lead',
+            'client_name' => 'Undated Customer',
+            'duration_days' => 3,
+            'travel_date_status' => 'tbd',
+            'followup_status' => 'leads',
+        ]);
+
+        $this->actingAs($this->admin)
+            ->patchJson(route('admin.b2c-itineraries.updateStatus', $itinerary->id), ['status' => 'confirmed'])
+            ->assertStatus(422)
+            ->assertJsonPath('errors.start_date.0', 'An exact departure date is required before confirmation.');
+
+        $this->assertSame('leads', $itinerary->fresh()->followup_status);
     }
 
     /** @test */

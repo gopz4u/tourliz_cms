@@ -22,8 +22,11 @@ class DashboardController extends Controller
             'bookings' => Booking::count(),
             'b2b_leads' => CustomItinerary::count(),
             'b2c_leads' => B2CItinerary::count(),
+            'b2b_undated' => CustomItinerary::whereIn('travel_date_status', ['tbd', 'flexible'])->count(),
+            'b2c_undated' => B2CItinerary::whereIn('travel_date_status', ['tbd', 'flexible'])->count(),
             'pending_reviews' => \App\Models\Review::where('status', 'pending')->count(),
         ];
+        $stats['undated_leads'] = $stats['b2b_undated'] + $stats['b2c_undated'];
 
         // --- Advanced Sales Analytics ---
         // Eloquent's SoftDeletes scope keeps deleted customers out of every

@@ -87,16 +87,33 @@
                                 placeholder="e.g. Mr. Smith Family">
                         </div>
 
-                        <div class="row mb-4">
-                            <div class="col-md-6">
+                        <div class="row g-3 mb-4">
+                            <div class="col-md-4">
                                 <label class="form-label">Duration (Days) <span class="text-danger">*</span></label>
                                 <input type="number" name="duration_days" class="form-control"
                                     value="{{ old('duration_days', 3) }}" min="1" required>
                             </div>
-                            <div class="col-md-6">
-                                <label class="form-label">Arrival Date (Start) <small
-                                        class="text-muted">(Optional)</small></label>
+                            <div class="col-md-4">
+                                <label class="form-label">Travel date status</label>
+                                <select name="travel_date_status" id="travel-date-status" class="form-select">
+                                    <option value="tbd" {{ old('travel_date_status', 'tbd') === 'tbd' ? 'selected' : '' }}>Date not decided</option>
+                                    <option value="flexible" {{ old('travel_date_status') === 'flexible' ? 'selected' : '' }}>Flexible month</option>
+                                    <option value="exact" {{ old('travel_date_status') === 'exact' ? 'selected' : '' }}>Exact date</option>
+                                </select>
+                            </div>
+                            <div class="col-md-4" id="exact-date-field">
+                                <label class="form-label">Departure date</label>
                                 <input type="date" name="start_date" class="form-control" value="{{ old('start_date') }}">
+                            </div>
+                            <div class="col-md-4" id="flexible-month-field">
+                                <label class="form-label">Preferred month</label>
+                                <input type="month" name="preferred_travel_month" class="form-control" value="{{ old('preferred_travel_month') }}">
+                            </div>
+                            <div class="col-12">
+                                <label class="form-label">Date preference notes <small class="text-muted">(Optional)</small></label>
+                                <input type="text" name="travel_date_notes" class="form-control" value="{{ old('travel_date_notes') }}"
+                                    placeholder="e.g. After school holidays, any week in June">
+                                <div class="form-text">The departure date is only required when the proposal is confirmed.</div>
                             </div>
                         </div>
 
@@ -123,3 +140,25 @@
         </div>
     </div>
 @endsection
+
+@push('scripts')
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const status = document.getElementById('travel-date-status');
+            const exactField = document.getElementById('exact-date-field');
+            const monthField = document.getElementById('flexible-month-field');
+            const exactInput = exactField.querySelector('input');
+
+            function updateTravelDateFields() {
+                const isExact = status.value === 'exact';
+                exactField.classList.toggle('d-none', !isExact);
+                monthField.classList.toggle('d-none', status.value !== 'flexible');
+                exactInput.required = isExact;
+                if (!isExact) exactInput.value = '';
+            }
+
+            status.addEventListener('change', updateTravelDateFields);
+            updateTravelDateFields();
+        });
+    </script>
+@endpush

@@ -50,6 +50,9 @@ class AddMissingColumnsToItinerariesTable extends Migration
             if (!Schema::hasColumn('itineraries', 'status')) {
                 $table->string('status')->default('draft')->index()->after('terms_conditions');
             }
+            if (!Schema::hasColumn('itineraries', 'currency')) {
+                $table->string('currency', 10)->default('MYR')->after('status');
+            }
             if (!Schema::hasColumn('itineraries', 'is_published')) {
                 $table->boolean('is_published')->default(false)->index()->after('status');
             }

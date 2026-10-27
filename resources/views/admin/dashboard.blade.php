@@ -202,6 +202,8 @@
                 <div class="quote-breakdown">
                     <div><span>B2C Quoted Revenue</span><strong>MYR {{ $salesStats['b2c_quoted'] }}</strong></div>
                     <div><span>B2B Quoted Revenue</span><strong>MYR {{ $salesStats['b2b_quoted'] }}</strong></div>
+                    <a href="{{ route('admin.b2c-itineraries.index', ['date_status' => 'unscheduled']) }}"><span><i class="bi bi-calendar-x me-1"></i>B2C needs travel date</span><strong>{{ $stats['b2c_undated'] }}</strong></a>
+                    <a href="{{ route('admin.b2b-itineraries.index', ['date_status' => 'unscheduled']) }}"><span><i class="bi bi-calendar-x me-1"></i>B2B needs travel date</span><strong>{{ $stats['b2b_undated'] }}</strong></a>
                 </div>
             </aside>
         </div>
@@ -405,7 +407,9 @@
         .pulse-dot { position:absolute; width:5px; height:5px; right:.55rem; top:.55rem; border-radius:50%; }
         .pulse-dot.coral { background:var(--dash-coral); } .pulse-dot.violet { background:var(--dash-violet); } .pulse-dot.blue { background:var(--dash-blue); }
         .quote-breakdown { display:grid; gap:.5rem; padding:.9rem 1.25rem 0; }
-        .quote-breakdown div { display:flex; justify-content:space-between; gap:1rem; color:var(--dash-muted); font-size:.61rem; }
+        .quote-breakdown div, .quote-breakdown a { display:flex; justify-content:space-between; gap:1rem; color:var(--dash-muted); font-size:.61rem; text-decoration:none; }
+        .quote-breakdown a { padding-top:.45rem; border-top:1px solid var(--dash-line); }
+        .quote-breakdown a:hover { color:var(--dash-violet); }
         .quote-breakdown strong { color:var(--dash-ink); font-size:.62rem; }
 
         .trips-card { margin-bottom:.9rem; }

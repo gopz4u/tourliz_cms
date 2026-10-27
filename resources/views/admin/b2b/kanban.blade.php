@@ -352,6 +352,10 @@
                         {{ $itinerary->destination->name ?? '—' }}
                         &bull; {{ $itinerary->duration_days }}D
                     </div>
+                    <div class="card-dest">
+                        <i class="bi bi-calendar3" style="font-size:.65rem;"></i>
+                        {{ $itinerary->travel_date_label }}
+                    </div>
 
                     <div class="card-meta">
                         <span class="card-price">{{ $itinerary->currency }} {{ number_format($itinerary->total_price, 0) }}</span>

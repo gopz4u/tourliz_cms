@@ -141,7 +141,7 @@
                         @endfor
                     </select>
                 </div>
-                <div class="col-md-2">
+                <div class="col-md-1">
                     <label class="form-label small fw-bold">Payment Status</label>
                     <select name="status" class="form-select form-select-sm">
                         <option value="">All Status</option>
@@ -151,7 +151,7 @@
                         <option value="paid" {{ request('status') == 'paid' ? 'selected' : '' }}>Fully Paid</option>
                     </select>
                 </div>
-                <div class="col-md-2">
+                <div class="col-md-1">
                     <label class="form-label small fw-bold">Followup</label>
                     <select name="followup" class="form-select form-select-sm">
                         <option value="">All Leads</option>
@@ -163,6 +163,16 @@
                         </option>
                         <option value="not_interested" {{ request('followup') == 'not_interested' ? 'selected' : '' }}>Not
                             Interested</option>
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label small fw-bold">Travel Date</label>
+                    <select name="date_status" class="form-select form-select-sm">
+                        <option value="">All Dates</option>
+                        <option value="unscheduled" {{ request('date_status') == 'unscheduled' ? 'selected' : '' }}>Unscheduled</option>
+                        <option value="tbd" {{ request('date_status') == 'tbd' ? 'selected' : '' }}>Date TBD</option>
+                        <option value="flexible" {{ request('date_status') == 'flexible' ? 'selected' : '' }}>Flexible</option>
+                        <option value="exact" {{ request('date_status') == 'exact' ? 'selected' : '' }}>Exact Date</option>
                     </select>
                 </div>
                 <div class="col-md-1 d-flex gap-2">
@@ -195,6 +205,12 @@
                                             <div class="fw-bold text-dark">{{ $itinerary->title }}</div>
                                             <small class="text-muted"><i
                                                     class="bi bi-person me-1"></i>{{ $itinerary->client_name ?? 'Guest' }}</small>
+                                            @php
+                                                $dateTone = $itinerary->effective_travel_date_status === 'exact'
+                                                    ? 'success'
+                                                    : ($itinerary->effective_travel_date_status === 'flexible' ? 'warning' : 'secondary');
+                                            @endphp
+                                            <div class="mt-1"><span class="badge bg-{{ $dateTone }}-subtle text-{{ $dateTone }} border border-{{ $dateTone }}-subtle"><i class="bi bi-calendar3 me-1"></i>{{ $itinerary->travel_date_label }}</span></div>
                                         </td>
                                         <td>
                                             <span
@@ -228,7 +244,7 @@
                                             </div>
                                         </td>
                                         <td>
-                            @php
+                                            @php
                                 $fStatus = $itinerary->followup_status ?? 'leads';
                                 $fBadge = 'bg-secondary';
                                 if ($fStatus == 'interested')
@@ -239,7 +255,7 @@
                                     $fBadge = 'bg-warning text-dark';
                                 if ($fStatus == 'not_interested' || $fStatus == 'dead')
                                     $fBadge = 'bg-danger';
-                            @endphp
+                                            @endphp
                                             <span class="badge {{ $fBadge }} w-100 mb-1"
                                                 style="font-size: 0.65rem;">{{ strtoupper($fStatus) }}</span>
                                             @if($itinerary->followed_up_at)

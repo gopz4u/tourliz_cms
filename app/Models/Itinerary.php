@@ -10,6 +10,58 @@ class Itinerary extends Model
 {
     use HasFactory, SoftDeletes;
 
+    /**
+     * Hostinger deployments do not always execute pending migrations. Keep the
+     * normalized itinerary currency columns self-healing before any write so
+     * imports cannot fail halfway through with an unknown-column exception.
+     */
+    public static function ensureCurrencySchema(): void
+    {
+        static $checked = false;
+
+        if (!\Illuminate\Support\Facades\Schema::hasTable('itineraries')) {
+            return;
+        }
+
+        $schemaComplete = \Illuminate\Support\Facades\Schema::hasColumn('itineraries', 'currency')
+            && (!\Illuminate\Support\Facades\Schema::hasTable('itinerary_b2c_details')
+                || \Illuminate\Support\Facades\Schema::hasColumn('itinerary_b2c_details', 'currency'))
+            && (!\Illuminate\Support\Facades\Schema::hasTable('itinerary_b2b_details')
+                || \Illuminate\Support\Facades\Schema::hasColumn('itinerary_b2b_details', 'currency'));
+        if ($checked && $schemaComplete) {
+            return;
+        }
+
+        try {
+            if (!\Illuminate\Support\Facades\Schema::hasColumn('itineraries', 'currency')) {
+                \Illuminate\Support\Facades\Schema::table('itineraries', function ($table) {
+                    $table->string('currency', 10)->default('MYR')->after('status');
+                });
+            }
+            if (\Illuminate\Support\Facades\Schema::hasTable('itinerary_b2c_details')
+                && !\Illuminate\Support\Facades\Schema::hasColumn('itinerary_b2c_details', 'currency')) {
+                \Illuminate\Support\Facades\Schema::table('itinerary_b2c_details', function ($table) {
+                    $table->string('currency', 10)->default('MYR')->after('selling_price');
+                });
+            }
+            if (\Illuminate\Support\Facades\Schema::hasTable('itinerary_b2b_details')
+                && !\Illuminate\Support\Facades\Schema::hasColumn('itinerary_b2b_details', 'currency')) {
+                \Illuminate\Support\Facades\Schema::table('itinerary_b2b_details', function ($table) {
+                    $table->string('currency', 10)->default('MYR')->after('net_rate');
+                });
+            }
+            $checked = true;
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::warning('Unified itinerary currency schema repair failed: ' . $e->getMessage());
+        }
+    }
+
+    protected static function boot()
+    {
+        parent::boot();
+        static::ensureCurrencySchema();
+    }
+
     protected $table = 'itineraries';
 
     protected $fillable = [
@@ -196,4 +248,3 @@ class Itinerary extends Model
         return $converted;
     }
 }
-

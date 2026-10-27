@@ -9,6 +9,7 @@ use App\Models\Destination;
 use App\Helpers\ItineraryHelper;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
+use Illuminate\Validation\Rule;
 use Barryvdh\DomPDF\Facade\Pdf;
 
 class B2BItineraryController extends Controller
@@ -45,6 +46,13 @@ class B2BItineraryController extends Controller
             }
             if ($includeFollowup && $request->filled('followup')) {
                 $query->where('followup_status', $request->followup);
+            }
+            if ($request->filled('date_status')) {
+                if ($request->date_status === 'unscheduled') {
+                    $query->whereIn('travel_date_status', ['tbd', 'flexible']);
+                } else {
+                    $query->where('travel_date_status', $request->date_status);
+                }
             }
 
             return $query;
@@ -113,6 +121,8 @@ class B2BItineraryController extends Controller
      */
     public function store(Request $request)
     {
+        $this->prepareTravelDateRequest($request);
+
         $request->validate([
             'agency_id' => 'required|exists:agencies,id',
             'destination_id' => 'required|exists:countries,id',
@@ -121,7 +131,10 @@ class B2BItineraryController extends Controller
             'title' => 'required|string|max:255',
             'client_name' => 'nullable|string|max:255',
             'duration_days' => 'required|integer|min:1',
-            'start_date' => 'nullable|date',
+            'travel_date_status' => 'required|in:tbd,flexible,exact',
+            'start_date' => ['nullable', 'date', Rule::requiredIf($request->travel_date_status === 'exact')],
+            'preferred_travel_month' => 'nullable|date_format:Y-m',
+            'travel_date_notes' => 'nullable|string|max:255',
         ]);
 
         // Generate blank/sample itinerary structure
@@ -133,7 +146,7 @@ class B2BItineraryController extends Controller
             // Keep structure clean
         }
 
-        $itinerary = CustomItinerary::create([
+        $itinerary = CustomItinerary::create(array_merge([
             'user_id' => $request->user_id ?? auth()->id(),
             'agency_id' => $request->agency_id,
             'destination_id' => $request->destination_id,
@@ -141,11 +154,10 @@ class B2BItineraryController extends Controller
             'title' => $request->title,
             'client_name' => $request->client_name,
             'duration_days' => $request->duration_days,
-            'start_date' => $request->start_date,
             'itinerary' => $itineraryStructure,
             'status' => 'draft',
             'markup_percentage' => 10.00, // Default markup
-        ]);
+        ], $this->travelDateData($request)));
 
         $itinerary->calculatePricing();
         $itinerary->save();
@@ -178,6 +190,9 @@ class B2BItineraryController extends Controller
     public function update(Request $request, $id)
     {
         $itinerary = CustomItinerary::findOrFail($id);
+        $requiresExactDate = in_array($request->input('followup_status', $itinerary->followup_status), ['converted'], true)
+            || $request->input('status', $itinerary->status) === 'confirmed';
+        $this->prepareTravelDateRequest($request, $requiresExactDate, $itinerary);
 
         $request->validate([
             'itinerary' => 'required|json',
@@ -204,6 +219,10 @@ class B2BItineraryController extends Controller
             'inclusions' => 'nullable|string',
             'exclusions' => 'nullable|string',
             'terms_conditions' => 'nullable|string',
+            'travel_date_status' => 'required|in:tbd,flexible,exact',
+            'start_date' => ['nullable', 'date', Rule::requiredIf($request->travel_date_status === 'exact')],
+            'preferred_travel_month' => 'nullable|date_format:Y-m',
+            'travel_date_notes' => 'nullable|string|max:255',
         ]);
 
         $itineraryData = json_decode($request->itinerary, true);
@@ -218,7 +237,7 @@ class B2BItineraryController extends Controller
             $itinerary->followed_up_at = now();
         }
 
-        $itinerary->fill([
+        $itinerary->fill(array_merge([
             'itinerary' => $itineraryData,
             'supplier_id' => $request->supplier_id,
             'markup_percentage' => $request->markup_percentage ?? $itinerary->markup_percentage,
@@ -245,7 +264,7 @@ class B2BItineraryController extends Controller
             'next_followup_date' => $request->next_followup_date,
             'status' => $request->status ?? $itinerary->status,
             'user_id' => $request->user_id ?? $itinerary->user_id,
-        ]);
+        ], $this->travelDateData($request)));
 
         $itinerary->calculatePricing();
         $itinerary->save();
@@ -451,6 +470,7 @@ class B2BItineraryController extends Controller
             'child_6_11_count' => $childLarge,
             'child_6_11_price' => $adultPrice * .5,
             'start_date' => $customItinerary->start_date,
+            'travel_date_label' => $customItinerary->travel_date_label,
             'quote_id' => $customItinerary->quote_id,
         ];
 
@@ -480,7 +500,7 @@ class B2BItineraryController extends Controller
             $text .= "Ref: " . $itinerary->quote_id . "\n";
             $text .= "Guest: " . ($itinerary->client_name ?? 'Guest') . "\n";
             $text .= "Pax: " . $itinerary->adults . "A + " . ($itinerary->children_2_6 + $itinerary->children_6_11) . "C\n";
-            $text .= "Start: " . ($itinerary->start_date ? $itinerary->start_date->format('d M Y') : 'TBA') . "\n";
+            $text .= "Start: " . $itinerary->travel_date_label . "\n";
             $text .= "Duration: " . $itinerary->duration_days . " Days\n\n";
 
             $data = $itinerary->itinerary ?? [];
@@ -540,6 +560,7 @@ class B2BItineraryController extends Controller
         $text .= "👤 *Prepared for:* " . ($itinerary->client_name ?: ($itinerary->agency->company_name ?? 'Agency Partner')) . "\n";
         $text .= "📍 *Destination:* " . ($itinerary->destination->name ?? 'N/A') . "\n";
         $text .= "🗓️ *Duration:* " . $itinerary->duration_days . " Days\n";
+        $text .= "📅 *Travel date:* " . $itinerary->travel_date_label . "\n";
         $text .= "👥 *Travelers:* " . $itinerary->adults . " Adults";
         if ($itinerary->children_2_6 > 0)
             $text .= ", " . $itinerary->children_2_6 . " Child (2-6y)";
@@ -642,6 +663,13 @@ class B2BItineraryController extends Controller
         ]);
 
         $itinerary = CustomItinerary::findOrFail($id);
+        if ($request->status === 'converted' && !$itinerary->start_date) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Set an exact departure date before converting this lead.',
+                'errors' => ['start_date' => ['An exact departure date is required before conversion.']],
+            ], 422);
+        }
         $itinerary->followup_status = $request->status;
         $itinerary->followed_up_at = now();
         $itinerary->save();
@@ -653,5 +681,31 @@ class B2BItineraryController extends Controller
     {
         if (is_array($value)) return array_values(array_filter(array_map('trim', $value)));
         return array_values(array_filter(array_map('trim', preg_split('/\r\n|\r|\n/', (string) $value))));
+    }
+
+    private function prepareTravelDateRequest(Request $request, bool $requiresExact = false, ?CustomItinerary $itinerary = null): void
+    {
+        $status = $request->input('travel_date_status');
+        if (!$status) {
+            $status = $request->filled('start_date')
+                ? 'exact'
+                : ($itinerary ? $itinerary->effective_travel_date_status : 'tbd');
+        }
+
+        $request->merge(['travel_date_status' => $requiresExact ? 'exact' : $status]);
+    }
+
+    private function travelDateData(Request $request): array
+    {
+        $isExact = $request->travel_date_status === 'exact';
+
+        return [
+            'travel_date_status' => $request->travel_date_status,
+            'start_date' => $isExact ? $request->start_date : null,
+            'preferred_travel_month' => $request->travel_date_status === 'flexible'
+                ? $request->preferred_travel_month
+                : null,
+            'travel_date_notes' => $request->travel_date_notes,
+        ];
     }
 }

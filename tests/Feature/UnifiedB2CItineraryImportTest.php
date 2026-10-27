@@ -11,6 +11,7 @@ use App\Models\ItineraryB2cDetail;
 use App\Models\ItineraryDay;
 use App\Models\ItineraryDayItem;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Schema;
 use Tests\TestCase;
 
 class UnifiedB2CItineraryImportTest extends TestCase
@@ -48,6 +49,25 @@ class UnifiedB2CItineraryImportTest extends TestCase
         $response->assertSee('Group Tour Master');
         $response->assertSee('Legacy B2C Itinerary');
         $response->assertSee('Unified B2C Template / Quote');
+    }
+
+    /** @test */
+    public function missing_production_currency_columns_are_repaired_before_an_import_write()
+    {
+        Schema::table('itineraries', function ($table) {
+            $table->dropColumn('currency');
+        });
+        Schema::table('itinerary_b2c_details', function ($table) {
+            $table->dropColumn('currency');
+        });
+
+        $this->assertFalse(Schema::hasColumn('itineraries', 'currency'));
+        $this->assertFalse(Schema::hasColumn('itinerary_b2c_details', 'currency'));
+
+        Itinerary::ensureCurrencySchema();
+
+        $this->assertTrue(Schema::hasColumn('itineraries', 'currency'));
+        $this->assertTrue(Schema::hasColumn('itinerary_b2c_details', 'currency'));
     }
 
     /** @test */

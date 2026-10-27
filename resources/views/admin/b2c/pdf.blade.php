@@ -86,7 +86,7 @@
         <td><span class="fact-mark">01</span><div class="label">Duration</div><div class="value">{{ $itinerary->duration }}</div></td>
         <td><span class="fact-mark">02</span><div class="label">Destination</div><div class="value">{{ $itinerary->destination->name ?? 'Multiple destinations' }}</div></td>
         <td><span class="fact-mark">03</span><div class="label">Travelers</div><div class="value">{{ $itinerary->travelers }}</div></td>
-        <td><span class="fact-mark">04</span><div class="label">Tour Starts</div><div class="value">{{ !empty($itinerary->start_date) ? \Carbon\Carbon::parse($itinerary->start_date)->format('d M Y') : 'To be confirmed' }}</div></td>
+        <td><span class="fact-mark">04</span><div class="label">Tour Starts</div><div class="value">{{ $itinerary->travel_date_label ?? (!empty($itinerary->start_date) ? \Carbon\Carbon::parse($itinerary->start_date)->format('d M Y') : 'Date TBD') }}</div></td>
     </tr></table>
 
     <div class="section">

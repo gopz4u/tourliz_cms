@@ -58,10 +58,47 @@ class B2CItinerary extends Model
         }
     }
 
+    public static function ensureTravelDateSchema(): void
+    {
+        static $checked = false;
+        $table = 'b2c_itineraries';
+
+        if ($checked || !\Illuminate\Support\Facades\Schema::hasTable($table)) {
+            return;
+        }
+
+        try {
+            if (!\Illuminate\Support\Facades\Schema::hasColumn($table, 'travel_date_status')) {
+                \Illuminate\Support\Facades\Schema::table($table, function ($blueprint) {
+                    $blueprint->string('travel_date_status', 20)->default('tbd')->index()->after('start_date');
+                });
+            }
+            if (!\Illuminate\Support\Facades\Schema::hasColumn($table, 'preferred_travel_month')) {
+                \Illuminate\Support\Facades\Schema::table($table, function ($blueprint) {
+                    $blueprint->string('preferred_travel_month', 7)->nullable()->after('travel_date_status');
+                });
+            }
+            if (!\Illuminate\Support\Facades\Schema::hasColumn($table, 'travel_date_notes')) {
+                \Illuminate\Support\Facades\Schema::table($table, function ($blueprint) {
+                    $blueprint->string('travel_date_notes')->nullable()->after('preferred_travel_month');
+                });
+            }
+
+            \Illuminate\Support\Facades\DB::table($table)
+                ->whereNotNull('start_date')
+                ->where('travel_date_status', 'tbd')
+                ->update(['travel_date_status' => 'exact']);
+            $checked = true;
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::warning('B2C travel-date schema repair failed: ' . $e->getMessage());
+        }
+    }
+
     protected static function boot()
     {
         parent::boot();
         static::ensureFixedPricingSchema();
+        static::ensureTravelDateSchema();
     }
 
     protected $table = 'b2c_itineraries';
@@ -79,6 +116,9 @@ class B2CItinerary extends Model
         'title',
         'short_description',
         'start_date',
+        'travel_date_status',
+        'preferred_travel_month',
+        'travel_date_notes',
         'duration_days',
         'itinerary',
         'highlights',
@@ -147,6 +187,31 @@ class B2CItinerary extends Model
         'exchange_rate_date' => 'date',
         'round_quote' => 'boolean',
     ];
+
+    public function getEffectiveTravelDateStatusAttribute(): string
+    {
+        return $this->travel_date_status ?: ($this->start_date ? 'exact' : 'tbd');
+    }
+
+    public function getTravelDateLabelAttribute(): string
+    {
+        if ($this->effective_travel_date_status === 'exact' && $this->start_date) {
+            return $this->start_date->format('d M Y');
+        }
+
+        if ($this->effective_travel_date_status === 'flexible') {
+            if ($this->preferred_travel_month) {
+                try {
+                    return \Carbon\Carbon::createFromFormat('Y-m', $this->preferred_travel_month)->format('M Y') . ' (Flexible)';
+                } catch (\Throwable $e) {
+                    return 'Flexible dates';
+                }
+            }
+            return 'Flexible dates';
+        }
+
+        return 'Date TBD';
+    }
 
     public function user()
     {

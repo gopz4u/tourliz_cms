@@ -345,6 +345,10 @@
                         {{ $lead->destination->name ?? '—' }}
                         &bull; {{ $lead->duration_days }}D
                     </div>
+                    <div class="card-dest">
+                        <i class="bi bi-calendar3" style="font-size:.65rem;"></i>
+                        {{ $lead->travel_date_label }}
+                    </div>
 
                     @if($lead->phone)
                     <div class="card-phone"><i class="bi bi-telephone" style="font-size:.6rem;"></i> {{ $lead->phone }}</div>

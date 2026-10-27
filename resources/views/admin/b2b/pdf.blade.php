@@ -495,12 +495,10 @@
                     @endif
                 </span>
             </td>
-            @if(data_get($itinerary, 'start_date'))
-                <td>
-                    <span class="summary-label">Tour Starts</span>
-                    <span class="summary-value">{{ \Carbon\Carbon::parse($itinerary->start_date)->format('d M Y') }}</span>
-                </td>
-            @endif
+            <td>
+                <span class="summary-label">Tour Starts</span>
+                <span class="summary-value">{{ $itinerary->travel_date_label }}</span>
+            </td>
         </tr>
     </table>
 

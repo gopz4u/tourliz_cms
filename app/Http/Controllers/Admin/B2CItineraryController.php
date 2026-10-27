@@ -9,6 +9,7 @@ use App\Helpers\ItineraryHelper;
 use App\Services\LeadFollowupScheduleService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
+use Illuminate\Validation\Rule;
 use Barryvdh\DomPDF\Facade\Pdf;
 
 class B2CItineraryController extends Controller
@@ -35,8 +36,17 @@ class B2CItineraryController extends Controller
             $query->whereMonth('created_at', $request->month);
         if ($request->filled('status'))
             $query->where('followup_status', $request->status);
+        if ($request->filled('source'))
+            $query->where('lead_source', $request->source);
+        if ($request->filled('date_status')) {
+            if ($request->date_status === 'unscheduled') {
+                $query->whereIn('travel_date_status', ['tbd', 'flexible']);
+            } else {
+                $query->where('travel_date_status', $request->date_status);
+            }
+        }
 
-        $itineraries = $query->orderBy('updated_at', 'desc')->paginate(15);
+        $itineraries = $query->orderBy('updated_at', 'desc')->paginate(15)->withQueryString();
         $destinations = \App\Models\Country::orderBy('name')->get();
 
         return view('admin.b2c.index', compact('itineraries', 'destinations'));
@@ -59,6 +69,7 @@ class B2CItineraryController extends Controller
     public function store(Request $request)
     {
         B2CItinerary::ensureFixedPricingSchema();
+        $this->prepareTravelDateRequest($request);
 
         if (!$request->filled('import_source')) {
             $request->merge(['import_source' => $request->filled('fixed_itinerary_id')
@@ -80,6 +91,10 @@ class B2CItineraryController extends Controller
             'duration_days' => 'required|integer|min:1',
             'phone' => 'nullable|string',
             'lead_source' => 'nullable|string',
+            'travel_date_status' => 'required|in:tbd,flexible,exact',
+            'start_date' => ['nullable', 'date', Rule::requiredIf($request->travel_date_status === 'exact')],
+            'preferred_travel_month' => 'nullable|date_format:Y-m',
+            'travel_date_notes' => 'nullable|string|max:255',
         ]);
 
         $itineraryStructure = null;
@@ -327,7 +342,6 @@ class B2CItineraryController extends Controller
             'client_name' => $request->client_name,
             'phone' => $request->phone,
             'email' => $request->email,
-            'start_date' => $request->start_date,
             'duration_days' => $request->duration_days,
             'itinerary' => $itineraryStructure,
             'highlights' => $masterContent['highlights'] ?? [],
@@ -336,7 +350,7 @@ class B2CItineraryController extends Controller
             'terms_conditions' => $masterContent['terms_conditions'] ?? null,
             'status' => 'draft',
             'lead_source' => $request->lead_source ?? 'walk_in',
-        ], $fixedPricing));
+        ], $fixedPricing, $this->travelDateData($request)));
 
         $itinerary->calculatePricing()->save();
 
@@ -365,6 +379,12 @@ class B2CItineraryController extends Controller
     {
         B2CItinerary::ensureFixedPricingSchema();
         $itinerary = B2CItinerary::findOrFail($id);
+        $requiresExactDate = in_array(
+            $request->input('followup_status', $itinerary->followup_status),
+            ['confirmed', 'converted', 'travelled'],
+            true
+        );
+        $this->prepareTravelDateRequest($request, $requiresExactDate, $itinerary);
 
         $request->validate([
             'itinerary' => 'required|json',
@@ -388,6 +408,10 @@ class B2CItineraryController extends Controller
             'pricing_mode' => 'nullable|in:fixed,live',
             'followup_status' => 'nullable|in:leads,quoted,interested,waiting,confirmed,cancelled,converted,dead,not_interested,travelled',
             'next_followup_date' => 'nullable|date',
+            'travel_date_status' => 'required|in:tbd,flexible,exact',
+            'start_date' => ['nullable', 'date', Rule::requiredIf($request->travel_date_status === 'exact')],
+            'preferred_travel_month' => 'nullable|date_format:Y-m',
+            'travel_date_notes' => 'nullable|string|max:255',
         ]);
 
         $prevStatus = $itinerary->followup_status;
@@ -425,7 +449,6 @@ class B2CItineraryController extends Controller
             'payment_details' => $request->payment_details,
             'followup_status' => $request->followup_status ?: 'leads',
             'next_followup_date' => $request->next_followup_date,
-            'start_date' => $request->start_date,
             'duration_days' => $request->duration_days,
             'notes' => $request->notes,
             'user_id' => $request->user_id ?? $itinerary->user_id,
@@ -440,6 +463,7 @@ class B2CItineraryController extends Controller
                 : null,
             'pricing_mode' => $useFixedPricing ? 'fixed' : 'live',
         ];
+        $proposalUpdates = array_merge($proposalUpdates, $this->travelDateData($request));
         if (!\Illuminate\Support\Facades\Schema::hasColumn('b2c_itineraries', 'supplier_id')) {
             unset($proposalUpdates['supplier_id']);
         }
@@ -613,6 +637,7 @@ class B2CItineraryController extends Controller
             'child_6_11_price' => $adultPrice * 0.50,
             'converted_prices' => [],
             'start_date' => $itinerary->start_date,
+            'travel_date_label' => $itinerary->travel_date_label,
             'quote_id' => $itinerary->quote_id,
         ];
 
@@ -638,7 +663,7 @@ class B2CItineraryController extends Controller
         $text .= "👤 *Prepared for:* " . ($itinerary->client_name ?? 'Valued Client') . "\n";
         $text .= "🗓️ *Duration:* " . $itinerary->duration_days . " Days / " . max(0, $itinerary->duration_days - 1) . " Nights\n";
         $text .= "📍 *Destination:* " . ($itinerary->destination->name ?? 'N/A') . "\n";
-        $text .= "📅 *Travel date:* " . ($itinerary->start_date ? $itinerary->start_date->format('d M Y') : 'To be confirmed') . "\n";
+        $text .= "📅 *Travel date:* " . $itinerary->travel_date_label . "\n";
         $text .= "👥 *Travelers:* " . ($itinerary->adults ?: 1) . " Adults";
         if ($itinerary->children_2_6 > 0)
             $text .= ", " . $itinerary->children_2_6 . " Child (2-6y)";
@@ -757,6 +782,13 @@ class B2CItineraryController extends Controller
         ]);
 
         $itinerary = B2CItinerary::findOrFail($id);
+        if (in_array($request->status, ['confirmed', 'converted', 'travelled'], true) && !$itinerary->start_date) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Set an exact departure date before confirming this lead.',
+                'errors' => ['start_date' => ['An exact departure date is required before confirmation.']],
+            ], 422);
+        }
         $itinerary->followup_status = $request->status;
         $itinerary->followed_up_at = now();
         $followupSchedule = app(LeadFollowupScheduleService::class);
@@ -793,5 +825,31 @@ class B2CItineraryController extends Controller
         }
 
         return array_values(array_filter(array_map('trim', preg_split('/\r\n|\r|\n/', (string) $value))));
+    }
+
+    private function prepareTravelDateRequest(Request $request, bool $requiresExact = false, ?B2CItinerary $itinerary = null): void
+    {
+        $status = $request->input('travel_date_status');
+        if (!$status) {
+            $status = $request->filled('start_date')
+                ? 'exact'
+                : ($itinerary ? $itinerary->effective_travel_date_status : 'tbd');
+        }
+
+        $request->merge(['travel_date_status' => $requiresExact ? 'exact' : $status]);
+    }
+
+    private function travelDateData(Request $request): array
+    {
+        $isExact = $request->travel_date_status === 'exact';
+
+        return [
+            'travel_date_status' => $request->travel_date_status,
+            'start_date' => $isExact ? $request->start_date : null,
+            'preferred_travel_month' => $request->travel_date_status === 'flexible'
+                ? $request->preferred_travel_month
+                : null,
+            'travel_date_notes' => $request->travel_date_notes,
+        ];
     }
 }
