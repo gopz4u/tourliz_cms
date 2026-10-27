@@ -163,6 +163,28 @@
                                     <input type="text" id="proposal-title" class="form-control form-control-sm"
                                         value="{{ $itinerary['title'] }}">
                                 </div>
+                                <div class="p-2 mb-3 rounded border bg-white">
+                                    <h6 class="fw-bold mb-2" style="font-size:.8rem;"><i class="bi bi-sliders me-1 text-success"></i> Pricing Method</h6>
+                                    <div class="d-flex gap-3 mb-2">
+                                        <div class="form-check">
+                                            <input class="form-check-input b2b-pricing-mode-radio" type="radio" name="pricing_mode_ui" id="b2b-pricing-fixed" value="fixed" {{ data_get($itinerary, 'pricing_mode') === 'fixed' ? 'checked' : '' }}>
+                                            <label class="form-check-label small fw-semibold" for="b2b-pricing-fixed">Fixed itinerary price</label>
+                                        </div>
+                                        <div class="form-check">
+                                            <input class="form-check-input b2b-pricing-mode-radio" type="radio" name="pricing_mode_ui" id="b2b-pricing-live" value="live" {{ (data_get($itinerary, 'pricing_mode', 'live') ?? 'live') !== 'fixed' ? 'checked' : '' }}>
+                                            <label class="form-check-label small fw-semibold" for="b2b-pricing-live">Live calculated rate</label>
+                                        </div>
+                                    </div>
+                                    <div id="b2b-fixed-price-controls" class="{{ data_get($itinerary, 'pricing_mode') === 'fixed' ? '' : 'd-none' }}">
+                                        <label class="form-label small text-muted mb-1">Fixed price (agency quote)</label>
+                                        <div class="input-group input-group-sm">
+                                            <span class="input-group-text" id="b2b-fixed-price-currency">{{ data_get($itinerary, 'fixed_price_currency') ?: data_get($itinerary, 'quote_currency') ?: data_get($itinerary, 'currency', 'MYR') }}</span>
+                                            <input id="b2b-fixed-price-input" type="number" min="0" step="0.01" class="form-control fw-bold"
+                                                value="{{ data_get($itinerary, 'fixed_price') }}" placeholder="Leave empty to use live rate">
+                                        </div>
+                                    </div>
+                                    <small class="text-muted d-block mt-2">Use the imported fixed price or the live day-by-day calculated rate. PDF and WhatsApp follow the selected method.</small>
+                                </div>
                                 <div class="p-2 mb-3 rounded border bg-light">
                                     <div class="mb-2"><label class="form-label small text-muted mb-1">Customer Currency</label><select id="quote-currency" class="form-select form-select-sm">@foreach(['MYR','USD','SGD','INR','AED','EUR','GBP'] as $code)<option value="{{ $code }}" {{ $itinerary->customer_currency === $code ? 'selected' : '' }}>{{ $code }}</option>@endforeach</select></div>
                                     <div class="row g-2"><div class="col-7"><label class="form-label small text-muted mb-1">Exchange Rate</label><input id="exchange-rate" type="number" min="0.00000001" step="0.00000001" class="form-control form-control-sm" value="{{ $itinerary->exchange_rate ?: 1 }}"></div><div class="col-5"><label class="form-label small text-muted mb-1">Rate Date</label><input id="exchange-rate-date" type="date" class="form-control form-control-sm" value="{{ optional($itinerary->exchange_rate_date)->format('Y-m-d') ?: now()->format('Y-m-d') }}"></div></div>
@@ -597,6 +619,12 @@
             <input type="hidden" name="preferred_travel_month" id="formPreferredTravelMonth">
             <input type="hidden" name="travel_date_notes" id="formTravelDateNotes">
             <input type="hidden" name="duration_days" id="formDuration">
+
+            <!-- Pricing method -->
+            <input type="hidden" name="fixed_itinerary_id" id="formFixedItineraryId">
+            <input type="hidden" name="fixed_price" id="formFixedPrice">
+            <input type="hidden" name="fixed_price_currency" id="formFixedPriceCurrency">
+            <input type="hidden" name="pricing_mode" id="formPricingMode">
         </form>
 
         <!-- Shared Modal for Inventory Selection -->
@@ -644,6 +672,21 @@
                 const currency = "{{ $itinerary['currency'] ?? 'INR' }}";
                 const destinationId = "{{ $itinerary['destination_id'] ?? '' }}";
 
+                let b2bPricingMode = @json(data_get($itinerary, 'pricing_mode', 'live'));
+                let b2bFixedPrice = parseFloat(@json(data_get($itinerary, 'fixed_price')) || 0) || 0;
+                let b2bFixedPriceCurrency = @json(data_get($itinerary, 'fixed_price_currency') ?: data_get($itinerary, 'quote_currency') ?: data_get($itinerary, 'currency', 'MYR'));
+                let b2bFixedItineraryId = @json(data_get($itinerary, 'fixed_itinerary_id'));
+
+                window.updateB2BPricingModeUI = function () {
+                    const checked = document.querySelector('input[name="pricing_mode_ui"]:checked');
+                    b2bPricingMode = checked ? checked.value : 'live';
+                    const controls = document.getElementById('b2b-fixed-price-controls');
+                    if (controls) controls.classList.toggle('d-none', b2bPricingMode !== 'fixed');
+                    const fixedInput = document.getElementById('b2b-fixed-price-input');
+                    if (fixedInput) b2bFixedPrice = safeFloat(fixedInput.value);
+                    if (typeof window.calculateDynamicTotal === 'function') window.calculateDynamicTotal();
+                };
+
                 window.updateTravelDateFields = function () {
                     const status = document.getElementById('travel-date-status');
                     const exactField = document.getElementById('exact-date-field');
@@ -655,6 +698,12 @@
                 document.addEventListener('DOMContentLoaded', function () {
                     document.getElementById('travel-date-status')?.addEventListener('change', window.updateTravelDateFields);
                     window.updateTravelDateFields();
+
+                    document.querySelectorAll('.b2b-pricing-mode-radio').forEach(function (radio) {
+                        radio.addEventListener('change', window.updateB2BPricingModeUI);
+                    });
+                    document.getElementById('b2b-fixed-price-input')?.addEventListener('input', window.updateB2BPricingModeUI);
+                    window.updateB2BPricingModeUI();
                 });
 
                 // Helper to ensure we always have an array
@@ -703,6 +752,25 @@
                         document.getElementById('proposal-exclusions').value = ensureArray(fi.exclusions).join('\n');
                         document.getElementById('proposal-terms').value = fi.terms_conditions || '';
                         document.getElementById('trip-duration').value = itinerary.length;
+
+                        if (safeFloat(fi.fixed_price) > 0) {
+                            b2bFixedItineraryId = fi.id;
+                            b2bFixedPrice = safeFloat(fi.fixed_price);
+                            b2bFixedPriceCurrency = fi.currency || currency;
+                        } else {
+                            b2bFixedItineraryId = null;
+                            b2bFixedPrice = 0;
+                        }
+                        const fixedPriceInput = document.getElementById('b2b-fixed-price-input');
+                        if (fixedPriceInput) fixedPriceInput.value = b2bFixedPrice || '';
+                        const fixedPriceCurrency = document.getElementById('b2b-fixed-price-currency');
+                        if (fixedPriceCurrency) fixedPriceCurrency.textContent = b2bFixedPriceCurrency || currency;
+                        if (b2bFixedPrice > 0) {
+                            const fixedRadio = document.getElementById('b2b-pricing-fixed');
+                            if (fixedRadio) fixedRadio.checked = true;
+                        }
+                        window.updateB2BPricingModeUI();
+
                         renderBuilder(); calculateDynamicTotal(); isDirty = true; b2bFixedModal.hide();
                     }).catch(error => alert(error.message || 'Import failed.'));
                 };
@@ -862,7 +930,14 @@
                     safeSet('preview-markup', markupAmount);
                     safeSet('preview-child-addon', childAddOn);
                     const customerTotalEl = document.getElementById('preview-grand-total');
-                    if (customerTotalEl) customerTotalEl.innerText = quoteCurrency + ' ' + customerTotal.toFixed(2);
+                    if (customerTotalEl) {
+                        const useFixed = b2bPricingMode === 'fixed' && b2bFixedPrice > 0;
+                        const shownTotal = useFixed ? b2bFixedPrice : customerTotal;
+                        const shownCurrency = useFixed
+                            ? (document.getElementById('b2b-fixed-price-currency')?.textContent || b2bFixedPriceCurrency || quoteCurrency)
+                            : quoteCurrency;
+                        customerTotalEl.innerText = shownCurrency + ' ' + shownTotal.toFixed(2);
+                    }
 
                     const totalPax = adults + c1 + c2;
 
@@ -1783,7 +1858,10 @@
                         const adultsCount = parseInt(adults || 0);
                         const c1Count = parseInt(c1 || 0);
                         const c2Count = parseInt(c2 || 0);
-                        const currencyStr = document.getElementById('quote-currency')?.value || "{{ $itinerary['currency'] ?? 'MYR' }}";
+                        const useFixedPrice = b2bPricingMode === 'fixed' && b2bFixedPrice > 0;
+                        const currencyStr = useFixedPrice
+                            ? (document.getElementById('b2b-fixed-price-currency')?.textContent || b2bFixedPriceCurrency)
+                            : (document.getElementById('quote-currency')?.value || "{{ $itinerary['currency'] ?? 'MYR' }}");
 
                         let adultRate = 0;
                         let childRateSmall = 0;
@@ -2110,6 +2188,10 @@
                             document.getElementById('formPreferredTravelMonth').value = getFieldValue('preferred-travel-month');
                             document.getElementById('formTravelDateNotes').value = getFieldValue('travel-date-notes');
                             document.getElementById('formDuration').value = getFieldValue('trip-duration');
+                            document.getElementById('formPricingMode').value = b2bPricingMode || 'live';
+                            document.getElementById('formFixedPrice').value = (b2bPricingMode === 'fixed' && b2bFixedPrice > 0) ? b2bFixedPrice : '';
+                            document.getElementById('formFixedPriceCurrency').value = document.getElementById('b2b-fixed-price-currency')?.textContent || b2bFixedPriceCurrency || '';
+                            document.getElementById('formFixedItineraryId').value = b2bFixedItineraryId || '';
 
                             isDirty = false;
                             saveForm.submit();

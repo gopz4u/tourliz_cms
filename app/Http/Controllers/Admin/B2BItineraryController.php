@@ -212,6 +212,10 @@ class B2BItineraryController extends Controller
             'status' => 'nullable|string',
             'user_id' => 'nullable|exists:admins,id',
             'quote_currency' => 'nullable|in:MYR,USD,SGD,INR,AED,EUR,GBP',
+            'fixed_itinerary_id' => 'nullable|exists:fixed_itineraries,id',
+            'fixed_price' => 'nullable|numeric|min:0',
+            'fixed_price_currency' => 'nullable|in:MYR,USD,SGD,INR,AED,EUR,GBP',
+            'pricing_mode' => 'nullable|in:fixed,live',
             'exchange_rate' => 'nullable|numeric|min:0.00000001',
             'exchange_rate_date' => 'nullable|date',
             'short_description' => 'nullable|string',
@@ -235,6 +239,19 @@ class B2BItineraryController extends Controller
         // Logic to track when last followed up
         if ($request->followup_status && $request->followup_status != $itinerary->followup_status) {
             $itinerary->followed_up_at = now();
+        }
+
+        $useFixedPricing = $request->pricing_mode === 'fixed' && (float) $request->fixed_price > 0;
+        $fixedPricingData = [
+            'fixed_itinerary_id' => $request->filled('fixed_price') && (float) $request->fixed_price > 0 ? $request->fixed_itinerary_id : null,
+            'fixed_price' => $request->filled('fixed_price') && (float) $request->fixed_price > 0 ? $request->fixed_price : null,
+            'fixed_price_currency' => $request->filled('fixed_price') && (float) $request->fixed_price > 0 ? ($request->fixed_price_currency ?: ($request->quote_currency ?: $itinerary->currency)) : null,
+            'pricing_mode' => $useFixedPricing ? 'fixed' : 'live',
+        ];
+        foreach (['fixed_itinerary_id', 'fixed_price', 'pricing_mode', 'fixed_price_currency'] as $fixedColumn) {
+            if (!\Illuminate\Support\Facades\Schema::hasColumn('custom_itineraries', $fixedColumn)) {
+                unset($fixedPricingData[$fixedColumn]);
+            }
         }
 
         $itinerary->fill(array_merge([
@@ -264,7 +281,7 @@ class B2BItineraryController extends Controller
             'next_followup_date' => $request->next_followup_date,
             'status' => $request->status ?? $itinerary->status,
             'user_id' => $request->user_id ?? $itinerary->user_id,
-        ], $this->travelDateData($request)));
+        ], $fixedPricingData, $this->travelDateData($request)));
 
         $itinerary->calculatePricing();
         $itinerary->save();

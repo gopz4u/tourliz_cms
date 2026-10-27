@@ -47,10 +47,47 @@ class CustomItinerary extends Model
         }
     }
 
+    public static function ensureFixedPricingSchema(): void
+    {
+        static $checked = false;
+        $table = 'custom_itineraries';
+
+        if ($checked || !\Illuminate\Support\Facades\Schema::hasTable($table)) {
+            return;
+        }
+
+        try {
+            if (!\Illuminate\Support\Facades\Schema::hasColumn($table, 'fixed_itinerary_id')) {
+                \Illuminate\Support\Facades\Schema::table($table, function ($blueprint) {
+                    $blueprint->unsignedBigInteger('fixed_itinerary_id')->nullable()->index()->after('destination_id');
+                });
+            }
+            if (!\Illuminate\Support\Facades\Schema::hasColumn($table, 'fixed_price')) {
+                \Illuminate\Support\Facades\Schema::table($table, function ($blueprint) {
+                    $blueprint->decimal('fixed_price', 15, 2)->nullable()->after('total_price');
+                });
+            }
+            if (!\Illuminate\Support\Facades\Schema::hasColumn($table, 'pricing_mode')) {
+                \Illuminate\Support\Facades\Schema::table($table, function ($blueprint) {
+                    $blueprint->string('pricing_mode', 20)->default('live')->after('fixed_price');
+                });
+            }
+            if (!\Illuminate\Support\Facades\Schema::hasColumn($table, 'fixed_price_currency')) {
+                \Illuminate\Support\Facades\Schema::table($table, function ($blueprint) {
+                    $blueprint->string('fixed_price_currency', 10)->nullable()->after('fixed_price');
+                });
+            }
+            $checked = true;
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::warning('B2B fixed-pricing schema repair failed: ' . $e->getMessage());
+        }
+    }
+
     protected static function boot()
     {
         parent::boot();
         static::ensureTravelDateSchema();
+        static::ensureFixedPricingSchema();
     }
 
     protected $fillable = [
@@ -61,6 +98,7 @@ class CustomItinerary extends Model
         'short_description',
         'client_name',
         'destination_id',
+        'fixed_itinerary_id',
         'country_ids',
         'start_date',
         'travel_date_status',
@@ -79,6 +117,9 @@ class CustomItinerary extends Model
         'markup_percentage',
         'markup_amount',
         'total_price',
+        'fixed_price',
+        'pricing_mode',
+        'fixed_price_currency',
         'currency',
         'quote_currency',
         'exchange_rate',
@@ -117,9 +158,11 @@ class CustomItinerary extends Model
         'markup_percentage' => 'decimal:2',
         'markup_amount' => 'decimal:2',
         'total_price' => 'decimal:2',
+        'fixed_price' => 'decimal:2',
         'user_id' => 'integer',
         'agency_id' => 'integer',
         'destination_id' => 'integer',
+        'fixed_itinerary_id' => 'integer',
         'country_ids' => 'array',
         'duration_days' => 'integer',
         'adults' => 'integer',
@@ -240,7 +283,10 @@ class CustomItinerary extends Model
         $childAddOn = ($adultPerPerson * 0.25 * max(0, (int) $this->children_2_6))
             + ($adultPerPerson * 0.50 * max(0, (int) $this->children_6_11));
 
-        $this->total_price = round($adultPackageSubtotal + $childAddOn, 2);
+        $calculatedTotal = round($adultPackageSubtotal + $childAddOn, 2);
+        $this->total_price = $this->pricing_mode === 'fixed' && (float) $this->fixed_price > 0
+            ? round((float) $this->fixed_price, 2)
+            : $calculatedTotal;
 
         return $this;
     }
@@ -252,6 +298,10 @@ class CustomItinerary extends Model
 
     public function getCustomerCurrencyAttribute(): string
     {
+        if ($this->pricing_mode === 'fixed' && (float) $this->fixed_price > 0) {
+            return $this->fixed_price_currency ?: ($this->quote_currency ?: 'MYR');
+        }
+
         return $this->quote_currency ?: ($this->currency ?: 'MYR');
     }
 
@@ -263,6 +313,10 @@ class CustomItinerary extends Model
 
     public function getCustomerTotalPriceAttribute(): float
     {
+        if ($this->pricing_mode === 'fixed' && (float) $this->fixed_price > 0) {
+            return round((float) $this->fixed_price, 2);
+        }
+
         return $this->convertForCustomer($this->total_price);
     }
 
@@ -274,16 +328,21 @@ class CustomItinerary extends Model
     {
         $baseCurrency = strtoupper($this->currency ?: 'MYR');
         $customerCurrency = strtoupper($this->customer_currency ?: $baseCurrency);
+        $customerTotal = $this->customer_total_price;
 
         if ($customerCurrency === 'MYR') {
-            return round($this->customer_total_price, 2);
+            return round($customerTotal, 2);
         }
 
-        if ($baseCurrency === 'MYR') {
+        if ($baseCurrency === 'MYR' && $this->pricing_mode !== 'fixed') {
             return round((float) $this->total_price, 2);
         }
 
-        return (float) \App\Models\CurrencyExchangeRate::convert($this->customer_total_price, $customerCurrency, 'MYR');
+        if ($baseCurrency === 'MYR' && (float) $this->exchange_rate > 0 && (float) $this->exchange_rate !== 1.0) {
+            return round($customerTotal / (float) $this->exchange_rate, 2);
+        }
+
+        return (float) \App\Models\CurrencyExchangeRate::convert($customerTotal, $customerCurrency, 'MYR');
     }
 
     public function getCurrencySymbolAttribute(): string
